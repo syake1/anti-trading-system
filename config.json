@@ -289,6 +289,21 @@
       "運輸": -1
     }
   },
+  "jgb_yields": {
+    "tickers": {
+      "2Y": "^JP2Y",
+      "10Y": "^JP10Y",
+      "30Y": "^JP30Y"
+    },
+    "impact_bp_scale": 10,
+    "sector_impacts": {
+      "銀行": 1.5,
+      "保険": 1.0,
+      "グロース": -1.5,
+      "不動産": -1.0,
+      "電力・ガス": -0.5
+    }
+  },
   "news_analysis": {
     "trusted_sources": [
       "Reuters",

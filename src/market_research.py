@@ -19,7 +19,7 @@ def grouped_performance(trades: pd.DataFrame, group: str, minimum_samples=20) ->
 
 
 def write_research_report(trades: pd.DataFrame, output: Path, minimum_samples=20):
-    groups = ["market_regime", "market_condition", "news_condition"]
+    groups = ["market_regime", "market_condition", "news_condition", "jgb_10y_condition", "jgb_curve_condition"]
     text = ["# AI研究員・市場環境／ニュース条件別検証", "", "本番ロジックは自動変更しません。"]
     for group in groups:
         text += [f"\n## {group}\n", grouped_performance(trades, group, minimum_samples).to_markdown(index=False) if group in trades else "継続検証（列またはサンプルなし）"]
