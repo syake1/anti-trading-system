@@ -13,6 +13,18 @@ python -m stocknote_side.cli /exchange/stocknote_request_run_123456.json
 python -m stocknote_side.cli REQUEST.json --analyzer my_stocknote.analysis:analyze_candidate
 ```
 
+同梱の最小実分析プロバイダー（東証の1銘柄だけを取得）は次のように指定します。
+
+```bash
+python -m stocknote_side.cli REQUEST.json \
+  --analyzer stocknote_provider.analysis:analyze_candidate
+```
+
+株価履歴からRSI、ボリンジャーバンド位置、トレンド、逆張りスコアと3つの価格水準を
+計算します。ファンダメンタルはリクエストで明示された利用可能な値だけを返し、欠損値を
+補完しません。株探・みんかぶ等の値を渡す場合は `reference_information` として公式値と
+分離してください。
+
 分析関数にはキーワード引数 `code`、`official_information`、
 `reference_information` が渡ります。戻り値は必須4項目のうち `code` を除く
 `assessment`、`confidence`、`summary` と、response schema の任意項目を持つ辞書です。
