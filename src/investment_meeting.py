@@ -262,7 +262,7 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         print(message)
         return output
     if kind == "weekend":
-        weekend_result = generate_weekend_result(candidates)
+        weekend_result = generate_weekend_result(candidates, jgb, config)
         stocknote = config.get("stocknote", {})
         if stocknote.get("enabled", False):
             exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")
@@ -270,6 +270,20 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
             weekend_result["stocknote_employee"] = "request_exported"
             weekend_result["stocknote_run_id"] = run_id
             weekend_result["stocknote_request"] = str(request_path.relative_to(ROOT))
+            annotated, status = consume_shadow(
+                candidates, exchange, run_id,
+                max_age_hours=float(stocknote.get("max_response_age_hours", 24)))
+            weekend_result["stocknote_employee"] = status
+            if status == "accepted":
+                by_code = {str(row["コード"]): row for _, row in annotated.iterrows()
+                           if str(row.get("stocknote_評価", "")).strip()}
+                weekend_result["stocknote_analyses"] = [{
+                    "code": row["code"], "name": row["name"],
+                    "assessment": by_code[row["code"]].get("stocknote_評価", ""),
+                    "confidence": by_code[row["code"]].get("stocknote_信頼度", ""),
+                    "contrarian_score": by_code[row["code"]].get("stocknote_逆張りスコア", ""),
+                    "summary": by_code[row["code"]].get("stocknote_要約", ""),
+                } for row in weekend_result["candidates"] if row["code"] in by_code]
         _, output = save_weekend_result(weekend_result)
         message = weekend_message(weekend_result)
         if notify: post(message)

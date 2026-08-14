@@ -135,29 +135,44 @@ def load_latest_night_result(folder: Path | None = None) -> dict[str, Any] | Non
     return result if result.get("status") == "provisional" and result.get("final_decision") is False else None
 
 
-def generate_weekend_result(candidates: pd.DataFrame, observed_at: datetime | None = None) -> dict[str, Any]:
+def generate_weekend_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping[str, Any] | None = None,
+                            config: Mapping[str, Any] | None = None,
+                            observed_at: datetime | None = None) -> dict[str, Any]:
     """Create a broad Friday-close watch list without producing executable orders."""
+    # Keep the former ``(candidates, observed_at)`` call usable for integrations.
+    if isinstance(jgb, datetime) and observed_at is None:
+        observed_at, jgb = jgb, None
     observed_at = observed_at or now_tokyo()
     if observed_at.tzinfo is None:
         observed_at = observed_at.replace(tzinfo=ZoneInfo("Asia/Tokyo"))
     rows = []
+    bank_evaluations = []
     for row in candidates.fillna("").to_dict("records"):
         rsi = float(row.get("RSI14") or 50)
         change = float(row.get("当日騰落率") or 0)
         category = "押し目候補" if rsi <= 45 else "動意候補" if change > 0 else "翌週再確認"
-        rows.append({"code": str(row.get("コード", "")),
+        sector = str(row.get("業種", "")).strip()
+        item = {"code": str(row.get("コード", "")),
                      "name": str(row.get("会社名", row.get("銘柄名", ""))),
-                     "sector": str(row.get("業種", "不明") or "不明"),
-                     "category": category})
+                     "sector": sector,
+                     "category": category}
+        if sector == "銀行" and config is not None:
+            evaluation = evaluate_bank_sector(jgb, row, config)
+            item["bank_classification"] = evaluation.classification
+            item["morning_recheck"] = evaluation.morning_recheck
+            bank_evaluations.append(_candidate_result(row, evaluation))
+        rows.append(item)
     sectors: dict[str, int] = {}
     for row in rows:
-        sectors[row["sector"]] = sectors.get(row["sector"], 0) + 1
+        if row["sector"]:
+            sectors[row["sector"]] = sectors.get(row["sector"], 0) + 1
     monday = observed_at.date() + timedelta(days=(7 - observed_at.weekday()) % 7)
     return {"status": "provisional", "final_decision": False,
             "basis": "Friday close", "observed_at": observed_at.isoformat(timespec="seconds"),
             "monday_recheck_date": monday.isoformat(), "stocknote_employee": "enabled",
             "focus_sectors": sorted(sectors, key=lambda name: (-sectors[name], name)),
             "candidates": rows,
+            "bank_evaluations": bank_evaluations,
             "monday_recheck_conditions": ["最新ニュース", "日経先物", "TOPIX", "為替", "米国市場",
                                            "日本2年・10年・30年金利", "10年-2年スプレッド", "気配"]}
 
@@ -165,13 +180,46 @@ def generate_weekend_result(candidates: pd.DataFrame, observed_at: datetime | No
 def weekend_message(result: Mapping[str, Any]) -> str:
     lines = ["📅 週末投資会議", "status=provisional", "final_decision=false",
              "基準：金曜終値", f"stocknote分析社員：{result['stocknote_employee']}（参考情報）",
-             "注目セクター：" + (" / ".join(result["focus_sectors"]) or "なし")]
-    for category in ("押し目候補", "動意候補", "翌週再確認"):
+             "注目セクター：" + (" / ".join(result["focus_sectors"]) or "該当なし")]
+    limits = {"押し目候補": 10, "動意候補": 5, "翌週再確認": 10}
+    for category in limits:
         selected = [f"{r['code']} {r['name']}".strip() for r in result["candidates"] if r["category"] == category]
-        lines.append(f"{category}：" + (" / ".join(selected) or "なし"))
+        shown = selected[:limits[category]]
+        suffix = f"（ほか{len(selected) - len(shown)}件は監査CSV）" if len(selected) > len(shown) else ""
+        lines.append(f"{category} TOP{limits[category]}：" + (" / ".join(shown) or "なし") + suffix)
+    lines += _weekend_bank_lines(result.get("bank_evaluations", []))
+    analyses = result.get("stocknote_analyses", [])
+    if analyses:
+        lines += ["", "stocknote上位候補（参考情報・判断には未反映）："]
+        for row in analyses[:10]:
+            confidence = row.get("confidence", "")
+            try: confidence = f"{float(confidence):.0%}"
+            except (TypeError, ValueError): confidence = str(confidence)
+            summary = str(row.get("summary", "")).replace("\n", " ")[:100]
+            lines.append(f"{row['code']} {row.get('name', '')}：{row.get('assessment', '')} / confidence {confidence} / contrarian {row.get('contrarian_score', '未提示')} / {summary}")
     lines += ["月曜朝の再確認条件：" + " / ".join(result["monday_recheck_conditions"]),
               "※主力・小口・注文は確定せず、月曜朝会で最終判断します。"]
     return "\n".join(lines)
+
+
+def _weekend_bank_lines(evaluations: list[Mapping[str, Any]]) -> list[str]:
+    """Render a dedicated bank section from the sector-strategy audit result."""
+    lines = ["", "🏦 銀行セクター専用欄"]
+    first = evaluations[0] if evaluations else None
+    metrics = first.get("rate_metrics", {}) if first else {}
+    lines.append("金利局面：" + (first["rate_regime"] if first else "評価不能"))
+    lines.append("2年・10年・30年金利：" + " / ".join(
+        _fmt(metrics.get(f"{tenor}_yield_pct"), "%") for tenor in ("2Y", "10Y", "30Y")))
+    lines.append(f"10年-2年スプレッド：{_fmt(metrics.get('spread_10y_2y_bp'), 'bp')}")
+    lines.append("基本戦略：" + (first["principle"] if first else "金利データと反転条件を月曜朝に再確認"))
+    for classification, label in (("押し目候補", "銀行押し目候補"), ("押し目監視", "押し目監視"),
+                                  ("追いかけ禁止", "追いかけ禁止"), ("回避", "回避")):
+        selected = [f"{row['code']} {row['name']}".strip() for row in evaluations
+                    if row["bank_classification"] == classification]
+        lines.append(f"{label}：" + (" / ".join(selected) or "なし"))
+    recheck = [f"{row['code']} {row['name']}".strip() for row in evaluations if row["morning_recheck"]]
+    lines.append("月曜朝再確認：" + (" / ".join(recheck) or "なし"))
+    return lines
 
 
 def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -> tuple[Path, Path]:
@@ -181,4 +229,9 @@ def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -
     json_path, md_path = folder / f"weekend_meeting_{day}.json", folder / f"weekend_meeting_{day}.md"
     json_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     md_path.write_text(weekend_message(result) + "\n", encoding="utf-8")
+    limits = {"押し目候補": 10, "動意候補": 5, "翌週再確認": 10}
+    overflow = []
+    for category, limit in limits.items():
+        overflow.extend([row for row in result["candidates"] if row["category"] == category][limit:])
+    pd.DataFrame(overflow).to_csv(folder / f"weekend_meeting_{day}_audit.csv", index=False, encoding="utf-8-sig")
     return json_path, md_path
