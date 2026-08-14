@@ -14,13 +14,15 @@ from src.discord_notify import candidate_message, post
 from src.indicators import enrich
 from src.scoring import rank, score
 from src.stochastic import stochastic
+from src.strategies import evaluate
+from src.materials import ensure_templates, signals_for
 from src.utils import ROOT, load_config, now_tokyo, save_json
 
 
 RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "直近3日騰落率", "直近5日騰落率",
                   "25日線乖離率", "ATR当日値幅", "スコア", "ランク", "%K", "%D",
                   "%D傾き", "RSI14", "MA25", "MA75", "MA200", "BB位置", "出来高倍率", "ローソク足パターン",
-                  "アンチ判定", "買い・売り", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
+                  "アンチ判定", "買い・売り", "シグナル種別", "シグナル数", "自社株買い比率", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
 
 # yf.download() は銘柄ごとの例外をワーカースレッド内で捕捉し、呼び出し元へ
 # raise せず shared._ERRORS にだけ保存する。このスナップショットは各呼出し直後に
@@ -65,11 +67,20 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
         stochastic(df, config["stochastic"]["k_period"], config["stochastic"]["d_period"])
     )
     now, prev = df.iloc[-1], df.iloc[-2]
-    signal = detect(df, config["stochastic"]["d_slope_days"])
-    if not signal: return None
-    pats = patterns(df, signal["side"])
+    anti = detect(df, config["stochastic"]["d_slope_days"])
+    pats = patterns(df, "buy")
+    strategy = evaluate(df, anti, pats, config)
+    material, material_reasons = signals_for(str(stock["code"]), ROOT, config)
+    flags = strategy["flags"] | material["flags"]
+    # Materials alone never create a candidate: price must confirm reversal/base/anti.
+    if not any(strategy["flags"].values()): return None
+    signal = anti if anti and anti.get("side") == "buy" else {"side": "buy", "cross": strategy["stoch_cross"]}
     value, reasons = score(df, signal, pats, config)
-    side = signal["side"]
+    if flags["底固め"]: value += config["weights"]["accumulation"]; reasons.extend(strategy["base_reasons"])
+    if material["flags"]["自社株買い"]: value += config["weights"]["buyback"]
+    if material["flags"]["決算・上方修正"]: value += config["weights"]["positive_event"]
+    reasons.extend(material_reasons)
+    side = "buy"
     exclusions = surge_exclusion(now, config) if side == "buy" else []
     lookback = config["risk"]["lookback_days"]
     structural = df.Low.iloc[-lookback:].min() if side == "buy" else df.High.iloc[-lookback:].max()
@@ -86,8 +97,10 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
             "%D傾き": round(now.D - df.D.iloc[-1-config["stochastic"]["d_slope_days"]], 2), "RSI14": round(now.RSI14, 2),
             "MA25": round(now.MA25, 2), "MA75": round(now.MA75, 2), "MA200": round(now.MA200, 2),
             "BB位置": f'{now.bb_sigma:+.2f}σ', "出来高倍率": round(now.volume_ratio, 2),
-            "ローソク足パターン": " / ".join(pats) or "なし", "アンチ判定": "強" if signal["cross"] else "通常",
+            "ローソク足パターン": " / ".join(pats) or "なし", "アンチ判定": "強" if flags["アンチ"] and signal["cross"] else "通常" if flags["アンチ"] else "なし",
             "買い・売り": "買い" if side == "buy" else "売り", "損切り候補": round(stop, 2),
+            "シグナル種別": " / ".join(k for k, enabled in flags.items() if enabled),
+            "シグナル数": sum(flags.values()), "自社株買い比率": round(material["buyback_ratio"], 2),
             "利確候補": round(target, 2), "RR": config["risk"]["reward_risk"], "判定理由": "、".join(reasons),
             "除外理由": "急騰済み（" + "、".join(exclusions) + "）" if exclusions else "",
             "Yahoo Financeリンク": f'https://finance.yahoo.co.jp/quote/{stock["code"]}.T'}
@@ -166,6 +179,7 @@ def _download_with_retry(
 def run(notify: bool = True) -> Path:
     started_at = time.monotonic()
     config = load_config()
+    ensure_templates(ROOT)
     stocks = pd.read_csv(ROOT / "stocks.csv", dtype={"code": str}).to_dict("records")
     output = ROOT / f'anti_candidates_{now_tokyo():%Y%m%d}.csv'
     if not stocks:
@@ -222,6 +236,8 @@ def run(notify: bool = True) -> Path:
             time.sleep(max(0, float(config["scan"].get("batch_pause_seconds", 0.5))))
     result = pd.DataFrame(rows, columns=RESULT_COLUMNS).sort_values("スコア", ascending=False, ignore_index=True)
     result.to_csv(output, index=False, encoding="utf-8-sig")
+    excluded_output = ROOT / f'data/excluded_{now_tokyo():%Y%m%d}.csv'
+    result[result["ランク"] == "除外"].to_csv(excluded_output, index=False, encoding="utf-8-sig")
     failure_log = ROOT / f'data/download_failures_{now_tokyo():%Y%m%d}.csv'
     pd.DataFrame(failed_stocks, columns=["コード", "会社名", "理由"]).to_csv(
         failure_log, index=False, encoding="utf-8-sig"
@@ -233,7 +249,7 @@ def run(notify: bool = True) -> Path:
         selected = selected.head(int(config["scan"].get("watchlist_max_stocks", 50)))
         save_json(ROOT / "data/watchlist.json", selected[["コード", "会社名", "買い・売り", "シグナル日"]].to_dict("records"))
         if notify:
-            alerts = result[result["ランク"].isin(config["scan"]["notify_ranks"])]
+            alerts = result[result["ランク"].isin(config["scan"]["notify_ranks"]) | (result["シグナル数"] >= 2)]
             for row in alerts.head(int(config["scan"].get("discord_max_alerts", 20))).to_dict("records"):
                 try:
                     post(candidate_message(row))
@@ -247,7 +263,7 @@ def run(notify: bool = True) -> Path:
     print(f"429件数: {len(rate_limited)}")
     print(f"判定完了数: {completed}")
     print(f"一次フィルター通過: {liquid_count}")
-    print(f"アンチ候補件数: {len(result)}")
+    print(f"逆張り候補数: {len(result)}")
     print(f"Sランク件数: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
     print(f"Aランク件数: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
     print(f"急騰除外件数: {(result['除外理由'].fillna('').str.startswith('急騰済み')).sum() if not result.empty else 0}")

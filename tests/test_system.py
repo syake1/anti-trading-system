@@ -8,6 +8,8 @@ from src.discord_notify import candidate_message
 from src.scoring import score
 from src.stochastic import stochastic
 from src.utils import load_json
+from src.strategies import evaluate
+from src.materials import load_buybacks
 
 
 def test_indicators_and_anti_buy():
@@ -260,3 +262,26 @@ def test_discord_buy_message_shows_not_already_surged_fields():
     message = candidate_message(row)
     for label in ("3日騰落率", "5日騰落率", "25日線乖離", "RSI", "BB位置", "反転パターン"):
         assert label in message
+
+
+def test_strategy_requires_reversal_after_lower_band():
+    config = _config()
+    frame = pd.DataFrame({"Open": [102, 100, 98], "High": [103, 101, 100], "Low": [99, 96, 95],
+        "Close": [100, 98, 99], "RSI14": [31, 28, 33], "K": [24, 15, 27], "D": [25, 20, 21],
+        "bb_sigma": [-1.2, -2.1, -1.5], "ATR14": [2, 2, 2], "bb_upper": [110]*3,
+        "bb_lower": [90]*3, "bb_mid": [100]*3, "volume_ratio": [1, 1, 1.5]})
+    # accumulation needs history, but A/B can be evaluated independently.
+    config["accumulation"]["lookback_days"] = 1
+    out = evaluate(frame, None, ["前日安値割れ反転"], config)
+    assert out["flags"]["BB逆張り"]
+    assert out["flags"]["BB＋RSI＋ストキャス"]
+
+
+def test_buyback_csv_calculations(tmp_path):
+    data = tmp_path / "data"; data.mkdir()
+    pd.DataFrame([["2026-01-01", "0001", 50, 500, "2026-01-02", "2026-01-11", 1000, 10000, 100, 100]],
+        columns=["発表日", "銘柄コード", "取得上限株数", "取得上限金額", "取得期間開始日", "取得期間終了日", "発行済株式数", "時価総額", "発表時株価", "1日平均売買代金"]).to_csv(data / "buybacks.csv", index=False)
+    result = load_buybacks(tmp_path).iloc[0]
+    assert result["時価総額比"] == 5
+    assert result["発行済株式比"] == 5
+    assert result["取得期間日数"] == 10
