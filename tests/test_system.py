@@ -22,13 +22,20 @@ def test_indicators_and_anti_buy():
     assert signal and signal["side"] == "buy" and signal["cross"]
 
 
-def test_backtest_accepts_missing_empty_and_header_only_history(tmp_path, monkeypatch):
+def test_backtest_accepts_missing_empty_or_incomplete_history(tmp_path, monkeypatch):
     monkeypatch.setattr(backtest, "ROOT", tmp_path)
     data = tmp_path / "data"
     data.mkdir()
     history = data / "signal_history.csv"
 
-    for content in (None, "", "シグナル日,コード,買い・売り\n"):
+    for content in (
+        None,
+        "",
+        "シグナル日,コード,買い・売り\n",
+        "コード,買い・売り\n7203,買い\n",
+        "シグナル日,買い・売り\n2026-08-14,買い\n",
+        "シグナル日,コード\n2026-08-14,7203\n",
+    ):
         history.unlink(missing_ok=True)
         if content is not None:
             history.write_text(content, encoding="utf-8")

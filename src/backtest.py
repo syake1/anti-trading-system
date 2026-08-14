@@ -13,6 +13,11 @@ PERFORMANCE_COLUMNS = [
     "期間中最安値", "最大上昇率", "最大下落率", "利確到達", "損切り到達", "5日損益率",
 ]
 
+SIGNAL_COLUMNS = {
+    "シグナル日", "コード", "ランク", "買い・売り", "RSI14", "出来高倍率", "BB位置",
+    "ローソク足パターン", "現在値", "利確候補", "損切り候補",
+}
+
 
 def read_csv_if_populated(path: str | Path, **kwargs) -> pd.DataFrame:
     """Return an empty frame when a CSV is absent or contains no parseable rows."""
@@ -28,7 +33,7 @@ def read_csv_if_populated(path: str | Path, **kwargs) -> pd.DataFrame:
 def update() -> Path:
     source, output = ROOT / "data/signal_history.csv", ROOT / "data/performance.csv"
     signals = read_csv_if_populated(source, dtype={"コード": str})
-    if signals.empty:
+    if signals.empty or not SIGNAL_COLUMNS.issubset(signals.columns):
         output.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame(columns=PERFORMANCE_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
         return output
