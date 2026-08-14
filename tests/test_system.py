@@ -50,6 +50,47 @@ def test_backtest_accepts_missing_empty_or_incomplete_history(tmp_path, monkeypa
         assert list(pd.read_csv(output).columns) == backtest.PERFORMANCE_COLUMNS
 
 
+def test_backtest_coerces_decorated_prices_and_skips_only_invalid_signal(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(backtest, "ROOT", tmp_path)
+    data = tmp_path / "data"
+    data.mkdir()
+    columns = list(scanner.RESULT_COLUMNS)
+
+    def signal(current, take_profit, stop_loss, code):
+        row = {column: "" for column in columns}
+        row.update({"シグナル日": "2026-01-01", "コード": code, "ランク": "A",
+                    "買い・売り": "買い", "現在値": current, "利確候補": take_profit,
+                    "損切り候補": stop_loss, "RSI14": "30", "出来高倍率": "1.5",
+                    "BB位置": "-2σ", "ローソク足パターン": "反転"})
+        return row
+
+    pd.DataFrame([
+        signal("1,000円", "1,100 円", "900円", "0001"),
+        signal("価格不明", "1,100円", "900円", "0002"),
+        signal(None, "1,100円", "900円", "0003"),
+    ], columns=columns).to_csv(data / "signal_history.csv", index=False)
+    dates = pd.date_range("2026-01-02", periods=6)
+    downloaded = pd.DataFrame({
+        "Open": ["1,000円"] * 6,
+        "High": ["1,020円", "bad", "1,040円", "1,050円", "1,060円", "1,100円"],
+        "Low": ["990円", "980円", "970円", "960円", "950円", "900円"],
+        "Close": ["1,010円", "", "1,030円", "1,040円", "1,050円", "1,060円"],
+    }, index=dates)
+    monkeypatch.setattr(backtest.yf, "download", lambda *args, **kwargs: downloaded.copy())
+
+    output = backtest.update()
+
+    result = pd.read_csv(output)
+    assert len(result) == 1
+    assert result.loc[0, "1日後終値"] == 1010
+    assert result.loc[0, "5日後終値"] == 1060
+    assert result.loc[0, "利確到達"]
+    log = capsys.readouterr().out
+    assert "スキップ件数=2" in log
+    assert "数値変換失敗件数=2" in log
+    assert "正常評価件数=1" in log
+
+
 def test_mixed_history_preserves_legacy_rows_and_skips_only_bad_line(tmp_path):
     from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_csv
 
