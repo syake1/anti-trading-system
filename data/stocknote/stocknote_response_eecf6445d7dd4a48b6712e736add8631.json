@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "run_id": "eecf6445d7dd4a48b6712e736add8631",
+  "generated_at": "2026-08-14T22:22:47.513578+00:00",
+  "analyses": [
+    {
+      "code": "4751",
+      "assessment": "insufficient",
+      "confidence": 0.0,
+      "summary": "分析に必要なstocknoteデータが不足しています。"
+    },
+    {
+      "code": "1860",
+      "assessment": "insufficient",
+      "confidence": 0.0,
+      "summary": "分析に必要なstocknoteデータが不足しています。"
+    },
+    {
+      "code": "1968",
+      "assessment": "insufficient",
+      "confidence": 0.0,
+      "summary": "分析に必要なstocknoteデータが不足しています。"
+    }
+  ]
+}
