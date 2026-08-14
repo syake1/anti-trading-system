@@ -778,6 +778,7 @@
     }
   },
   "fundamentals": {
+    "edinet_lookback_days": 400,
     "official_sources": [
       "EDINET",
       "TDnet",

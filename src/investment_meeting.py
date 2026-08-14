@@ -159,6 +159,8 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',
              f'本日の主力候補：{(result["最終判断"] == "主力").sum() if not result.empty else 0}',
              f'小口候補：{(result["最終判断"] == "小口").sum() if not result.empty else 0}']
+    lines += ["⚠️ EDINETだけでは会社予想・上方下方修正・重要適時開示が不足します。",
+              "不足項目を推測せず、現行の必須11項目判定は緩和しません。"]
     if actionable.empty:
         lines += ["", "本日は新規注文なし（本日は新規買いなし）。", "理由：主力・小口条件を満たす銘柄なし。", "現金維持。"]
     for _, r in actionable.iterrows():
