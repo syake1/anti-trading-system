@@ -1,0 +1,14 @@
+{
+  "stochastic": {"k_period": 7, "d_period": 10, "d_slope_days": 3},
+  "indicators": {"rsi_period": 14, "bb_period": 20, "bb_std": 2, "atr_period": 14},
+  "liquidity": {"min_price": 100, "min_avg_volume_20": 100000},
+  "scan": {"history_period": "2y", "batch_size": 100, "notify_ranks": ["S", "A"]},
+  "risk": {"lookback_days": 5, "atr_multiplier": 1.5, "reward_risk": 2.0},
+  "rank_thresholds": {"S": 12, "A": 9, "B": 7},
+  "weights": {
+    "d_trend": 3, "k_reversal": 3, "k_d_cross": 2, "above_ma200": 2,
+    "ma25_slope": 1, "ma75_slope": 1, "rsi40_reversal": 2, "rsi_zone": 1,
+    "bb_minus1_rebound": 2, "bb_minus2_rebound": 3, "engulfing": 2,
+    "color_reversal": 1, "long_wick": 1, "volume_1_3": 1, "volume_1_5": 2
+  }
+}
