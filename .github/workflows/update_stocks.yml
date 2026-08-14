@@ -1,0 +1,24 @@
+name: Update JPX stocks
+on:
+  schedule:
+    - cron: '0 12 * * 0' # Sunday 21:00 JST
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: update-jpx-stocks
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - run: pip install -r requirements.txt
+      - run: python -m src.update_stocks
+      - name: Commit changed universe
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add stocks.csv
+          git diff --cached --quiet || (git commit -m 'chore: update JPX stocks' && git push)

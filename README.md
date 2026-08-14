@@ -22,7 +22,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-`stocks.csv` は `code,name,market` 形式です。リポジトリには動作確認用の少数例だけを同梱しています。本番では、JPX等から正当に入手した最新一覧で置換し、プライム・スタンダード・グロースを収録してください。コードに `.T` は不要です（取得時に自動付与）。
+`stocks.csv` は `code,name,market` 形式です。次のコマンドは **日本取引所グループ（JPX）の「東証上場銘柄一覧」** を取得し、プライム・スタンダード・グロースの「内国株式」だけを原子的に保存します。ETF、ETN、REIT、インフラファンド、外国株等は市場・商品区分で除外します。取得失敗や異常に少ない一覧の場合は既存CSVを残します。コードは4桁で保存し、Yahoo Financeへの要求時だけ `.T` を付けます。
+
+```bash
+python -m src.update_stocks
+```
 
 ## 実行
 
@@ -37,6 +41,8 @@ python -m src.backtest
 DISCORD_WEBHOOK='...' python -m src.intraday
 ```
 
+日足はyfinanceへ `scan.batch_size`（既定50）銘柄ずつ一括要求し、欠損銘柄だけ個別再試行します。バッチ間には既定0.5秒の短い待機を入れ、空データでも後続を継続します。最後に総数、成功・失敗、一次フィルター通過数、候補数、S/A数を表示します。初回は `config.json` の `scan.scan_limit` を `20` や `100` にすると先頭N銘柄だけ、`0` なら全銘柄です。一次フィルターの既定値は株価100円、20日平均出来高10万株、20日平均売買代金1億円です。
+
 日足結果は `anti_candidates_YYYYMMDD.csv`、候補履歴は `data/signal_history.csv`、追跡結果は `data/performance.csv` です。出力には指定された価格・指標・足型・売買方向・ストップ・目標・RR・理由・Yahoo Financeリンクを含みます。
 
 ## 自動検証
@@ -45,15 +51,15 @@ DISCORD_WEBHOOK='...' python -m src.intraday
 
 ## 15分足と重複防止
 
-日足S/Aだけを `data/watchlist.json` に保存します。15分足は %K反転、%K/%Dクロス、パラボリックSAR転換、20本比の出来高増、ローソク色を確認し、反転＋（クロスまたはSAR）＋ローソク一致で通知します。形成中の最後の足を除外して **最新確定足だけ** を評価します。`data/alert_state.json` の「コード・確定足時刻・方向・シグナル」キーで同一通知を一度に限定するため、過去足を遡って通知しません。
+日足S/Aだけをスコア順に最大50銘柄まで `data/watchlist.json` に保存します（`scan.watchlist_ranks` / `scan.watchlist_max_stocks` で変更可能）。15分足は全上場株ではなく、このリストだけを監視します。15分足は %K反転、%K/%Dクロス、パラボリックSAR転換、20本比の出来高増、ローソク色を確認し、反転＋（クロスまたはSAR）＋ローソク一致で通知します。形成中の最後の足を除外して **最新確定足だけ** を評価します。`data/alert_state.json` の「コード・確定足時刻・方向・シグナル」キーで同一通知を一度に限定するため、過去足を遡って通知しません。
 
 ## Discord / GitHub Actions
 
 GitHub リポジトリの **Settings → Secrets and variables → Actions** に次を登録します。
 
-* `DISCORD_WEBHOOK`（必須：通知先Webhook URL）
+* `DISCORD_WEBHOOK`（任意：未設定なら通知をスキップ）
 
-`.github/workflows/anti_daily_scan.yml` は平日09:00 UTC（18:00 JST）、`anti_intraday_alert.yml` は平日00:00～06:59 UTCに5分間隔で起動します。Pythonが `Asia/Tokyo` で曜日、前場 09:00–11:30、後場 12:30–15:30を再確認します。Actions遅延はあり得ます。結果と通知状態をコミットするため workflow の `contents: write` を使用します。ブランチ保護時は、永続化方法をartifactや外部ストレージへ変更してください。
+`.github/workflows/update_stocks.yml` は毎週日曜12:00 UTC（JST 21:00）に一覧を更新し、変更時だけcommit/pushします。`anti_daily_scan.yml` は平日09:00 UTC（18:00 JST、30分timeout）に backtest → scanner の順、`anti_intraday_alert.yml` は平日00:00～06:59 UTCに5分間隔で起動します。各ワークフローはGitHubの **Actions** タブで選択し **Run workflow** から手動実行できます。日足Discord通知はS/Aをスコア順に `scan.discord_max_alerts`（既定20）件まで送ります。全銘柄スキャンは通常数分～30分程度を想定しますが、無料APIの応答・レート制限に依存します。結果をcommitするため `contents: write` を使用し、ブランチ保護時はartifact等への変更が必要です。
 
 ## Version 1 / Version 2 構造
 
