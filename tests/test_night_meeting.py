@@ -7,7 +7,8 @@ import pandas as pd
 from src.investment_meeting import evaluate_candidates
 from src.jgb_yields import analyze_jgb
 from src.night_meeting import (generate_night_result, generate_weekend_result, night_message,
-                               save_night_result, load_latest_night_result, weekend_message)
+                               save_night_result, save_weekend_result, load_latest_night_result,
+                               weekend_message)
 from src.meeting_schedule import scheduled_meeting
 
 
@@ -106,6 +107,39 @@ def test_weekend_meeting_is_broad_and_provisional():
     message = weekend_message(result)
     assert "月曜朝の再確認条件" in message and "注文は確定せず" in message
     assert all("最終判断" not in row and "推奨株数" not in row for row in result["candidates"])
+
+
+def test_weekend_integrates_bank_strategy_and_has_dedicated_section():
+    observed = datetime(2026, 8, 15, 6, tzinfo=ZoneInfo("Asia/Tokyo"))
+    result = generate_weekend_result(pd.DataFrame([bank()]), rates(), config(), observed)
+    message = weekend_message(result)
+    assert result["focus_sectors"] == ["銀行"]
+    assert result["bank_evaluations"][0]["bank_classification"] == "押し目候補"
+    for label in ("金利局面", "2年・10年・30年金利", "10年-2年スプレッド", "基本戦略",
+                  "銀行押し目候補", "押し目監視", "追いかけ禁止", "回避", "月曜朝再確認"):
+        assert label in message
+    assert "注目セクター：不明" not in message
+
+
+def test_weekend_discord_limits_and_overflow_audit_csv(tmp_path):
+    observed = datetime(2026, 8, 15, 6, tzinfo=ZoneInfo("Asia/Tokyo"))
+    rows = [bank(コード=f"{8300 + i}", RSI14=40) for i in range(12)]
+    result = generate_weekend_result(pd.DataFrame(rows), rates(), config(), observed)
+    message = weekend_message(result)
+    assert "押し目候補 TOP10" in message and "ほか2件は監査CSV" in message
+    save_weekend_result(result, tmp_path)
+    audit = pd.read_csv(tmp_path / "weekend_meeting_20260815_audit.csv", dtype={"code": str})
+    assert audit["code"].tolist() == ["8310", "8311"]
+
+
+def test_weekend_stocknote_compact_fields_are_advisory():
+    result = generate_weekend_result(pd.DataFrame([bank()]))
+    result["stocknote_employee"] = "accepted"
+    result["stocknote_analyses"] = [{"code": "8300", "name": "テスト銀行", "assessment": "positive",
+                                      "confidence": .8, "contrarian_score": 7.5, "summary": "押し目を確認"}]
+    message = weekend_message(result)
+    assert "positive / confidence 80% / contrarian 7.5 / 押し目を確認" in message
+    assert "判断には未反映" in message
 
 
 def test_provisional_workflow_uses_required_utc_crons_and_is_separate():
