@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stocknote_request.schema.json",
+  "title": "stocknote analysis request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "generated_at", "candidates"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "name", "meeting_decision", "official_fundamentals", "order_plan"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[0-9]{4}$"},
+          "name": {"type": "string"},
+          "meeting_decision": {"type": "string"},
+          "official_fundamentals": {"type": "object"},
+          "order_plan": {"type": "object"}
+        }
+      }
+    }
+  }
+}
