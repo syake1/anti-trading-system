@@ -17,6 +17,7 @@ from src.sector_impact import sector_impacts, save_sector_impacts
 from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
                             jgb_sector_impacts, save_jgb_analysis)
 from src.market_research import write_research_report
+from src.fundamentals import assess, enrich_candidates
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
@@ -24,6 +25,9 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
  "必要資金", "最大想定損失", "RR", "分析評価", "運用評価", "総合順位点", "RSI", "BB位置",
  "出来高倍率", "暴落リバウンド型", "ファンダメンタルスコア", "テクニカルスコア", "反転確認スコア",
  "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
+MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
+ "売上前年比", "営業利益前年比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
+ "配当利回り", "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
 
 
 def analysis_employee(row: dict, config: dict) -> dict:
@@ -68,6 +72,8 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     stats, staged = _method_stats(), []
     for row in candidates.fillna("").to_dict("records"):
         a = analysis_employee(row, config)
+        fundamental = assess(row, config)
+        a["comment"] = a["comment"].replace("ファンダメンタル=入力なし（推測しない）", f"ファンダメンタル={fundamental.label}")
         sector = str(row.get("業種", "")).strip()
         news_score = news_impacts(news, sector, str(row.get("コード", "")), config)
         sector_score = sector_scores.get(sector, 0)
@@ -82,8 +88,12 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
         if method == "skip": operations_class = "見送り" if a["classification"] != "見送り" else a["classification"]
         elif a["classification"] not in ("主力", "小口"): operations_class = "監視"
         final = max((a["classification"], operations_class), key=CAUTION.get)
+        if not fundamental.sufficient and final == "主力":
+            final, order_reason = "小口", f"ファンダメンタルデータ不足（{fundamental.reason}）：主力判定不可"
+        elif fundamental.sufficient and fundamental.score <= 4 and final == "主力":
+            final, order_reason = "小口", f"ファンダメンタル{fundamental.score}点のため主力から降格"
         entry = prices["逆指値発動価格"] if method == "stop" else prices["買いゾーン上限"] if method == "limit" else number(row, "現在値")
-        staged.append((row, a, prices, method, order_reason, final, entry, sector_score, news_score))
+        staged.append((row, a, prices, method, order_reason, final, entry, sector_score, news_score, fundamental))
     # Operational priority, not just scanner score. Stable code tie-break ensures reproducibility.
     staged.sort(key=lambda x: (-x[1]["score"], str(x[0].get("コード", ""))))
     primary_seen = 0
@@ -91,7 +101,7 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     positions = int(config["portfolio"].get("current_positions", 0))
     sector_positions: dict[str, int] = {}
     result = []
-    for row, a, prices, method, order_reason, final, entry, sector_score, news_score in staged:
+    for row, a, prices, method, order_reason, final, entry, sector_score, news_score, fundamental in staged:
         sector = str(row.get("業種", "")).strip()
         if sector and sector_positions.get(sector, 0) >= int(config["portfolio"].get("max_positions_per_sector", 2)):
             final, method, order_reason = "監視", "skip", "業種偏り上限のため監視"
@@ -118,11 +128,20 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "RR": round(rr, 2), "分析評価": a["grade"], "運用評価": operations_class, "総合順位点": round(a["score"], 2),
           "RSI": number(row, "RSI14"), "BB位置": row.get("BB位置", ""), "出来高倍率": number(row, "出来高倍率"),
           "暴落リバウンド型": a["crash"], "分析コメント": a["comment"],
-          "ファンダメンタルスコア": number(row, "ファンダメンタルスコア"), "テクニカルスコア": number(row, "スコア"),
+          "ファンダメンタルスコア": fundamental.score, "テクニカルスコア": number(row, "スコア"),
           "反転確認スコア": 3 if str(row.get("ローソク足パターン", "なし")) != "なし" else 0,
           "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "ニュース影響スコア": news_score,
           "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
-          "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason})
+          "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason,
+          "ファンダメンタル評価": fundamental.label, "ファンダメンタル十分": fundamental.sufficient,
+          "ファンダメンタル不足理由": fundamental.reason, "売上前年比": row.get("revenue_yoy", ""),
+          "営業利益前年比": row.get("operating_profit_yoy", ""), "経常・純利益前年比": row.get("ordinary_or_net_profit_yoy", ""),
+          "EPS": row.get("eps", ""), "PER": row.get("per", ""), "PBR": row.get("pbr", ""), "ROE": row.get("roe", ""),
+          "自己資本比率": row.get("equity_ratio", ""), "配当利回り": row.get("dividend_yield", ""),
+          "今期会社予想": row.get("company_forecast", ""), "直近決算発表日": row.get("latest_earnings_date", ""),
+          "業績修正": row.get("revision", ""), "重要適時開示": row.get("important_disclosure", ""),
+          "ファンダメンタル取得元": row.get("fundamental_source", row.get("source", "")),
+          "ファンダメンタル参照先": row.get("fundamental_source_reference", row.get("source_reference", ""))})
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
@@ -150,10 +169,31 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
           f'損切り：{r["損切り価格"]:,.0f}円', f'利確目標：{r["利確目標"]:,.0f}円',
           f'推奨株数：{r["推奨株数"]}株', f'必要資金：{r["必要資金"]:,.0f}円',
           f'最大想定損失：{r["最大想定損失"]:,.0f}円 / RR {r["RR"]:.2f}',
+          *(fundamental_message(r)),
           f'分析担当：{r["分析コメント"]}', f'運用担当：{r["運用コメント"]}', f'実行条件：{r["注文理由"]}']
     if recheck: lines += ["", "気配・寄値の更新データなし：朝会から判断変更なし"]
     lines += ["", "※証券会社への自動発注は行いません。注文前に人間が価格・気配・材料を確認してください。"]
     return "\n".join(lines)
+
+
+def fundamental_message(row) -> list[str]:
+    if not bool(row.get("ファンダメンタル十分", False)):
+        return ["ファンダメンタル：データ不足", "主力判定不可 → 小口または見送り"]
+    def pct(name):
+        try: return f'{float(row.get(name)):+.1f}%'
+        except (TypeError, ValueError): return "欠損"
+    def val(name, suffix=""):
+        try: return f'{float(row.get(name)):.1f}{suffix}'
+        except (TypeError, ValueError): return "欠損"
+    material = str(row.get("重要適時開示", "")).strip() or "特になし"
+    revision = str(row.get("業績修正", "")).strip()
+    if revision: material = f"{revision} / {material}"
+    return [f'ファンダメンタル：{int(row["ファンダメンタルスコア"])}/10 {row["ファンダメンタル評価"]}',
+            f'売上 {pct("売上前年比")} / 営業利益 {pct("営業利益前年比")} / EPS {val("EPS")}',
+            f'PER {val("PER", "倍")} / PBR {val("PBR", "倍")} / ROE {val("ROE", "%")}',
+            f'自己資本比率 {val("自己資本比率", "%")} / 配当利回り {val("配当利回り", "%")}',
+            f'今期予想：{row.get("今期会社予想") or "欠損"}', f'直近決算：{row.get("直近決算発表日") or "欠損"}',
+            f'重要材料：{material}']
 
 
 def load_market_input(config: dict, path: Path | None = None) -> list[dict] | pd.DataFrame:
@@ -176,6 +216,7 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     impacts = sector_impacts(environment, config)
     for sector, score in jgb_sector_impacts(jgb, config).items(): impacts[sector] = impacts.get(sector, 0) + score
     save_market_environment(environment); save_jgb_analysis(jgb); save_news(news); save_sector_impacts(impacts, environment.observed_at)
+    candidates = enrich_candidates(candidates, config)
     result = evaluate_candidates(candidates, config, environment, news, jgb)
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]

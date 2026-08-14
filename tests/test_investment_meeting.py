@@ -15,7 +15,12 @@ def candidate(**changes):
            "損切り候補": 900, "利確候補": 1200, "RR": 2, "RSI14": 39,
            "BB位置": "-1.13σ", "出来高倍率": 1.1, "直近3日騰落率": -2,
            "直近5日騰落率": -3, "25日線乖離率": -4,
-           "ローソク足パターン": "強気包み足", "シグナル種別": "BB逆張り", "除外理由": ""}
+           "ローソク足パターン": "強気包み足", "シグナル種別": "BB逆張り", "除外理由": "",
+           "fundamental_source": "EDINET", "fundamental_source_reference": "https://disclosure.edinet-fsa.go.jp/",
+           "revenue_yoy": 6.2, "operating_profit_yoy": 14.8, "ordinary_or_net_profit_yoy": 10,
+           "eps": 100, "per": 12.6, "pbr": 1.1, "roe": 9.5, "equity_ratio": 47,
+           "dividend_yield": 3.1, "company_forecast": "増収増益", "latest_earnings_date": "2026-08-07",
+           "revision": "", "important_disclosure": ""}
     row.update(changes)
     return row
 
