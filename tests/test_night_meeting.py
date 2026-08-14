@@ -6,7 +6,9 @@ import pandas as pd
 
 from src.investment_meeting import evaluate_candidates
 from src.jgb_yields import analyze_jgb
-from src.night_meeting import generate_night_result, night_message, save_night_result, load_latest_night_result
+from src.night_meeting import (generate_night_result, generate_weekend_result, night_message,
+                               save_night_result, load_latest_night_result, weekend_message)
+from src.meeting_schedule import scheduled_meeting
 
 
 def config():
@@ -75,3 +77,40 @@ def test_night_candidate_cannot_become_primary_and_does_not_change_orders(tmp_pa
     pd.testing.assert_frame_equal(before, after)
     for column in ("注文方式", "推奨株数", "逆指値発動価格", "損切り価格", "利確目標", "RR"):
         assert before[column].equals(after[column])
+
+
+def test_jst_schedule_selects_weekdays_saturday_and_never_sunday():
+    utc = ZoneInfo("UTC")
+    # UTC dates deliberately differ from the operational JST dates.
+    assert scheduled_meeting(datetime(2026, 8, 14, 12, 0, tzinfo=utc)) == "night"  # Fri 21:00 JST
+    assert scheduled_meeting(datetime(2026, 8, 14, 21, 0, tzinfo=utc)) == "weekend"  # Sat 06:00 JST
+    assert scheduled_meeting(datetime(2026, 8, 15, 12, 0, tzinfo=utc)) is None  # Sat 21:00 JST
+    assert scheduled_meeting(datetime(2026, 8, 16, 6, 0, tzinfo=ZoneInfo("Asia/Tokyo"))) is None
+
+
+def test_every_weekday_and_only_weekdays_have_night_meeting():
+    for day in range(10, 17):  # Monday through Sunday in August 2026
+        at_nine = datetime(2026, 8, day, 21, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
+        assert (scheduled_meeting(at_nine) == "night") is (at_nine.weekday() < 5)
+
+
+def test_weekend_meeting_is_broad_and_provisional():
+    observed = datetime(2026, 8, 15, 6, tzinfo=ZoneInfo("Asia/Tokyo"))
+    result = generate_weekend_result(pd.DataFrame([
+        bank(), {**bank(コード="7203", 会社名="テスト自動車", RSI14=55, 当日騰落率=2), "業種": "自動車"},
+    ]), observed)
+    assert result["status"] == "provisional" and result["final_decision"] is False
+    assert result["basis"] == "Friday close"
+    assert {row["sector"] for row in result["candidates"]} == {"銀行", "自動車"}
+    assert result["stocknote_employee"] == "enabled"
+    message = weekend_message(result)
+    assert "月曜朝の再確認条件" in message and "注文は確定せず" in message
+    assert all("最終判断" not in row and "推奨株数" not in row for row in result["candidates"])
+
+
+def test_provisional_workflow_uses_required_utc_crons_and_is_separate():
+    workflow = open(".github/workflows/provisional_meetings.yml", encoding="utf-8").read()
+    assert "0 12 * * 1-5" in workflow  # weekdays 21:00 JST
+    assert "0 21 * * 5" in workflow   # Friday 21:00 UTC = Saturday 06:00 JST
+    assert "src.meeting_schedule" in workflow
+    assert "morning" not in workflow

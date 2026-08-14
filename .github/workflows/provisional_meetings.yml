@@ -1,0 +1,49 @@
+name: Provisional night and weekend meetings
+on:
+  schedule:
+    - cron: '0 12 * * 1-5' # Monday-Friday 21:00 JST
+    - cron: '0 21 * * 5'   # Saturday 06:00 JST (Friday UTC)
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: Provisional meeting type
+        type: choice
+        options: [night, weekend]
+        default: night
+permissions:
+  contents: write
+concurrency: provisional-investment-meeting
+jobs:
+  meeting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Select JST meeting
+        id: mode
+        shell: bash
+        run: |
+          KIND='${{ inputs.kind }}'
+          if [ -z "$KIND" ]; then
+            case '${{ github.event.schedule }}' in
+              '0 12 * * 1-5') KIND=night ;;
+              '0 21 * * 5') KIND=weekend ;;
+              *) exit 0 ;;
+            esac
+            python -m src.meeting_schedule --expect "$KIND"
+          fi
+          echo "kind=$KIND" >> "$GITHUB_OUTPUT"
+      - name: Run provisional meeting
+        run: python -m src.investment_meeting --kind '${{ steps.mode.outputs.kind }}'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
+      - name: Persist provisional report
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/meeting/night/ reports/meeting/weekend/ data/
+          git diff --cached --quiet || (git commit -m 'chore: record provisional meeting' && git push)
