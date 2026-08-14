@@ -1,4 +1,5 @@
 import csv
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
@@ -6,7 +7,7 @@ from urllib.parse import quote
 import pandas as pd
 import pytest
 
-from src.data_sources import FetchFailure, Observation, fetch_eia, fetch_instrument
+from src.data_sources import FetchFailure, Observation, fetch_eia, fetch_instrument, fetch_mof_jgb
 from src.market_environment import analyze_market
 
 
@@ -25,6 +26,29 @@ def good(value=1.5):
     def adapter(_source, _session):
         return Observation(value, "2026-08-14", "percent", pd.Series([1.4, value])), 200
     return adapter
+
+
+@pytest.mark.parametrize("maturity,expected", [("2年", 0.812), ("10年", 1.635), ("30年", 3.148)])
+def test_mof_jgb_cp932_title_unit_and_maturity_header_fixture(maturity, expected):
+    content = (Path(__file__).parent / "fixtures/mof_jgbcm_cp932.csv").read_bytes()
+
+    class FixtureSession:
+        @staticmethod
+        def get(_url, timeout):
+            return type("Response", (), {"content": content, "status_code": 200, "ok": True})()
+
+    observation, status = fetch_mof_jgb(
+        {"url": "https://example.test/jgbcm.csv", "timeout": 1,
+         "unit": "percent", "value_columns": [maturity]}, FixtureSession)
+    assert status == 200
+    assert observation.value == pytest.approx(expected)
+    assert observation.observation_time == "2026/8/13"
+
+
+def test_topix_does_not_use_unverified_jpx_download_url():
+    configured = json.loads(Path("config.json").read_text(encoding="utf-8"))
+    sources = configured["data_sources"]["instruments"]["TOPIX"]["sources"]
+    assert [item["name"] for item in sources] == ["Yahoo Finance"]
 
 
 @pytest.mark.parametrize("kind,status", [("http_429", 429), ("http_403", 403)])

@@ -99,6 +99,67 @@ def _http_csv(source: dict, session=requests) -> tuple[str, int]:
     return response.text, response.status_code
 
 
+def _http_content(source: dict, session=requests) -> tuple[bytes, int]:
+    """Download bytes when the publisher's HTTP charset cannot be trusted."""
+    try: response = session.get(source["url"], timeout=float(source.get("timeout", 10)))
+    except requests.Timeout as exc: raise FetchFailure("timeout", str(exc) or "request timed out") from exc
+    except requests.RequestException as exc: raise FetchFailure("network_error", str(exc)) from exc
+    _failure(response)
+    return response.content, response.status_code
+
+
+def _decode_japanese_csv(content: bytes) -> str:
+    """Decode Japanese government CSV bytes without relying on response.text."""
+    for encoding in ("utf-8-sig", "cp932", "shift_jis"):
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    raise FetchFailure("parse_error", "CSV is not UTF-8, CP932, or Shift_JIS")
+
+
+def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
+    """Parse the MOF JGB yield CSV's title/unit rows and maturity header."""
+    content, status = _http_content(source, session)
+    try:
+        rows = [[cell.strip().replace("\u3000", "") for cell in row]
+                for row in csv.reader(StringIO(_decode_japanese_csv(content)))]
+    except csv.Error as exc:
+        raise FetchFailure("parse_error", str(exc), status) from exc
+
+    wanted = tuple(source.get("value_columns", ()))
+    date_labels = {"基準日", "年月日", "日付"}
+    header_index = next((i for i, row in enumerate(rows)
+                         if any(cell in date_labels for cell in row)
+                         and any(cell in wanted for cell in row)), None)
+    if header_index is None:
+        preview = rows[:5]
+        raise FetchFailure("schema_change", f"MOF maturity header not found; got {preview}", status)
+
+    header = rows[header_index]
+    date_column = next(i for i, cell in enumerate(header) if cell in date_labels)
+    value_column = next((i for i, cell in enumerate(header) if cell in wanted), None)
+    if value_column is None:
+        raise FetchFailure("schema_change", f"MOF maturity column not found: {wanted}", status)
+
+    observations: dict[str, float] = {}
+    for row in rows[header_index + 1:]:
+        if max(date_column, value_column) >= len(row):
+            continue
+        observed = row[date_column].strip()
+        raw_value = row[value_column].strip()
+        if not observed or raw_value in {"", "-", "ND", "N/A"}:
+            continue
+        try:
+            observations[observed] = float(raw_value.replace(",", ""))
+        except ValueError:
+            continue
+    series = pd.Series(observations, dtype=float)
+    if series.empty:
+        raise FetchFailure("empty_data", "MOF CSV contains no numeric observations", status)
+    return Observation(float(series.iloc[-1]), str(series.index[-1]), source["unit"], series), status
+
+
 def fetch_fred(source: dict, session=requests) -> tuple[Observation, int]:
     text, status = _http_csv(source, session)
     series = _csv_series(text, ("date", "observation_date"), ("dgs10", "value"))
@@ -155,6 +216,7 @@ def fetch_yahoo(source: dict, session=None) -> tuple[Observation, int | None]:
 
 
 ADAPTERS: dict[str, Callable] = {"fred_csv": fetch_fred, "official_csv": fetch_simple_csv,
+                                 "mof_jgb_csv": fetch_mof_jgb,
                                  "eia_api": fetch_eia, "yahoo": fetch_yahoo}
 
 
