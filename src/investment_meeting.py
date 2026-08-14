@@ -11,12 +11,16 @@ from src.backtest import order_method_summary, read_csv_if_populated
 from src.discord_notify import post
 from src.order_planner import ORDER_LABELS, number, order_prices, select_order, size_order
 from src.utils import ROOT, load_config, now_tokyo
+from src.market_environment import analyze_market, fetch_market_data, save_market_environment
+from src.news_analysis import analyze_news, news_impacts, save_news
+from src.sector_impact import sector_impacts, save_sector_impacts
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
  "反転確認高値", "逆指値発動価格", "追いかけ禁止価格", "損切り価格", "利確目標", "推奨株数",
  "必要資金", "最大想定損失", "RR", "分析評価", "運用評価", "総合順位点", "RSI", "BB位置",
- "出来高倍率", "暴落リバウンド型", "分析コメント", "運用コメント", "注文理由"]
+ "出来高倍率", "暴落リバウンド型", "ファンダメンタルスコア", "テクニカルスコア", "反転確認スコア",
+ "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
 
 
 def analysis_employee(row: dict, config: dict) -> dict:
@@ -48,20 +52,32 @@ def _method_stats() -> dict:
     return order_method_summary(ROOT / "data/order_method_performance.csv")
 
 
-def evaluate_candidates(candidates: pd.DataFrame, config: dict) -> pd.DataFrame:
+def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None, news=None) -> pd.DataFrame:
     if candidates.empty:
         return pd.DataFrame(columns=MEETING_COLUMNS)
+    environment = environment or analyze_market([], config)
+    news = news if news is not None else analyze_news(None, config)
+    sector_scores = sector_impacts(environment, config)
+    emergency = bool(news["emergency_risk"].any()) if not news.empty else False
     stats, staged = _method_stats(), []
     for row in candidates.fillna("").to_dict("records"):
         a = analysis_employee(row, config)
+        sector = str(row.get("業種", "")).strip()
+        news_score = news_impacts(news, sector, str(row.get("コード", "")), config)
+        sector_score = sector_scores.get(sector, 0)
+        a["score"] += environment.total_score + sector_score + news_score
         prices = order_prices(row, config)
         method, order_reason = select_order(row, prices, config, stats)
         operations_class = a["classification"]
+        if emergency: operations_class, method, order_reason = "見送り", "skip", "重大ニュースによる緊急リスク：新規主力買い停止"
+        elif environment.regime == "強いリスクオフ" and sector_score < 3:
+            operations_class, method, order_reason = "監視", "skip", "強いリスクオフのため新規主力買い停止"
+        elif environment.regime == "警戒" and operations_class == "主力": operations_class = "小口"
         if method == "skip": operations_class = "見送り" if a["classification"] != "見送り" else a["classification"]
         elif a["classification"] not in ("主力", "小口"): operations_class = "監視"
         final = max((a["classification"], operations_class), key=CAUTION.get)
         entry = prices["逆指値発動価格"] if method == "stop" else prices["買いゾーン上限"] if method == "limit" else number(row, "現在値")
-        staged.append((row, a, prices, method, order_reason, final, entry))
+        staged.append((row, a, prices, method, order_reason, final, entry, sector_score, news_score))
     # Operational priority, not just scanner score. Stable code tie-break ensures reproducibility.
     staged.sort(key=lambda x: (-x[1]["score"], str(x[0].get("コード", ""))))
     primary_seen = 0
@@ -69,7 +85,7 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict) -> pd.DataFrame:
     positions = int(config["portfolio"].get("current_positions", 0))
     sector_positions: dict[str, int] = {}
     result = []
-    for row, a, prices, method, order_reason, final, entry in staged:
+    for row, a, prices, method, order_reason, final, entry, sector_score, news_score in staged:
         sector = str(row.get("業種", "")).strip()
         if sector and sector_positions.get(sector, 0) >= int(config["portfolio"].get("max_positions_per_sector", 2)):
             final, method, order_reason = "監視", "skip", "業種偏り上限のため監視"
@@ -78,6 +94,9 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict) -> pd.DataFrame:
             if primary_seen > int(config["meeting"]["max_primary_candidates"]):
                 final, method, order_reason = "監視", "skip", "主力上限超過のため4位以下は監視"
         sized = size_order(entry, prices["損切り価格"], final, config, cash=cash, positions=positions, crash=a["crash"])
+        sized["推奨株数"] = int(sized["推奨株数"] * environment.capital_ratio // config["portfolio"]["lot_size"] * config["portfolio"]["lot_size"])
+        sized["必要資金"] = sized["推奨株数"] * entry
+        sized["最大想定損失"] = sized["推奨株数"] * max(entry - prices["損切り価格"], 0)
         if final in ("主力", "小口") and sized["推奨株数"] == 0:
             final, method, order_reason = "見送り", "skip", "資金・リスク・売買単位・保有上限の制約"
         if final in ("主力", "小口"):
@@ -93,15 +112,23 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict) -> pd.DataFrame:
           "RR": round(rr, 2), "分析評価": a["grade"], "運用評価": operations_class, "総合順位点": round(a["score"], 2),
           "RSI": number(row, "RSI14"), "BB位置": row.get("BB位置", ""), "出来高倍率": number(row, "出来高倍率"),
           "暴落リバウンド型": a["crash"], "分析コメント": a["comment"],
-          "運用コメント": f"{perf}。300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason})
+          "ファンダメンタルスコア": number(row, "ファンダメンタルスコア"), "テクニカルスコア": number(row, "スコア"),
+          "反転確認スコア": 3 if str(row.get("ローソク足パターン", "なし")) != "なし" else 0,
+          "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "ニュース影響スコア": news_score,
+          "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
+          "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason})
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
-def morning_message(result: pd.DataFrame, config: dict, *, recheck=False) -> str:
+def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None) -> str:
     p = config["portfolio"]
     title = "📊 AI投資会議・8:30再確認" if recheck else "📊 AI投資会議・朝会\n最終注文案"
     actionable = result[result["最終判断"].isin(["主力", "小口"])] if not result.empty else result
-    lines = [title, "", f'運用資産：{p["initial_capital"]:,.0f}円',
+    environment = environment or analyze_market([], config); news = news if news is not None else analyze_news(None, config)
+    values = {x['indicator']: x for x in environment.indicators}
+    lines = ["🌏 市場環境"] + [f"{name}: {values[name]['current']:,.2f} ({values[name]['change_pct']:+.2f}%) score {values[name]['score']:+d}" for name in config['market_environment']['tickers'] if name in values]
+    headlines = news.loc[news['trusted'], 'title'].head(3).tolist() if not news.empty else []
+    lines += [f"市場判定：{environment.regime} ({environment.total_score:+.1f})", "重大ニュース：" + (" / ".join(headlines) if headlines else "取得・入力された信頼済みニュースなし"), f"本日の資金方針：通常の{environment.capital_ratio:.0%}", "", title, "", f'運用資産：{p["initial_capital"]:,.0f}円',
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',
              f'本日の主力候補：{(result["最終判断"] == "主力").sum() if not result.empty else 0}',
              f'小口候補：{(result["最終判断"] == "小口").sum() if not result.empty else 0}']
@@ -126,11 +153,15 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     if candidates_path is None:
         files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True); candidates_path = files[0] if files else None
     candidates = read_csv_if_populated(candidates_path, dtype={"コード": str}) if candidates_path else pd.DataFrame()
-    result = evaluate_candidates(candidates, config)
+    market_input = ROOT / "data/market_input.csv"
+    market_rows = read_csv_if_populated(market_input) if market_input.exists() and market_input.stat().st_size > 60 else fetch_market_data(config)
+    environment = analyze_market(market_rows, config); news = analyze_news(ROOT / "data/news_input.csv", config)
+    impacts = sector_impacts(environment, config); save_market_environment(environment); save_news(news); save_sector_impacts(impacts, environment.observed_at)
+    result = evaluate_candidates(candidates, config, environment, news)
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]
     output = ROOT / "reports/meeting" / folder / f"{prefix}_{today}.md"; output.parent.mkdir(parents=True, exist_ok=True)
-    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck")
+    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news)
     elif kind == "close":
         message = "📊 AI投資会議・大引け後\n\n朝の注文案ごとに、約定／未約定／追いかけ禁止見送り／損切り／利確／保有継続を data/order_method_performance.csv へ記録します。価格データ未確定時は推測しません。"
     else:
