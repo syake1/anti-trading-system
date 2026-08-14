@@ -12,6 +12,8 @@ from src.discord_notify import post
 from src.order_planner import ORDER_LABELS, number, order_prices, select_order, size_order
 from src.utils import ROOT, load_config, now_tokyo
 from src.market_environment import analyze_market, fetch_market_data, save_market_environment
+from src.japan_rates import (JapanRates, fetch_japan_rates, rate_sector_impacts,
+                             save_japan_rates, stock_rate_impact)
 from src.news_analysis import analyze_news, news_impacts, save_news
 from src.sector_impact import sector_impacts, save_sector_impacts
 
@@ -20,7 +22,7 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
  "反転確認高値", "逆指値発動価格", "追いかけ禁止価格", "損切り価格", "利確目標", "推奨株数",
  "必要資金", "最大想定損失", "RR", "分析評価", "運用評価", "総合順位点", "RSI", "BB位置",
  "出来高倍率", "暴落リバウンド型", "ファンダメンタルスコア", "テクニカルスコア", "反転確認スコア",
- "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
+ "市場環境スコア", "業種環境スコア", "日本金利影響", "日本金利影響理由", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
 
 
 def analysis_employee(row: dict, config: dict) -> dict:
@@ -52,11 +54,12 @@ def _method_stats() -> dict:
     return order_method_summary(ROOT / "data/order_method_performance.csv")
 
 
-def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None, news=None) -> pd.DataFrame:
+def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None, news=None, japan_rates=None) -> pd.DataFrame:
     if candidates.empty:
         return pd.DataFrame(columns=MEETING_COLUMNS)
     environment = environment or analyze_market([], config)
     news = news if news is not None else analyze_news(None, config)
+    japan_rates = japan_rates or JapanRates(timestamp=environment.observed_at)
     sector_scores = sector_impacts(environment, config)
     emergency = bool(news["emergency_risk"].any()) if not news.empty else False
     stats, staged = _method_stats(), []
@@ -65,7 +68,11 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
         sector = str(row.get("業種", "")).strip()
         news_score = news_impacts(news, sector, str(row.get("コード", "")), config)
         sector_score = sector_scores.get(sector, 0)
-        a["score"] += environment.total_score + sector_score + news_score
+        values = {x["indicator"]: x for x in environment.indicators}
+        jp_score, jp_reason = stock_rate_impact(row, japan_rates,
+            values.get("US10Y", {}).get("change_bp"), values.get("USDJPY", {}).get("change_pct"),
+            risk_off=environment.regime == "強いリスクオフ", credit_risk=emergency)
+        a["score"] += environment.total_score + sector_score + news_score + jp_score
         prices = order_prices(row, config)
         method, order_reason = select_order(row, prices, config, stats)
         operations_class = a["classification"]
@@ -73,11 +80,15 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
         elif environment.regime == "強いリスクオフ" and sector_score < 3:
             operations_class, method, order_reason = "監視", "skip", "強いリスクオフのため新規主力買い停止"
         elif environment.regime == "警戒" and operations_class == "主力": operations_class = "小口"
+        if japan_rates.jp_rate_regime in ("急上昇", "急低下") and jp_score < 0 and operations_class == "主力":
+            operations_class, order_reason = "小口", "日本金利急変が逆風のため主力から小口へ降格"
+        if japan_rates.jp_rate_regime in ("急上昇", "急低下") and japan_rates.boj_news_observed and method == "market":
+            method, order_reason = "skip", "日本金利急変＋日銀ニュースのため寄り成りを避け監視"
         if method == "skip": operations_class = "見送り" if a["classification"] != "見送り" else a["classification"]
         elif a["classification"] not in ("主力", "小口"): operations_class = "監視"
         final = max((a["classification"], operations_class), key=CAUTION.get)
         entry = prices["逆指値発動価格"] if method == "stop" else prices["買いゾーン上限"] if method == "limit" else number(row, "現在値")
-        staged.append((row, a, prices, method, order_reason, final, entry, sector_score, news_score))
+        staged.append((row, a, prices, method, order_reason, final, entry, sector_score, news_score, jp_score, jp_reason))
     # Operational priority, not just scanner score. Stable code tie-break ensures reproducibility.
     staged.sort(key=lambda x: (-x[1]["score"], str(x[0].get("コード", ""))))
     primary_seen = 0
@@ -85,7 +96,7 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     positions = int(config["portfolio"].get("current_positions", 0))
     sector_positions: dict[str, int] = {}
     result = []
-    for row, a, prices, method, order_reason, final, entry, sector_score, news_score in staged:
+    for row, a, prices, method, order_reason, final, entry, sector_score, news_score, jp_score, jp_reason in staged:
         sector = str(row.get("業種", "")).strip()
         if sector and sector_positions.get(sector, 0) >= int(config["portfolio"].get("max_positions_per_sector", 2)):
             final, method, order_reason = "監視", "skip", "業種偏り上限のため監視"
@@ -114,19 +125,30 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "暴落リバウンド型": a["crash"], "分析コメント": a["comment"],
           "ファンダメンタルスコア": number(row, "ファンダメンタルスコア"), "テクニカルスコア": number(row, "スコア"),
           "反転確認スコア": 3 if str(row.get("ローソク足パターン", "なし")) != "なし" else 0,
-          "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "ニュース影響スコア": news_score,
+          "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "日本金利影響": jp_score,
+          "日本金利影響理由": jp_reason, "ニュース影響スコア": news_score,
           "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
           "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason})
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
-def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None) -> str:
+def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None, japan_rates=None) -> str:
     p = config["portfolio"]
     title = "📊 AI投資会議・8:30再確認" if recheck else "📊 AI投資会議・朝会\n最終注文案"
     actionable = result[result["最終判断"].isin(["主力", "小口"])] if not result.empty else result
     environment = environment or analyze_market([], config); news = news if news is not None else analyze_news(None, config)
+    japan_rates = japan_rates or JapanRates(timestamp=environment.observed_at)
     values = {x['indicator']: x for x in environment.indicators}
     lines = ["🌏 市場環境"] + [f"{name}: {values[name]['current']:,.2f} ({values[name]['change_pct']:+.2f}%) score {values[name]['score']:+d}" for name in config['market_environment']['tickers'] if name in values]
+    impacts = rate_sector_impacts(japan_rates, risk_off=environment.regime == "強いリスクオフ")
+    rate = (f"{japan_rates.jp_10y_yield:.3f}%" if japan_rates.jp_10y_yield is not None else "取得不可")
+    bp = lambda v: f"{v:+.1f}bp" if v is not None else "NA"
+    lines += ["", "🇯🇵 日本金利環境", f"日本10年国債利回り：{rate}",
+              f"前日差：{bp(japan_rates.jp_10y_change_bp)}", f"5日変化：{bp(japan_rates.jp_10y_change_5d_bp)}",
+              f"20日変化：{bp(japan_rates.jp_10y_change_20d_bp)}", f"判定：{japan_rates.jp_rate_regime}",
+              "日本2年国債利回り：" + (f"{japan_rates.jp_2y_yield:.3f}%" if japan_rates.jp_2y_yield is not None else "取得不可"),
+              f"金融政策警戒：{'あり' if japan_rates.boj_tightening_risk else 'なし'}", "日本金利による業種影響",
+              " / ".join(f"{k}：{impacts[k]:+d}" for k in ("銀行", "保険", "不動産", "REIT", "高PERグロース"))]
     headlines = news.loc[news['trusted'], 'title'].head(3).tolist() if not news.empty else []
     lines += [f"市場判定：{environment.regime} ({environment.total_score:+.1f})", "重大ニュース：" + (" / ".join(headlines) if headlines else "取得・入力された信頼済みニュースなし"), f"本日の資金方針：通常の{environment.capital_ratio:.0%}", "", title, "", f'運用資産：{p["initial_capital"]:,.0f}円',
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',
@@ -142,6 +164,7 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
           f'損切り：{r["損切り価格"]:,.0f}円', f'利確目標：{r["利確目標"]:,.0f}円',
           f'推奨株数：{r["推奨株数"]}株', f'必要資金：{r["必要資金"]:,.0f}円',
           f'最大想定損失：{r["最大想定損失"]:,.0f}円 / RR {r["RR"]:.2f}',
+          f'日本金利影響：{r["日本金利影響"]:+.0f}（{r["日本金利影響理由"]}）',
           f'分析担当：{r["分析コメント"]}', f'運用担当：{r["運用コメント"]}', f'実行条件：{r["注文理由"]}']
     if recheck: lines += ["", "気配・寄値の更新データなし：朝会から判断変更なし"]
     lines += ["", "※証券会社への自動発注は行いません。注文前に人間が価格・気配・材料を確認してください。"]
@@ -156,12 +179,15 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     market_input = ROOT / "data/market_input.csv"
     market_rows = read_csv_if_populated(market_input) if market_input.exists() and market_input.stat().st_size > 60 else fetch_market_data(config)
     environment = analyze_market(market_rows, config); news = analyze_news(ROOT / "data/news_input.csv", config)
-    impacts = sector_impacts(environment, config); save_market_environment(environment); save_news(news); save_sector_impacts(impacts, environment.observed_at)
-    result = evaluate_candidates(candidates, config, environment, news)
+    boj_news = bool((news.get("category") == "monetary_policy").any()) if not news.empty else False
+    usd = next((x.get("change_pct") for x in environment.indicators if x["indicator"] == "USDJPY"), None)
+    japan_rates = fetch_japan_rates(config, boj_news=boj_news, usd_jpy_change_pct=usd)
+    impacts = sector_impacts(environment, config); save_market_environment(environment); save_japan_rates(japan_rates); save_news(news); save_sector_impacts(impacts, environment.observed_at)
+    result = evaluate_candidates(candidates, config, environment, news, japan_rates)
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]
     output = ROOT / "reports/meeting" / folder / f"{prefix}_{today}.md"; output.parent.mkdir(parents=True, exist_ok=True)
-    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news)
+    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news, japan_rates=japan_rates)
     elif kind == "close":
         message = "📊 AI投資会議・大引け後\n\n朝の注文案ごとに、約定／未約定／追いかけ禁止見送り／損切り／利確／保有継続を data/order_method_performance.csv へ記録します。価格データ未確定時は推測しません。"
     else:
