@@ -335,6 +335,9 @@
       "movement_volume_ratio": 1.5
     }
   },
+  "night_meeting": {
+    "morning_start_jst": "05:45"
+  },
   "news_analysis": {
     "trusted_sources": [
       "日本銀行",

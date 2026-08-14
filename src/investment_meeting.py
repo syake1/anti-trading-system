@@ -19,6 +19,7 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
 from src.stocknote import consume_shadow, export_request, write_shadow_report
+from src.night_meeting import generate_night_result, load_latest_night_result, night_message, save_night_result
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
@@ -151,7 +152,8 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
-def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None, jgb=None) -> str:
+def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None, jgb=None,
+                    night_reference=None) -> str:
     p = config["portfolio"]
     title = "📊 AI投資会議・8:30再確認" if recheck else "📊 AI投資会議・朝会\n最終注文案"
     actionable = result[result["最終判断"].isin(["主力", "小口"])] if not result.empty else result
@@ -165,6 +167,10 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',
              f'本日の主力候補：{(result["最終判断"] == "主力").sum() if not result.empty else 0}',
              f'小口候補：{(result["最終判断"] == "小口").sum() if not result.empty else 0}']
+    if night_reference:
+        counts = {name: len(rows) for name, rows in night_reference.get("categories", {}).items()}
+        lines += ["夜会（参考情報・自動昇格なし）：" + " / ".join(f"{name} {count}件" for name, count in counts.items()),
+                  f"夜会有効期限：{night_reference.get('valid_until', '不明')}（朝会条件で必ず再確認）"]
     lines += ["⚠️ EDINETだけでは会社予想・上方下方修正・重要適時開示が不足します。",
               "不足項目を推測せず、現行の必須11項目判定は緩和しません。"]
     if actionable.empty:
@@ -247,6 +253,13 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     impacts = sector_impacts(environment, config)
     for sector, score in jgb_sector_impacts(jgb, config).items(): impacts[sector] = impacts.get(sector, 0) + score
     save_market_environment(environment); save_jgb_analysis(jgb); save_news(news); save_sector_impacts(impacts, environment.observed_at)
+    if kind == "night":
+        night_result = generate_night_result(candidates, jgb, config)
+        _, output = save_night_result(night_result)
+        message = night_message(night_result)
+        if notify: post(message)
+        print(message)
+        return output
     candidates = enrich_candidates(candidates, config)
     result = evaluate_candidates(candidates, config, environment, news, jgb)
     stocknote = config.get("stocknote", {})
@@ -260,7 +273,7 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]
     output = ROOT / "reports/meeting" / folder / f"{prefix}_{today}.md"; output.parent.mkdir(parents=True, exist_ok=True)
-    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news, jgb=jgb)
+    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news, jgb=jgb, night_reference=load_latest_night_result())
     elif kind == "close":
         message = "📊 AI投資会議・大引け後\n\n朝の注文案ごとに、約定／未約定／追いかけ禁止見送り／損切り／利確／保有継続を data/order_method_performance.csv へ記録します。価格データ未確定時は推測しません。"
     else:
@@ -280,5 +293,5 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
 
 
 if __name__ == "__main__":
-    parser=argparse.ArgumentParser(); parser.add_argument("--kind", choices=["morning","recheck","close","weekly"], default="morning"); parser.add_argument("--no-notify", action="store_true")
+    parser=argparse.ArgumentParser(); parser.add_argument("--kind", choices=["night","morning","recheck","close","weekly"], default="morning"); parser.add_argument("--no-notify", action="store_true")
     args=parser.parse_args(); run(args.kind, not args.no_notify)
