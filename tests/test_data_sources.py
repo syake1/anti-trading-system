@@ -45,6 +45,38 @@ def test_mof_jgb_cp932_title_unit_and_maturity_header_fixture(maturity, expected
     assert observation.observation_time == "2026/8/13"
 
 
+def test_mof_jgb_finds_shift_jis_header_when_skiprows_one_is_wrong():
+    content = ("財務省公表資料,,,,\n単位：％,,,,\n"
+               "基準日,2年,10年,30年\n2026/8/13,0.812,1.635,3.148\n").encode("shift_jis")
+
+    class FixtureSession:
+        @staticmethod
+        def get(_url, timeout):
+            return type("Response", (), {"content": content, "status_code": 200,
+                                          "ok": True})()
+
+    observation, _ = fetch_mof_jgb(
+        {"url": "https://example.test/jgbcm.csv", "timeout": 1,
+         "unit": "percent", "value_columns": ["10年"]}, FixtureSession)
+    assert observation.value == pytest.approx(1.635)
+
+
+def test_mof_jgb_does_not_guess_when_requested_maturity_is_absent():
+    content = "資料,,\n基準日,10年\n2026/8/13,1.635\n".encode("cp932")
+
+    class FixtureSession:
+        @staticmethod
+        def get(_url, timeout):
+            return type("Response", (), {"content": content, "status_code": 200,
+                                          "ok": True})()
+
+    with pytest.raises(FetchFailure, match="header not found") as caught:
+        fetch_mof_jgb(
+            {"url": "https://example.test/jgbcm.csv", "timeout": 1,
+             "unit": "percent", "value_columns": ["30年"]}, FixtureSession)
+    assert caught.value.error_type == "schema_change"
+
+
 def test_topix_does_not_use_unverified_jpx_download_url():
     configured = json.loads(Path("config.json").read_text(encoding="utf-8"))
     sources = configured["data_sources"]["instruments"]["TOPIX"]["sources"]
