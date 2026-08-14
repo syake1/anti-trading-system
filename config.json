@@ -318,6 +318,23 @@
       "電力・ガス": -0.5
     }
   },
+  "sector_strategy": {
+    "bank": {
+      "yield_change_5d_bp": 3.0,
+      "spread_change_5d_bp": 2.0,
+      "rapid_yield_drop_5d_bp": 10.0,
+      "rapid_spread_contraction_5d_bp": 10.0,
+      "inverted_spread_bp": -5.0,
+      "pullback_ma25_deviation_min_pct": -5.0,
+      "pullback_ma25_deviation_max_pct": 2.0,
+      "trend_ma25_deviation_min_pct": -3.0,
+      "chase_ma25_deviation_pct": 8.0,
+      "rsi_overheated": 70.0,
+      "bb_overextended_sigma": 2.0,
+      "volume_confirmation_ratio": 1.0,
+      "movement_volume_ratio": 1.5
+    }
+  },
   "news_analysis": {
     "trusted_sources": [
       "日本銀行",
