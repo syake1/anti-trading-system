@@ -45,5 +45,9 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add reports/meeting/night/ reports/meeting/weekend/ data/
+          for path in reports/meeting/night/ reports/meeting/weekend/ data/; do
+            if [ -e "$path" ]; then
+              git add "$path"
+            fi
+          done
           git diff --cached --quiet || (git commit -m 'chore: record provisional meeting' && git push)
