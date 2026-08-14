@@ -7,12 +7,32 @@ import pandas as pd
 import yfinance as yf
 from src.utils import ROOT
 
+PERFORMANCE_COLUMNS = [
+    "シグナル日", "コード", "ランク", "買い・売り", "RSI14", "出来高倍率", "BB位置",
+    "ローソク足パターン", *(f"{n}日後終値" for n in range(1, 6)), "期間中最高値",
+    "期間中最安値", "最大上昇率", "最大下落率", "利確到達", "損切り到達", "5日損益率",
+]
+
+
+def read_csv_if_populated(path: str | Path, **kwargs) -> pd.DataFrame:
+    """Return an empty frame when a CSV is absent or contains no parseable rows."""
+    csv_path = Path(path)
+    if not csv_path.exists() or not csv_path.read_text(encoding="utf-8-sig").strip():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(csv_path, **kwargs)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
 
 def update() -> Path:
     source, output = ROOT / "data/signal_history.csv", ROOT / "data/performance.csv"
-    if not source.exists() or not source.stat().st_size:
-        pd.DataFrame().to_csv(output, index=False); return output
-    signals = pd.read_csv(source, dtype={"コード": str}).drop_duplicates(["シグナル日", "コード", "買い・売り"])
+    signals = read_csv_if_populated(source, dtype={"コード": str})
+    if signals.empty:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(columns=PERFORMANCE_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
+        return output
+    signals = signals.drop_duplicates(["シグナル日", "コード", "買い・売り"])
     records = []
     for row in signals.to_dict("records"):
         prices = yf.download(f'{row["コード"]}.T', start=row["シグナル日"],
@@ -30,14 +50,12 @@ def update() -> Path:
                     "損切り到達": bool((future.Low <= row["損切り候補"]).any() if direction == 1 else (future.High >= row["損切り候補"]).any()),
                     "5日損益率": direction * (future.Close.iloc[-1]/row["現在値"]-1)*100})
         records.append(rec)
-    pd.DataFrame(records).to_csv(output, index=False, encoding="utf-8-sig")
+    pd.DataFrame(records, columns=PERFORMANCE_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
     return output
 
 
 def summary(path=ROOT / "data/performance.csv") -> dict:
-    if not Path(path).exists() or not Path(path).stat().st_size:
-        return {"全シグナル数": 0}
-    df = pd.read_csv(path)
+    df = read_csv_if_populated(path)
     if df.empty: return {"全シグナル数": 0}
     pnl = df["5日損益率"]
     equity = (1 + pnl / 100).cumprod()
