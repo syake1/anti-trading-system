@@ -126,7 +126,15 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
     actionable = result[result["最終判断"].isin(["主力", "小口"])] if not result.empty else result
     environment = environment or analyze_market([], config); news = news if news is not None else analyze_news(None, config)
     values = {x['indicator']: x for x in environment.indicators}
-    lines = ["🌏 市場環境"] + [f"{name}: {values[name]['current']:,.2f} ({values[name]['change_pct']:+.2f}%) score {values[name]['score']:+d}" for name in config['market_environment']['tickers'] if name in values]
+    lines = ["🌏 市場環境"] + [f"{name}: {values[name]['current']:,.2f} ({values[name]['change_pct']:+.2f}%) score {values[name]['score']:+d}" for name in config['market_environment']['tickers'] if name in values and not name.startswith("JP")]
+    bonds = ["🇯🇵 日本国債金利"]
+    for name, label in (("JP2Y", "2年"), ("JP10Y", "10年"), ("JP30Y", "30年")):
+        if name in values: bonds.append(f"{label}: {values[name]['current']:.3f}% ({values[name]['change_bp']:+.1f}bp)")
+    if "JP10Y_2Y_SPREAD" in values:
+        curve = values["JP10Y_2Y_SPREAD"]
+        bonds.append(f"10年-2年スプレッド: {curve['current']*100:.1f}bp ({curve['change_bp']:+.1f}bp)")
+    if len(bonds) == 1: bonds.append("取得データなし（推測しません）")
+    lines += bonds
     headlines = news.loc[news['trusted'], 'title'].head(3).tolist() if not news.empty else []
     lines += [f"市場判定：{environment.regime} ({environment.total_score:+.1f})", "重大ニュース：" + (" / ".join(headlines) if headlines else "取得・入力された信頼済みニュースなし"), f"本日の資金方針：通常の{environment.capital_ratio:.0%}", "", title, "", f'運用資産：{p["initial_capital"]:,.0f}円',
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',

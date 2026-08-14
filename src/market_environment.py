@@ -35,6 +35,13 @@ def analyze_market(rows: list[dict] | pd.DataFrame | None, config: dict, observe
     data = [] if rows is None else (rows.to_dict("records") if isinstance(rows, pd.DataFrame) else rows)
     rules = config["market_environment"]
     indicators = []
+    raw_by_name = {str(row.get("indicator", "")).strip(): row for row in data}
+    if "JP2Y" in raw_by_name and "JP10Y" in raw_by_name:
+        short, long = raw_by_name["JP2Y"], raw_by_name["JP10Y"]
+        if all(not pd.isna(x.get(k)) for x in (short, long) for k in ("current", "previous_close")):
+            data = [*data, {"indicator": "JP10Y_2Y_SPREAD",
+                    "current": float(long["current"]) - float(short["current"]),
+                    "previous_close": float(long["previous_close"]) - float(short["previous_close"])}]
     for raw in data:
         name = str(raw.get("indicator", "")).strip()
         current, previous = raw.get("current"), raw.get("previous_close")
@@ -50,7 +57,7 @@ def analyze_market(rows: list[dict] | pd.DataFrame | None, config: dict, observe
             score = _band_score(measure, rule["thresholds"], rule.get("reverse", False))
         indicators.append({"indicator": name, "current": float(current), "previous_close": float(previous),
                            "change": change, "change_pct": pct, "short_change_pct": raw.get("short_change_pct"),
-                           "change_bp": change * 100 if name == "US10Y" else None, "score": score})
+                           "change_bp": change * 100 if rule and rule.get("unit") == "bp" else None, "score": score})
     total = sum(x["score"] * rules["weights"].get(x["indicator"], 1) for x in indicators)
     cut = rules["regime_thresholds"]
     regime = ("強いリスクオン" if total >= cut["strong_risk_on"] else "リスクオン" if total >= cut["risk_on"]
