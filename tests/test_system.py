@@ -91,6 +91,37 @@ def test_backtest_coerces_decorated_prices_and_skips_only_invalid_signal(tmp_pat
     assert "正常評価件数=1" in log
 
 
+def test_backtest_summary_handles_nullable_and_empty_aggregates(tmp_path):
+    path = tmp_path / "performance.csv"
+    pd.DataFrame([
+        {"ランク": "A", "5日損益率": pd.NA, "RSI14": pd.NA, "出来高倍率": pd.NA,
+         "BB位置": pd.NA, "ローソク足パターン": pd.NA, "シグナル種別": pd.NA,
+         "最大上昇率": pd.NA, "最大下落率": pd.NA},
+        {"ランク": "A", "5日損益率": "5%", "RSI14": "不明", "出来高倍率": "",
+         "BB位置": "-2σ", "ローソク足パターン": "反転", "シグナル種別": "アンチ",
+         "最大上昇率": "", "最大下落率": None},
+    ]).to_csv(path, index=False)
+
+    result = backtest.summary(path)
+
+    assert result["全シグナル数"] == 2
+    assert result["勝率"] == 0.0
+    assert result["平均利益率"] == result["平均損失率"] == 0.0
+    assert result["PF"] is None
+    assert result["最大ドローダウン"] == 0.0
+    assert result["戦略別成績"]["アンチ"]["平均最大上昇率"] == 0.0
+
+
+def test_backtest_summary_handles_incomplete_nonempty_csv(tmp_path):
+    path = tmp_path / "performance.csv"
+    path.write_text("コード\n7203\n", encoding="utf-8")
+
+    result = backtest.summary(path)
+
+    assert result["全シグナル数"] == 1
+    assert result["勝率"] == result["平均利益率"] == result["平均損失率"] == 0.0
+
+
 def test_mixed_history_preserves_legacy_rows_and_skips_only_bad_line(tmp_path):
     from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_csv
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date, timedelta
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -35,6 +36,33 @@ def _to_numeric(values: pd.Series) -> tuple[pd.Series, int]:
 def _numeric_scalar(value: object) -> tuple[float, int]:
     numeric, failures = _to_numeric(pd.Series([value], dtype="object"))
     return float(numeric.iloc[0]) if pd.notna(numeric.iloc[0]) else np.nan, failures
+
+
+def _safe_float(value: object, default: float = 0.0) -> float:
+    """Nullable dtype の集計値を通常の float へ安全に変換する。"""
+    return float(value) if pd.notna(value) else default
+
+
+def _win_rate(values: pd.Series) -> float:
+    valid = values.dropna()
+    return _safe_float((valid > 0).mean()) if not valid.empty else 0.0
+
+
+def _profit_factor(values: pd.Series) -> float | None:
+    """損失がない場合は、定義できない指標として欠損表示を返す。"""
+    valid = values.dropna()
+    losses = valid[valid < 0]
+    if losses.empty:
+        return None
+    return _safe_float(valid[valid > 0].sum() / abs(losses.sum()))
+
+
+def _max_drawdown(values: pd.Series) -> float:
+    valid = values.dropna()
+    if valid.empty:
+        return 0.0
+    equity = (1 + valid / 100).cumprod()
+    return _safe_float((equity / equity.cummax() - 1).min())
 
 
 def read_csv_if_populated(path: str | Path, **kwargs) -> pd.DataFrame:
@@ -73,8 +101,10 @@ def update() -> Path:
         if pd.isna(signal_date):
             skipped += 1
             continue
+        # yfinance の end は排他的。pandas の日時演算に依存せず翌日を指定する。
+        end_date = (date.today() + timedelta(days=1)).isoformat()
         prices = yf.download(f'{row["コード"]}.T', start=row["シグナル日"],
-                             end=(pd.Timestamp.today() + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), progress=False, auto_adjust=False)
+                             end=end_date, progress=False, auto_adjust=False)
         if isinstance(prices.columns, pd.MultiIndex): prices.columns = prices.columns.get_level_values(0)
         available_price_columns = [column for column in PRICE_COLUMNS if column in prices]
         if not {"High", "Low", "Close"}.issubset(available_price_columns):
@@ -119,30 +149,36 @@ def summary(path=ROOT / "data/performance.csv") -> dict:
         "期間中最高値", "期間中最安値",
     ]
     for column in arithmetic_columns:
-        if column in df:
+        if column not in df:
+            df[column] = pd.Series(np.nan, index=df.index, dtype="float64")
+        else:
             df[column], _ = _to_numeric(df[column])
     pnl = df["5日損益率"]
-    equity = (1 + pnl / 100).cumprod()
-    win_rate = lambda x: float((x > 0).mean())
     volume_band = pd.cut(df["出来高倍率"], [0, 1, 1.3, 1.5, 2, np.inf])
-    strategy_labels = df["シグナル種別"].fillna("アンチ") if "シグナル種別" in df else pd.Series("アンチ", index=df.index)
+    strategy_labels = (df["シグナル種別"].astype("string").fillna("アンチ")
+                       if "シグナル種別" in df else pd.Series("アンチ", index=df.index, dtype="string"))
     strategy = df.assign(戦略=strategy_labels.str.split(" / ")).explode("戦略")
     strategy_summary = {}
-    for name, group in strategy.groupby("戦略"):
-        p = group["5日損益率"].dropna(); eq = (1 + p / 100).cumprod()
-        strategy_summary[name] = {"シグナル数": len(p), "勝率": float((p > 0).mean()) if len(p) else 0,
-            "平均利益率": float(p[p > 0].mean()), "平均損失率": float(p[p <= 0].mean()),
-            "PF": float(p[p > 0].sum() / abs(p[p < 0].sum())) if (p < 0).any() else None,
-            "最大ドローダウン": float((eq / eq.cummax() - 1).min()) if len(eq) else 0,
-            "平均最大上昇率": float(group["最大上昇率"].mean()), "平均最大下落率": float(group["最大下落率"].mean())}
-    return {"全シグナル数": len(df), "勝率": float((pnl > 0).mean()), "平均利益率": float(pnl[pnl > 0].mean()),
-            "平均損失率": float(pnl[pnl <= 0].mean()), "PF": float(pnl[pnl > 0].sum() / abs(pnl[pnl < 0].sum())) if (pnl < 0).any() else None,
-            "最大ドローダウン": float(((equity/equity.cummax())-1).min()),
-            "ランク別勝率": df.groupby("ランク", observed=True)["5日損益率"].apply(win_rate).to_dict(),
-            "RSI別勝率": df.groupby(pd.cut(df.RSI14, [0,30,40,55,70,100]), observed=True)["5日損益率"].apply(win_rate).to_dict(),
-            "出来高倍率別勝率": df.groupby(volume_band, observed=True)["5日損益率"].apply(win_rate).to_dict(),
-            "BB位置別勝率": df.groupby("BB位置")["5日損益率"].apply(win_rate).to_dict(),
-            "ローソク足パターン別勝率": df.assign(pattern=df["ローソク足パターン"].str.split(" / ")).explode("pattern").groupby("pattern")["5日損益率"].apply(win_rate).to_dict(),
+    for name, group in strategy.dropna(subset=["戦略"]).groupby("戦略"):
+        p = group["5日損益率"].dropna()
+        strategy_summary[name] = {"シグナル数": len(p), "勝率": _win_rate(p),
+            "平均利益率": _safe_float(p[p > 0].mean()), "平均損失率": _safe_float(p[p <= 0].mean()),
+            "PF": _profit_factor(p), "最大ドローダウン": _max_drawdown(p),
+            "平均最大上昇率": _safe_float(group["最大上昇率"].mean()),
+            "平均最大下落率": _safe_float(group["最大下落率"].mean())}
+    rank = df["ランク"] if "ランク" in df else pd.Series(pd.NA, index=df.index)
+    bb_position = df["BB位置"] if "BB位置" in df else pd.Series(pd.NA, index=df.index)
+    patterns = (df["ローソク足パターン"].astype("string")
+                if "ローソク足パターン" in df else pd.Series(pd.NA, index=df.index, dtype="string"))
+    return {"全シグナル数": len(df), "勝率": _win_rate(pnl),
+            "平均利益率": _safe_float(pnl[pnl > 0].mean()),
+            "平均損失率": _safe_float(pnl[pnl <= 0].mean()), "PF": _profit_factor(pnl),
+            "最大ドローダウン": _max_drawdown(pnl),
+            "ランク別勝率": df.assign(_group=rank).groupby("_group", observed=True)["5日損益率"].apply(_win_rate).to_dict(),
+            "RSI別勝率": df.groupby(pd.cut(df["RSI14"], [0,30,40,55,70,100]), observed=True)["5日損益率"].apply(_win_rate).to_dict(),
+            "出来高倍率別勝率": df.groupby(volume_band, observed=True)["5日損益率"].apply(_win_rate).to_dict(),
+            "BB位置別勝率": df.assign(_group=bb_position).groupby("_group")["5日損益率"].apply(_win_rate).to_dict(),
+            "ローソク足パターン別勝率": df.assign(pattern=patterns.str.split(" / ")).explode("pattern").groupby("pattern")["5日損益率"].apply(_win_rate).to_dict(),
             "戦略別成績": strategy_summary}
 
 
