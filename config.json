@@ -10,6 +10,28 @@
     "watchlist_ranks": ["S", "A"], "watchlist_max_stocks": 50
   },
   "risk": {"lookback_days": 5, "atr_multiplier": 1.5, "reward_risk": 2.0},
+  "portfolio": {
+    "initial_capital": 3000000,
+    "current_cash": 3000000,
+    "max_risk_per_trade_pct": 0.7,
+    "max_position_amount": 500000,
+    "max_positions": 5,
+    "minimum_cash_ratio": 25,
+    "lot_size": 100,
+    "core_size_pct": 100,
+    "small_size_pct": 50,
+    "crash_rebound_size_pct": 25,
+    "current_positions": 0
+  },
+  "meeting": {
+    "minimum_rr": 2.0,
+    "minimum_volume_ratio": 0.8,
+    "core_minimum_volume_ratio": 0.6,
+    "crash_3d_pct": -10,
+    "crash_5d_pct": -15,
+    "crash_ma25_deviation_pct": -10,
+    "minimum_backtest_samples": 20
+  },
   "surge_exclusion": {
     "daily_change_pct": 8, "change_3d_pct": 12, "change_5d_pct": 18,
     "ma25_deviation_pct": 10, "rsi14": 72, "bb_sigma": 2.2,
