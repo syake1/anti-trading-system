@@ -64,3 +64,20 @@ def test_empty_or_missing_json_state_uses_default(tmp_path):
 def test_daily_workflow_runs_backtest_before_scanner():
     workflow = open(".github/workflows/anti_daily_scan.yml", encoding="utf-8").read()
     assert workflow.index("python -m src.backtest") < workflow.index("python -m src.scanner")
+
+
+def test_update_stocks_preserves_existing_file_on_failure(tmp_path, monkeypatch):
+    from src import update_stocks
+    output = tmp_path / "stocks.csv"
+    output.write_text("code,name,market\n7203,Toyota,プライム\n", encoding="utf-8")
+    monkeypatch.setattr(update_stocks, "fetch", lambda: (_ for _ in ()).throw(RuntimeError("offline")))
+    update_stocks.update(output)
+    assert "7203" in output.read_text(encoding="utf-8")
+
+
+def test_batch_ticker_frame_accepts_yfinance_multiindex():
+    columns = pd.MultiIndex.from_product([["Close", "Volume"], ["7203.T", "6758.T"]])
+    downloaded = pd.DataFrame([[100, 200, 1_000, 2_000]], columns=columns)
+    frame = scanner._ticker_frame(downloaded, "7203.T")
+    assert list(frame.columns) == ["Close", "Volume"]
+    assert frame.iloc[0].Close == 100
