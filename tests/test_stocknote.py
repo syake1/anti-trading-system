@@ -53,6 +53,19 @@ def test_request_contract_and_filename(tmp_path):
     assert run_id == payload["run_id"]
 
 
+def test_request_exports_weekend_observations_used_by_stocknote(tmp_path):
+    frame = meeting_result().assign(**{
+        "現在値": 1000, "RSI14": 31, "BB位置": "-1.5σ", "MA25": 1050,
+        "MA75": 1100, "出来高倍率": 1.8, "ATR14": 25,
+        "25日線乖離率": -4.76, "反転足": "陽線",
+    })
+    _, path = export_request(frame, tmp_path, run_id="values_123456", generated_at=NOW)
+    technical = json.loads(path.read_text(encoding="utf-8"))["candidates"][0]["technical_values"]
+    for key in ("現在値", "RSI14", "BB位置", "MA25", "MA75", "出来高倍率", "ATR14",
+                "25日線乖離率", "反転足"):
+        assert technical[key] == frame.iloc[0][key]
+
+
 @pytest.mark.parametrize("payload", [
     response(run_id="wrong_run"),
     response(schema_version="2.0"),
