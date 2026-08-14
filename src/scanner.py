@@ -16,6 +16,7 @@ from src.scoring import rank, score
 from src.stochastic import stochastic
 from src.strategies import evaluate
 from src.materials import ensure_templates, signals_for
+from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_csv
 from src.utils import ROOT, load_config, now_tokyo, save_json
 
 
@@ -244,7 +245,10 @@ def run(notify: bool = True) -> Path:
     )
     if rows:
         history = ROOT / "data/signal_history.csv"
-        result.to_csv(history, mode="a", header=not history.exists() or not history.stat().st_size, index=False, encoding="utf-8-sig")
+        # 単純な追記では列追加のたびに異なる列数が混在する。旧版を読み戻して
+        # 現行列へ揃え、未知の追加列も保持した上で原子的に置き換える。
+        previous = read_mixed_csv(history, [*LEGACY_SIGNAL_COLUMNS, RESULT_COLUMNS], dtype={"コード": str})
+        write_merged_csv(history, previous, result)
         selected = result[result["ランク"].isin(config["scan"].get("watchlist_ranks", ["S", "A"]))]
         selected = selected.head(int(config["scan"].get("watchlist_max_stocks", 50)))
         save_json(ROOT / "data/watchlist.json", selected[["コード", "会社名", "買い・売り", "シグナル日"]].to_dict("records"))

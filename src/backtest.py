@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv
 from src.utils import ROOT
 
 PERFORMANCE_COLUMNS = [
@@ -33,7 +34,9 @@ def read_csv_if_populated(path: str | Path, **kwargs) -> pd.DataFrame:
 
 def update() -> Path:
     source, output = ROOT / "data/signal_history.csv", ROOT / "data/performance.csv"
-    signals = read_csv_if_populated(source, dtype={"コード": str})
+    # 履歴は追加時点のスキャナー版により列数が異なるため、行単位で版を判別する。
+    from src.scanner import RESULT_COLUMNS
+    signals = read_mixed_csv(source, [*LEGACY_SIGNAL_COLUMNS, RESULT_COLUMNS], dtype={"コード": str})
     if signals.empty or not SIGNAL_COLUMNS.issubset(signals.columns):
         output.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame(columns=PERFORMANCE_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
