@@ -16,9 +16,26 @@ from src.stochastic import stochastic
 from src.utils import ROOT, load_config, now_tokyo, save_json
 
 
-RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "スコア", "ランク", "%K", "%D",
+RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "直近3日騰落率", "直近5日騰落率",
+                  "25日線乖離率", "ATR当日値幅", "スコア", "ランク", "%K", "%D",
                   "%D傾き", "RSI14", "MA25", "MA75", "MA200", "BB位置", "出来高倍率", "ローソク足パターン",
-                  "アンチ判定", "買い・売り", "損切り候補", "利確候補", "RR", "判定理由", "Yahoo Financeリンク"]
+                  "アンチ判定", "買い・売り", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
+
+
+def surge_exclusion(row: pd.Series, config: dict) -> list[str]:
+    """Return configurable reasons why an already-surged buy must not be alerted."""
+    c = config["surge_exclusion"]
+    checks = [
+        (row.change_1d >= c["daily_change_pct"], "当日急騰"),
+        (row.change_3d >= c["change_3d_pct"], "3営業日急騰"),
+        (row.change_5d >= c["change_5d_pct"], "5営業日急騰"),
+        (row.ma25_deviation >= c["ma25_deviation_pct"], "25日線上方乖離"),
+        (row.RSI14 >= c["rsi14"], "高RSI"),
+        (row.bb_sigma >= c["bb_sigma"], "BB +2σ大幅超過"),
+        (row.change_1d >= c["near_limit_change_pct"] and row.range_atr >= c["near_limit_range_atr"],
+         "ストップ高に近い急騰"),
+    ]
+    return [reason for matched, reason in checks if matched]
 
 
 def normalize(data: pd.DataFrame) -> pd.DataFrame:
@@ -47,6 +64,7 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
     pats = patterns(df, signal["side"])
     value, reasons = score(df, signal, pats, config)
     side = signal["side"]
+    exclusions = surge_exclusion(now, config) if side == "buy" else []
     lookback = config["risk"]["lookback_days"]
     structural = df.Low.iloc[-lookback:].min() if side == "buy" else df.High.iloc[-lookback:].max()
     atr_stop = now.Close - config["risk"]["atr_multiplier"] * now.ATR14 if side == "buy" else now.Close + config["risk"]["atr_multiplier"] * now.ATR14
@@ -55,14 +73,17 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
     target = now.Close + risk * config["risk"]["reward_risk"] * (1 if side == "buy" else -1)
     date = pd.Timestamp(df.index[-1]).date().isoformat()
     return {"シグナル日": date, "コード": str(stock["code"]), "会社名": stock["name"], "市場": stock["market"],
-            "現在値": round(now.Close, 2), "前日比": round((now.Close / prev.Close - 1) * 100, 2), "スコア": value,
-            "ランク": rank(value, config), "%K": round(now.K, 2), "%D": round(now.D, 2),
+            "現在値": round(now.Close, 2), "前日比": round(now.change_1d, 2),
+            "直近3日騰落率": round(now.change_3d, 2), "直近5日騰落率": round(now.change_5d, 2),
+            "25日線乖離率": round(now.ma25_deviation, 2), "ATR当日値幅": round(now.range_atr, 2),
+            "スコア": value, "ランク": "除外" if exclusions else rank(value, config), "%K": round(now.K, 2), "%D": round(now.D, 2),
             "%D傾き": round(now.D - df.D.iloc[-1-config["stochastic"]["d_slope_days"]], 2), "RSI14": round(now.RSI14, 2),
             "MA25": round(now.MA25, 2), "MA75": round(now.MA75, 2), "MA200": round(now.MA200, 2),
             "BB位置": f'{now.bb_sigma:+.2f}σ', "出来高倍率": round(now.volume_ratio, 2),
             "ローソク足パターン": " / ".join(pats) or "なし", "アンチ判定": "強" if signal["cross"] else "通常",
             "買い・売り": "買い" if side == "buy" else "売り", "損切り候補": round(stop, 2),
             "利確候補": round(target, 2), "RR": config["risk"]["reward_risk"], "判定理由": "、".join(reasons),
+            "除外理由": "急騰済み（" + "、".join(exclusions) + "）" if exclusions else "",
             "Yahoo Financeリンク": f'https://finance.yahoo.co.jp/quote/{stock["code"]}.T'}
 
 
@@ -125,7 +146,7 @@ def run(notify: bool = True) -> Path:
     if not stocks:
         pd.DataFrame(columns=RESULT_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
         save_json(ROOT / "data/watchlist.json", [])
-        print("対象銘柄数: 0\n取得成功数: 0\n取得失敗数: 0\n判定完了数: 0\nSランク件数: 0\nAランク件数: 0")
+        print("対象銘柄数: 0\n取得成功数: 0\n取得失敗数: 0\n判定完了数: 0\nSランク件数: 0\nAランク件数: 0\n急騰除外件数: 0")
         print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
         return output
     limit = int(config["scan"].get("scan_limit", 0))
@@ -196,6 +217,7 @@ def run(notify: bool = True) -> Path:
     print(f"アンチ候補件数: {len(result)}")
     print(f"Sランク件数: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
     print(f"Aランク件数: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
+    print(f"急騰除外件数: {(result['除外理由'].fillna('').str.startswith('急騰済み')).sum() if not result.empty else 0}")
     print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
     return output
 
