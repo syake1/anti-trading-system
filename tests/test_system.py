@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import pandas as pd
+import pytest
 from src import backtest, scanner
 from src.anti_signal import detect
 from src.indicators import enrich
@@ -47,6 +48,26 @@ def test_backtest_accepts_missing_empty_or_incomplete_history(tmp_path, monkeypa
         assert output.exists()
         assert backtest.summary(output) == {"全シグナル数": 0}
         assert list(pd.read_csv(output).columns) == backtest.PERFORMANCE_COLUMNS
+
+
+def test_mixed_history_preserves_legacy_rows_and_skips_only_bad_line(tmp_path):
+    from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_csv
+
+    old, current = LEGACY_SIGNAL_COLUMNS[0], scanner.RESULT_COLUMNS
+    path = tmp_path / "signal_history.csv"
+    old_row = ["2025-01-01", "7203", *(["old"] * (len(old) - 2))]
+    new_row = ["2026-01-01", "6758", *(["new"] * (len(current) - 2))]
+    path.write_text(
+        ",".join(old_row) + "\n壊れた,行,です\n" + ",".join(current) + "\n" + ",".join(new_row) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.warns(RuntimeWarning, match="1 行をスキップ"):
+        loaded = read_mixed_csv(path, [*LEGACY_SIGNAL_COLUMNS, current], dtype={"コード": str})
+    assert loaded["コード"].tolist() == ["7203", "6758"]
+    write_merged_csv(path, loaded, pd.DataFrame([dict(zip(current, new_row))]))
+    reparsed = pd.read_csv(path, dtype={"コード": str})
+    assert reparsed["コード"].tolist() == ["7203", "6758", "6758"]
 
 
 def test_first_run_continues_through_scanner(tmp_path, monkeypatch):
