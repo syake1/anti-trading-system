@@ -1,0 +1,3673 @@
+{
+  "status": "provisional",
+  "final_decision": false,
+  "basis": "Friday close",
+  "observed_at": "2026-08-15T06:55:40+09:00",
+  "monday_recheck_date": "2026-08-17",
+  "stocknote_employee": "request_exported",
+  "focus_sectors": [
+    "不明"
+  ],
+  "candidates": [
+    {
+      "code": "4751",
+      "name": "サイバーエージェント",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1860",
+      "name": "戸田建設",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1968",
+      "name": "太平電業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4755",
+      "name": "楽天グループ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "3299",
+      "name": "ムゲンエステート",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6969",
+      "name": "松尾電機",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4975",
+      "name": "ＪＣＵ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4889",
+      "name": "レナサイエンス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4971",
+      "name": "メック",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "8848",
+      "name": "レオパレス２１",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1952",
+      "name": "新日本空調",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6544",
+      "name": "ジャパンエレベーターサービスホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1944",
+      "name": "きんでん",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1969",
+      "name": "高砂熱学工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "8508",
+      "name": "Ｊトラスト",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4901",
+      "name": "富士フイルムホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4275",
+      "name": "カーリット",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4047",
+      "name": "関東電化工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "3479",
+      "name": "ＴＫＰ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7715",
+      "name": "長野計器",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6787",
+      "name": "メイコー",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6656",
+      "name": "インスペック",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6145",
+      "name": "ＮＩＴＴＯＫＵ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6768",
+      "name": "タムラ製作所",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7915",
+      "name": "ＮＩＳＳＨＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1959",
+      "name": "クラフティア",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7760",
+      "name": "ＩＭＶ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1815",
+      "name": "鉄建建設",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4078",
+      "name": "堺化学工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4980",
+      "name": "デクセリアルズ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4368",
+      "name": "扶桑化学工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6703",
+      "name": "沖電気工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4935",
+      "name": "リベルタ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6118",
+      "name": "アイダエンジニアリング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6976",
+      "name": "太陽誘電",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6845",
+      "name": "アズビル",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6458",
+      "name": "新晃工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6266",
+      "name": "タツモ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6209",
+      "name": "リケンＮＰＲ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6807",
+      "name": "日本航空電子工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7917",
+      "name": "ＺＡＣＲＯＳ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1976",
+      "name": "明星工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1950",
+      "name": "日本電設工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "5989",
+      "name": "エイチワン",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "9517",
+      "name": "イーレックス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4548",
+      "name": "生化学工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "3905",
+      "name": "データセクション",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "9006",
+      "name": "京浜急行電鉄",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3837",
+      "name": "アドソル日進",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6806",
+      "name": "ヒロセ電機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7012",
+      "name": "川崎重工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6638",
+      "name": "ミマキエンジニアリング",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1942",
+      "name": "関電工",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7220",
+      "name": "武蔵精密工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7245",
+      "name": "大同メタル工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6997",
+      "name": "日本ケミコン",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1407",
+      "name": "ウエストホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4620",
+      "name": "藤倉化成",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4626",
+      "name": "太陽ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6622",
+      "name": "ダイヘン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6856",
+      "name": "堀場製作所",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6996",
+      "name": "ニチコン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6961",
+      "name": "エンプラス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6368",
+      "name": "オルガノ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2874",
+      "name": "横浜冷凍",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6526",
+      "name": "ソシオネクスト",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7611",
+      "name": "ハイデイ日高",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9274",
+      "name": "ＫＰＰグループホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2120",
+      "name": "ＬＩＦＵＬＬ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7860",
+      "name": "エイベックス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "8818",
+      "name": "京阪神ビルディング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7979",
+      "name": "松風",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8601",
+      "name": "大和証券グループ本社",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2157",
+      "name": "コシダカホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1938",
+      "name": "日本リーテック",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6330",
+      "name": "東洋エンジニアリング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6378",
+      "name": "木村化工機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6674",
+      "name": "ジーエス・ユアサ　コーポレーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6707",
+      "name": "サンケン電気",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6981",
+      "name": "村田製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7059",
+      "name": "コプロ・ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6951",
+      "name": "日本電子",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6777",
+      "name": "ｓａｎｔｅｃ　Ｈｏｌｄｉｎｇｓ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4674",
+      "name": "クレスコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3245",
+      "name": "ディア・ライフ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5208",
+      "name": "有沢製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5105",
+      "name": "ＴＯＹＯ　ＴＩＲＥ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "5232",
+      "name": "住友大阪セメント",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3482",
+      "name": "ロードスターキャピタル",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1833",
+      "name": "奥村組",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1419",
+      "name": "タマホーム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3632",
+      "name": "グリーホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9021",
+      "name": "西日本旅客鉄道",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1514",
+      "name": "住石ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9166",
+      "name": "ＧＥＮＤＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1447",
+      "name": "ＳＡＡＦホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9552",
+      "name": "クオンツ総研ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6742",
+      "name": "京三製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6480",
+      "name": "日本トムソン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6479",
+      "name": "ミネベアミツミ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6418",
+      "name": "日本金銭機械",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5246",
+      "name": "ＥＬＥＭＥＮＴＳ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4996",
+      "name": "クミアイ化学工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9227",
+      "name": "マイクロ波化学",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5706",
+      "name": "三井金属",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4588",
+      "name": "オンコリスバイオファーマ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4480",
+      "name": "メドレー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6920",
+      "name": "レーザーテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3284",
+      "name": "フージャースホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6995",
+      "name": "東海理化電機製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7003",
+      "name": "三井Ｅ＆Ｓ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7600",
+      "name": "日本エム・ディ・エム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1979",
+      "name": "大氣社",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7972",
+      "name": "イトーキ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7803",
+      "name": "ブシロード",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7004",
+      "name": "カナデビア",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7717",
+      "name": "ブイ・テクノロジー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6994",
+      "name": "指月電機製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6999",
+      "name": "ＫＯＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6971",
+      "name": "京セラ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6962",
+      "name": "大真空",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6905",
+      "name": "コーセル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6800",
+      "name": "ヨコオ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4587",
+      "name": "ペプチドリーム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2531",
+      "name": "宝ホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1945",
+      "name": "東京エネシス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1926",
+      "name": "ライト工業",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1946",
+      "name": "トーエネック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1377",
+      "name": "サカタのタネ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9880",
+      "name": "イノテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3993",
+      "name": "ＰＫＳＨＡ　Ｔｅｃｈｎｏｌｏｇｙ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9008",
+      "name": "京王電鉄",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3687",
+      "name": "フィックスターズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8616",
+      "name": "東海東京フィナンシャル・ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8697",
+      "name": "日本取引所グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4028",
+      "name": "石原産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3395",
+      "name": "サンマルクホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7995",
+      "name": "バルカー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3436",
+      "name": "ＳＵＭＣＯ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8167",
+      "name": "リテールパートナーズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8253",
+      "name": "クレディセゾン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8366",
+      "name": "滋賀銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8368",
+      "name": "百五銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3778",
+      "name": "さくらインターネット",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3864",
+      "name": "三菱製紙",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6440",
+      "name": "ＪＵＫＩ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6433",
+      "name": "ヒーハイスト",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1961",
+      "name": "三機工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5202",
+      "name": "日本板硝子",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6383",
+      "name": "ダイフク",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6387",
+      "name": "サムコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6331",
+      "name": "三菱化工機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6356",
+      "name": "日本ギア工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5802",
+      "name": "住友電気工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9449",
+      "name": "ＧＭＯインターネットグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1786",
+      "name": "オリエンタル白石",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6337",
+      "name": "テセック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5930",
+      "name": "文化シヤッター",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6146",
+      "name": "ディスコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6264",
+      "name": "マルマエ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5367",
+      "name": "ニッカトー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2288",
+      "name": "丸大食品",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "2471",
+      "name": "エスプール",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5121",
+      "name": "藤倉コンポジット",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6369",
+      "name": "トーヨーカネツ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6779",
+      "name": "日本電波工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6794",
+      "name": "フォスター電機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6762",
+      "name": "ＴＤＫ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6859",
+      "name": "エスペック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7719",
+      "name": "東京衡機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7779",
+      "name": "ＣＹＢＥＲＤＹＮＥ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7966",
+      "name": "リンテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4182",
+      "name": "三菱瓦斯化学",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "8628",
+      "name": "松井証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9793",
+      "name": "ダイセキ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3399",
+      "name": "丸千代山岡家",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8103",
+      "name": "明和産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2607",
+      "name": "不二製油",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9551",
+      "name": "メタウォーター",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5889",
+      "name": "Ｊａｐａｎ　Ｅｙｅｗｅａｒ　Ｈｏｌｄｉｎｇｓ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9304",
+      "name": "澁澤倉庫",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9743",
+      "name": "丹青社",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6055",
+      "name": "ジャパンマテリアル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6071",
+      "name": "ＩＢＪ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6425",
+      "name": "ユニバーサルエンターテインメント",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5288",
+      "name": "アジアパイルホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5243",
+      "name": "ｎｏｔｅ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6507",
+      "name": "シンフォニアテクノロジー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6376",
+      "name": "日機装",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5201",
+      "name": "ＡＧＣ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6834",
+      "name": "精工技研",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6666",
+      "name": "リバーエレテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3201",
+      "name": "日本毛織",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2334",
+      "name": "イオレ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7777",
+      "name": "スリー・ディー・マトリックス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7198",
+      "name": "ＳＢＩアルヒ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7014",
+      "name": "名村造船所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7746",
+      "name": "岡本硝子",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7794",
+      "name": "イーディーピー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2158",
+      "name": "ＦＲＯＮＴＥＯ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1975",
+      "name": "朝日工業社",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4392",
+      "name": "ＦＩＧ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "9508",
+      "name": "九州電力",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8739",
+      "name": "スパークス・グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8338",
+      "name": "筑波銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3445",
+      "name": "ＲＳ　Ｔｅｃｈｎｏｌｏｇｉｅｓ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8012",
+      "name": "長瀬産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8399",
+      "name": "琉球銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3853",
+      "name": "アステリア",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6324",
+      "name": "ハーモニック・ドライブ・システムズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5831",
+      "name": "しずおかフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4997",
+      "name": "日本農薬",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6361",
+      "name": "荏原製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6481",
+      "name": "ＴＨＫ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2986",
+      "name": "ＬＡホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6472",
+      "name": "ＮＴＮ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6309",
+      "name": "巴工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5985",
+      "name": "サンコール",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4575",
+      "name": "キャンバス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6923",
+      "name": "スタンレー電気",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3810",
+      "name": "サイバーステップホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8267",
+      "name": "イオン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8316",
+      "name": "三井住友フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3465",
+      "name": "ケイアイスター不動産",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2220",
+      "name": "亀田製菓",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9042",
+      "name": "阪急阪神ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7685",
+      "name": "ＢｕｙＳｅｌｌ　Ｔｅｃｈｎｏｌｏｇｉｅｓ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7181",
+      "name": "かんぽ生命保険",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2489",
+      "name": "アドウェイズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7537",
+      "name": "丸文",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2168",
+      "name": "パソナグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7721",
+      "name": "東京計器",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4099",
+      "name": "四国化成ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6958",
+      "name": "日本シイエムケイ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4506",
+      "name": "住友ファーマ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2395",
+      "name": "新日本科学",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6890",
+      "name": "フェローテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4169",
+      "name": "ＥＮＥＣＨＡＮＧＥ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6858",
+      "name": "小野測器",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3103",
+      "name": "ユニチカ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6855",
+      "name": "日本電子材料",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5384",
+      "name": "フジミインコーポレーテッド",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3176",
+      "name": "三洋貿易",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6594",
+      "name": "ニデック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4593",
+      "name": "ヘリオス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3101",
+      "name": "東洋紡",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6619",
+      "name": "ダブル・スコープ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8194",
+      "name": "ライフコーポレーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8060",
+      "name": "キヤノンマーケティングジャパン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9031",
+      "name": "西日本鉄道",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9009",
+      "name": "京成電鉄",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9470",
+      "name": "学研ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8129",
+      "name": "東邦ホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "8572",
+      "name": "アコム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3915",
+      "name": "テラスカイ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9861",
+      "name": "吉野家ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3946",
+      "name": "トーモク",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2201",
+      "name": "森永製菓",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6814",
+      "name": "古野電気",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4732",
+      "name": "ユー・エス・エス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4478",
+      "name": "フリー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4403",
+      "name": "日油",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7226",
+      "name": "極東開発工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4272",
+      "name": "日本化薬",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7242",
+      "name": "カヤバ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7071",
+      "name": "アンビスホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3034",
+      "name": "クオールホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5240",
+      "name": "ｍｏｎｏＡＩ　ｔｅｃｈｎｏｌｏｇｙ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6592",
+      "name": "マブチモーター",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5714",
+      "name": "ＤＯＷＡホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5393",
+      "name": "ニチアス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1801",
+      "name": "大成建設",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "9511",
+      "name": "沖縄電力",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9506",
+      "name": "東北電力",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9072",
+      "name": "ニッコンホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1719",
+      "name": "安藤・間",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1721",
+      "name": "コムシスホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8934",
+      "name": "サンフロンティア不動産",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1822",
+      "name": "大豊建設",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1852",
+      "name": "淺沼組",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8789",
+      "name": "フィンテック　グローバル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8714",
+      "name": "池田泉州ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8707",
+      "name": "岩井コスモホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8624",
+      "name": "いちよし証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8614",
+      "name": "東洋証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3989",
+      "name": "シェアリングテクノロジー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3964",
+      "name": "オークネット",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3962",
+      "name": "チェンジホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6135",
+      "name": "牧野フライス製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6047",
+      "name": "Ｇｕｎｏｓｙ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5991",
+      "name": "日本発條",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5844",
+      "name": "京都フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5838",
+      "name": "楽天銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5832",
+      "name": "ちゅうぎんフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8604",
+      "name": "野村ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8600",
+      "name": "トモニホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8570",
+      "name": "イオンフィナンシャルサービス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8558",
+      "name": "東和銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8550",
+      "name": "栃木銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8541",
+      "name": "愛媛銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8524",
+      "name": "北洋銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8522",
+      "name": "名古屋銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8511",
+      "name": "日本証券金融",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8418",
+      "name": "山口フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6323",
+      "name": "ローツェ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5715",
+      "name": "古河機械金属",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5713",
+      "name": "住友金属鉱山",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5631",
+      "name": "日本製鋼所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5471",
+      "name": "大同特殊鋼",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5344",
+      "name": "ＭＡＲＵＷＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5331",
+      "name": "ノリタケ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6287",
+      "name": "サトー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6250",
+      "name": "やまびこ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6235",
+      "name": "オプトラン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6504",
+      "name": "富士電機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6464",
+      "name": "ツバキ・ナカシマ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "5262",
+      "name": "日本ヒューム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5074",
+      "name": "テスホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6407",
+      "name": "ＣＫＤ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6371",
+      "name": "椿本チエイン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8411",
+      "name": "みずほフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8393",
+      "name": "宮崎銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8392",
+      "name": "大分銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8388",
+      "name": "阿波銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8386",
+      "name": "百十四銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8381",
+      "name": "山陰合同銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8377",
+      "name": "ほくほくフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8370",
+      "name": "紀陽銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8361",
+      "name": "大垣共立銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8360",
+      "name": "山梨中央銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8359",
+      "name": "八十二長野銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8358",
+      "name": "スルガ銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8354",
+      "name": "ふくおかフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8346",
+      "name": "東邦銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8345",
+      "name": "岩手銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2802",
+      "name": "味の素",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2734",
+      "name": "サーラコーポレーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2685",
+      "name": "アンドエスティＨＤ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6508",
+      "name": "明電舎",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8344",
+      "name": "山形銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8343",
+      "name": "秋田銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8341",
+      "name": "七十七銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8337",
+      "name": "千葉興業銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8336",
+      "name": "武蔵野銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8334",
+      "name": "群馬銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8331",
+      "name": "千葉銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8309",
+      "name": "三井住友トラストグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8308",
+      "name": "りそなホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8306",
+      "name": "三菱ＵＦＪフィナンシャル・グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8304",
+      "name": "あおぞら銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8233",
+      "name": "高島屋",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8185",
+      "name": "チヨダ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3186",
+      "name": "ネクステージ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3167",
+      "name": "ＴＯＫＡＩホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6752",
+      "name": "パナソニック　ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6627",
+      "name": "テラプローブ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2962",
+      "name": "テクニスコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8008",
+      "name": "ヨンドシーホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8005",
+      "name": "スクロール",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3444",
+      "name": "菊池製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3443",
+      "name": "川田テクノロジーズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3401",
+      "name": "帝人",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3350",
+      "name": "メタプラネット",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4042",
+      "name": "東ソー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4008",
+      "name": "住友精化",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3994",
+      "name": "マネーフォワード",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6875",
+      "name": "メガチップス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6871",
+      "name": "日本マイクロニクス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6754",
+      "name": "アンリツ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7912",
+      "name": "大日本印刷",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2222",
+      "name": "寿スピリッツ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4109",
+      "name": "ステラ　ケミファ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1982",
+      "name": "日比谷総合設備",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7752",
+      "name": "リコー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7751",
+      "name": "キヤノン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7744",
+      "name": "ノーリツ鋼機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7730",
+      "name": "マニー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6882",
+      "name": "三社電機製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3040",
+      "name": "ソリトンシステムズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4689",
+      "name": "ＬＩＮＥヤフー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4668",
+      "name": "明光ネットワークジャパン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4634",
+      "name": "ａｒｔｉｅｎｃｅ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4396",
+      "name": "システムサポートホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4228",
+      "name": "積水化成品工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4194",
+      "name": "ビジョナル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7381",
+      "name": "ＣＣＩグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7380",
+      "name": "十六フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7337",
+      "name": "ひろぎんホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7327",
+      "name": "第四北越フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7280",
+      "name": "ミツバ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7189",
+      "name": "西日本フィナンシャルホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7186",
+      "name": "横浜フィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7184",
+      "name": "富山第一銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7167",
+      "name": "めぶきフィナンシャルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7164",
+      "name": "全国保証",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7011",
+      "name": "三菱重工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6952",
+      "name": "カシオ計算機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4565",
+      "name": "ネクセラファーマ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4552",
+      "name": "ＪＣＲファーマ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4543",
+      "name": "テルモ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4475",
+      "name": "ＨＥＮＮＧＥ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4425",
+      "name": "Ｋｕｄａｎ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4418",
+      "name": "ＪＤＳＣ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2269",
+      "name": "明治ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8897",
+      "name": "ＭＩＲＡＲＴＨホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3668",
+      "name": "コロプラ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9984",
+      "name": "ソフトバンクグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8892",
+      "name": "エスコン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5830",
+      "name": "いよぎんホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5805",
+      "name": "ＳＷＣＣ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9107",
+      "name": "川崎汽船",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1963",
+      "name": "日揮ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9722",
+      "name": "藤田観光",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1951",
+      "name": "エクシオグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5817",
+      "name": "ＪＭＡＣＳ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9348",
+      "name": "ｉｓｐａｃｅ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4222",
+      "name": "児玉化学工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7701",
+      "name": "島津製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6966",
+      "name": "三井ハイテック",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3676",
+      "name": "デジタルハーツホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2590",
+      "name": "ダイドーグループホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7241",
+      "name": "フタバ産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7224",
+      "name": "新明和工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7202",
+      "name": "いすゞ自動車",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7476",
+      "name": "アズワン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7609",
+      "name": "ダイトロン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7616",
+      "name": "コロワイド",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6232",
+      "name": "ＡＣＳＬ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6166",
+      "name": "中村超硬",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6203",
+      "name": "豊和工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8584",
+      "name": "ジャックス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8439",
+      "name": "東京センチュリー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3891",
+      "name": "ニッポン高度紙工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1814",
+      "name": "大末建設",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1333",
+      "name": "Ｕｍｉｏｓ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "6532",
+      "name": "ベイカレント",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7984",
+      "name": "コクヨ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6613",
+      "name": "ＱＤレーザ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4617",
+      "name": "中国塗料",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6838",
+      "name": "多摩川ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4828",
+      "name": "ビジネスエンジニアリング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4819",
+      "name": "デジタルガレージ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4118",
+      "name": "カネカ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4091",
+      "name": "日本酸素ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3569",
+      "name": "セーレン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2127",
+      "name": "日本Ｍ＆Ａセンターホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7735",
+      "name": "ＳＣＲＥＥＮホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3099",
+      "name": "三越伊勢丹ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5445",
+      "name": "東京鐵鋼",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8043",
+      "name": "スターゼン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6524",
+      "name": "湖北工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6516",
+      "name": "山洋電気",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2784",
+      "name": "アルフレッサ　ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2809",
+      "name": "キユーピー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6298",
+      "name": "ワイエイシイホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5016",
+      "name": "ＪＸ金属",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8708",
+      "name": "アイザワ証券グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8771",
+      "name": "イー・ギャランティ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2206",
+      "name": "江崎グリコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9101",
+      "name": "日本郵船",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3769",
+      "name": "ＧＭＯペイメントゲートウェイ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9934",
+      "name": "因幡電機産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9119",
+      "name": "飯野海運",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9104",
+      "name": "商船三井",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2384",
+      "name": "ＳＢＳホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8841",
+      "name": "テーオーシー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2371",
+      "name": "カカクコム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6986",
+      "name": "双葉電子工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7610",
+      "name": "テイツー",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "7409",
+      "name": "ＡｅｒｏＥｄｇｅ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4183",
+      "name": "三井化学",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7240",
+      "name": "ＮＯＫ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2768",
+      "name": "双日",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6486",
+      "name": "イーグル工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5310",
+      "name": "東洋炭素",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5707",
+      "name": "東邦亜鉛",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3105",
+      "name": "日清紡ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6914",
+      "name": "オプテックスグループ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4813",
+      "name": "ＡＣＣＥＳＳ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7976",
+      "name": "三菱鉛筆",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4894",
+      "name": "クオリプス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8032",
+      "name": "日本紙パルプ商事",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6741",
+      "name": "日本信号",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6098",
+      "name": "リクルートホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6339",
+      "name": "新東工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7741",
+      "name": "ＨＯＹＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2267",
+      "name": "ヤクルト本社",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4722",
+      "name": "フューチャー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8613",
+      "name": "丸三証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5857",
+      "name": "ＡＲＥホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8622",
+      "name": "水戸証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6072",
+      "name": "地盤ネットホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1663",
+      "name": "Ｋ＆Ｏエナジーグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8367",
+      "name": "南都銀行",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5563",
+      "name": "新日本電工",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6501",
+      "name": "日立製作所",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3825",
+      "name": "リミックスポイント",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3791",
+      "name": "ＩＧポート",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3878",
+      "name": "巴川コーポレーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6857",
+      "name": "アドバンテスト",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7868",
+      "name": "広済堂ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4095",
+      "name": "日本パーカライジング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3558",
+      "name": "ジェイドグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3544",
+      "name": "サツドラホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4044",
+      "name": "セントラル硝子",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2931",
+      "name": "ユーグレナ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7236",
+      "name": "ティラド",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7138",
+      "name": "ＴＯＲＩＣＯ",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4202",
+      "name": "ダイセル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7599",
+      "name": "ＩＤＯＭ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4381",
+      "name": "ビープラッツ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4680",
+      "name": "ラウンドワン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9468",
+      "name": "ＫＡＤＯＫＡＷＡ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5801",
+      "name": "古河電気工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4483",
+      "name": "ＪＭＤＣ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9678",
+      "name": "カナモト",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6963",
+      "name": "ローム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4188",
+      "name": "三菱ケミカルグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4592",
+      "name": "サンバイオ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7456",
+      "name": "松田産業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6327",
+      "name": "北川精機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6522",
+      "name": "アスタリスク",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6521",
+      "name": "オキサイド",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8252",
+      "name": "丸井グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6572",
+      "name": "オープングループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3002",
+      "name": "グンゼ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3276",
+      "name": "ＪＰＭＣ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3168",
+      "name": "ＭＥＲＦ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7911",
+      "name": "ＴＯＰＰＡＮホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4914",
+      "name": "高砂香料工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6769",
+      "name": "ザインエレクトロニクス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4973",
+      "name": "日本高純度化学",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6645",
+      "name": "オムロン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6616",
+      "name": "トレックス・セミコンダクター",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6862",
+      "name": "ミナトホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7826",
+      "name": "フルヤ金属",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7906",
+      "name": "ヨネックス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4107",
+      "name": "伊勢化学工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4165",
+      "name": "プレイド",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4062",
+      "name": "イビデン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7762",
+      "name": "シチズン時計",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2175",
+      "name": "エス・エム・エス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2229",
+      "name": "カルビー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3086",
+      "name": "Ｊ．フロント　リテイリング",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2801",
+      "name": "キッコーマン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6027",
+      "name": "弁護士ドットコム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6217",
+      "name": "津田駒工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2975",
+      "name": "スター・マイカ・ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5381",
+      "name": "マイポックス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6506",
+      "name": "安川電機",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6525",
+      "name": "ＫＯＫＵＳＡＩ　ＥＬＥＣＴＲＩＣ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8117",
+      "name": "中央自動車工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4023",
+      "name": "クレハ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7199",
+      "name": "プレミアグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7458",
+      "name": "第一興商",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4204",
+      "name": "積水化学工業",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4373",
+      "name": "シンプレクス・ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4385",
+      "name": "メルカリ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4413",
+      "name": "ボードルア",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7545",
+      "name": "西松屋チェーン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3660",
+      "name": "アイスタイル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3608",
+      "name": "ＴＳＩホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9997",
+      "name": "ベルーナ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9983",
+      "name": "ファーストリテイリング",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "9900",
+      "name": "サガミホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8876",
+      "name": "リログループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9201",
+      "name": "日本航空",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9418",
+      "name": "Ｕ－ＮＥＸＴ　ＨＯＬＤＩＮＧＳ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2327",
+      "name": "日鉄ソリューションズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9716",
+      "name": "乃村工藝社",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7453",
+      "name": "良品計画",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3661",
+      "name": "エムアップホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2501",
+      "name": "サッポロビール",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2492",
+      "name": "インフォマート",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4544",
+      "name": "Ｈ．Ｕ．グループホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2585",
+      "name": "ライフドリンク　カンパニー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4676",
+      "name": "フジ・メディア・ホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7564",
+      "name": "ワークマン",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4324",
+      "name": "電通グループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4816",
+      "name": "東映アニメーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3391",
+      "name": "ツルハホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7988",
+      "name": "ニフコ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4812",
+      "name": "電通総研",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "7867",
+      "name": "タカラトミー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3498",
+      "name": "霞ヶ関キャピタル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2181",
+      "name": "パーソルホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4776",
+      "name": "サイボウズ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6902",
+      "name": "デンソー",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4704",
+      "name": "トレンドマイクロ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "4088",
+      "name": "エア・ウォーター",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "4180",
+      "name": "Ａｐｐｉｅｒ　Ｇｒｏｕｐ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2670",
+      "name": "エービーシー・マート",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5027",
+      "name": "ＡｎｙＭｉｎｄ　Ｇｒｏｕｐ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5032",
+      "name": "ＡＮＹＣＯＬＯＲ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5101",
+      "name": "横浜ゴム",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "5253",
+      "name": "カバー",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "2749",
+      "name": "ＪＰホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6196",
+      "name": "ストライクグループ",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8425",
+      "name": "みずほリース",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "6178",
+      "name": "日本郵政",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "8706",
+      "name": "極東証券",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3923",
+      "name": "ラクス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "3865",
+      "name": "北越コーポレーション",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9023",
+      "name": "東京地下鉄",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9069",
+      "name": "センコーグループホールディングス",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "9024",
+      "name": "西武ホールディングス",
+      "sector": "不明",
+      "category": "押し目候補"
+    },
+    {
+      "code": "1909",
+      "name": "日本ドライケミカル",
+      "sector": "不明",
+      "category": "翌週再確認"
+    },
+    {
+      "code": "1887",
+      "name": "日本国土開発",
+      "sector": "不明",
+      "category": "翌週再確認"
+    }
+  ],
+  "monday_recheck_conditions": [
+    "最新ニュース",
+    "日経先物",
+    "TOPIX",
+    "為替",
+    "米国市場",
+    "日本2年・10年・30年金利",
+    "10年-2年スプレッド",
+    "気配"
+  ],
+  "stocknote_run_id": "f7b5be52f3a048039a7ca74648318723",
+  "stocknote_request": "data/stocknote/stocknote_request_f7b5be52f3a048039a7ca74648318723.json"
+}
