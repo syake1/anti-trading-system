@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "run_id": "abd817b8002042b2b4f45e6c0aecc80b",
+  "generated_at": "2026-08-14T23:14:31.358619+00:00",
+  "analyses": [
+    {
+      "code": "4751",
+      "trend": "横ばい・混在",
+      "rsi": 33.48,
+      "confidence": 0.7,
+      "summary": "4751: 逆張りスコア91.3（RSI14=request、BB位置=request）。 観測済み損切り候補 1165.5、観測済み利確候補 1434、観測済みRR 2。",
+      "contrarian_score": 91.3,
+      "cautions": "明示された観測値のみを採点。候補価格は予測値・注文条件ではありません。",
+      "bb_position": "-2.07σ",
+      "assessment": "positive"
+    },
+    {
+      "code": "1860",
+      "trend": "下降",
+      "rsi": 43.06,
+      "confidence": 0.7,
+      "summary": "1860: 逆張りスコア33.6（RSI14=request、BB位置=request）。 観測済み損切り候補 1435.11、観測済み利確候補 1595.29、観測済みRR 2。",
+      "contrarian_score": 33.6,
+      "cautions": "明示された観測値のみを採点。候補価格は予測値・注文条件ではありません。",
+      "bb_position": "-0.65σ",
+      "assessment": "negative"
+    },
+    {
+      "code": "1968",
+      "trend": "下降",
+      "rsi": 40.29,
+      "confidence": 0.7,
+      "summary": "1968: 逆張りスコア55.0（RSI14=request、BB位置=request）。 観測済み損切り候補 2258.34、観測済み利確候補 2635.32、観測済みRR 2。",
+      "contrarian_score": 55.0,
+      "cautions": "明示された観測値のみを採点。候補価格は予測値・注文条件ではありません。",
+      "bb_position": "-1.23σ",
+      "assessment": "neutral"
+    }
+  ]
+}

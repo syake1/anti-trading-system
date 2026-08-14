@@ -2,7 +2,7 @@
   "status": "provisional",
   "final_decision": false,
   "basis": "Friday close",
-  "observed_at": "2026-08-15T08:10:07+09:00",
+  "observed_at": "2026-08-15T08:14:31+09:00",
   "monday_recheck_date": "2026-08-17",
   "stocknote_employee": "accepted",
   "focus_sectors": [
@@ -6567,8 +6567,8 @@
     "10年-2年スプレッド",
     "気配"
   ],
-  "stocknote_run_id": "ccb573a7b0d340798d5210a560adad07",
-  "stocknote_request": "data/stocknote/stocknote_request_ccb573a7b0d340798d5210a560adad07.json",
+  "stocknote_run_id": "abd817b8002042b2b4f45e6c0aecc80b",
+  "stocknote_request": "data/stocknote/stocknote_request_abd817b8002042b2b4f45e6c0aecc80b.json",
   "stocknote_analyses": [
     {
       "code": "4751",
