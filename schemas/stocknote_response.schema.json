@@ -19,7 +19,20 @@
           "code": {"type": "string", "pattern": "^[0-9]{4}$"},
           "assessment": {"enum": ["positive", "neutral", "negative", "insufficient"]},
           "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-          "summary": {"type": "string", "maxLength": 2000}
+          "summary": {"type": "string", "maxLength": 2000},
+          "contrarian_score": {"type": "number"},
+          "rsi": {"type": "number"},
+          "bb_position": {"type": "string"},
+          "trend": {"type": "string"},
+          "per": {"type": "number"},
+          "pbr": {"type": "number"},
+          "financial_health": {"type": "string"},
+          "revenue_growth": {"type": "string"},
+          "profit_growth": {"type": "string"},
+          "recommended_buy_price": {"type": "number"},
+          "expected_sell_price": {"type": "number"},
+          "final_target_price": {"type": "number"},
+          "cautions": {"type": "string"}
         }
       }
     }

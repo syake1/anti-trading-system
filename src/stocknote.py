@@ -16,7 +16,20 @@ import pandas as pd
 
 SCHEMA_VERSION = "1.0"
 CODE = re.compile(r"^[0-9]{4}$")
-STOCKNOTE_COLUMNS = ["stocknote_評価", "stocknote_信頼度", "stocknote_要約"]
+STOCKNOTE_FIELDS = {
+    "assessment": "stocknote_評価", "confidence": "stocknote_信頼度", "summary": "stocknote_要約",
+    "contrarian_score": "stocknote_逆張りスコア", "rsi": "stocknote_RSI",
+    "bb_position": "stocknote_BB位置", "trend": "stocknote_トレンド", "per": "stocknote_PER",
+    "pbr": "stocknote_PBR", "financial_health": "stocknote_財務健全性",
+    "revenue_growth": "stocknote_売上成長", "profit_growth": "stocknote_利益成長",
+    "recommended_buy_price": "stocknote_推奨買い価格", "expected_sell_price": "stocknote_予想売り価格",
+    "final_target_price": "stocknote_最終目標価格", "cautions": "stocknote_注意点",
+}
+STOCKNOTE_COLUMNS = list(STOCKNOTE_FIELDS.values())
+BASE_FIELDS = {"code", "assessment", "confidence", "summary"}
+TEXT_DETAIL_FIELDS = {"bb_position", "trend", "financial_health", "revenue_growth", "profit_growth", "cautions"}
+NUMBER_DETAIL_FIELDS = {"contrarian_score", "rsi", "per", "pbr", "recommended_buy_price",
+                        "expected_sell_price", "final_target_price"}
 
 
 class StocknoteContractError(ValueError):
@@ -66,7 +79,7 @@ def validate_response(payload: dict, run_id: str, candidate_codes: set[str], *,
         raise StocknoteContractError("analyses must be an array")
     seen: set[str] = set()
     for item in analyses:
-        if not isinstance(item, dict) or set(item) != {"code", "assessment", "confidence", "summary"}:
+        if not isinstance(item, dict) or not BASE_FIELDS.issubset(item) or not set(item) <= set(STOCKNOTE_FIELDS) | {"code"}:
             raise StocknoteContractError("invalid analysis fields")
         code = item["code"]
         if not isinstance(code, str) or not CODE.fullmatch(code) or code not in candidate_codes:
@@ -81,6 +94,12 @@ def validate_response(payload: dict, run_id: str, candidate_codes: set[str], *,
             raise StocknoteContractError("invalid assessment")
         if not isinstance(item["summary"], str) or len(item["summary"]) > 2000:
             raise StocknoteContractError("invalid summary")
+        if any(field in item and not isinstance(item[field], str) for field in TEXT_DETAIL_FIELDS):
+            raise StocknoteContractError("invalid detail text")
+        for field in NUMBER_DETAIL_FIELDS:
+            value = item.get(field)
+            if field in item and (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)):
+                raise StocknoteContractError("invalid detail number")
     return analyses
 
 
@@ -126,27 +145,50 @@ def consume_shadow(result: pd.DataFrame, directory: Path, run_id: str, *, max_ag
         annotated[column] = ""
     path = directory / f"stocknote_response_{run_id}.json"
     if not path.exists():
+        annotated.attrs["stocknote_status"] = "response_missing"
         return annotated, "response_missing"
     try:
         payload = _finite_json(path)
         analyses = validate_response(payload, run_id, set(annotated["コード"].astype(str)), now=now,
                                      max_age_hours=max_age_hours)
     except StocknoteContractError as exc:
-        return annotated, f"response_rejected: {exc}"
+        status = f"response_rejected: {exc}"
+        annotated.attrs["stocknote_status"] = status
+        return annotated, status
     indexed = {item["code"]: item for item in analyses}
     for index, row in annotated.iterrows():
         item = indexed.get(str(row["コード"]))
         if item:
-            annotated.at[index, "stocknote_評価"] = item["assessment"]
-            annotated.at[index, "stocknote_信頼度"] = item["confidence"]
-            annotated.at[index, "stocknote_要約"] = item["summary"]
+            for source, column in STOCKNOTE_FIELDS.items():
+                annotated.at[index, column] = item.get(source, "")
+    annotated.attrs["stocknote_status"] = "accepted"
     return annotated, "accepted"
 
 
 def write_shadow_report(result: pd.DataFrame, path: Path, run_id: str, status: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = result[result["stocknote_評価"] != ""] if "stocknote_評価" in result else result.iloc[0:0]
-    lines = ["# stocknote シャドーモード比較", "", f"- run_id: `{run_id}`", f"- response: `{status}`",
-             "- 注文・最終判断・公式ファンダメンタルへの反映: なし", "", "|コード|既存判断|stocknote評価|信頼度|", "|---|---|---|---|"]
-    lines += [f"|{r['コード']}|{r['最終判断']}|{r['stocknote_評価']}|{r['stocknote_信頼度']}|" for _, r in rows.iterrows()]
+    lines = ["# stocknote 分析監査レポート", "", f"- run_id: `{run_id}`", f"- response: `{status}`",
+             "- 参考情報のみ", "- 注文・最終判断・公式ファンダメンタルへの反映: なし",
+             "- スコア・分類・価格・株数への反映: なし"]
+    if status == "response_missing":
+        lines += ["", "stocknote未取得"]
+    elif status.startswith("response_rejected"):
+        lines += ["", f"stocknote応答拒否: {status.partition(':')[2].strip()}"]
+    for _, row in rows.iterrows():
+        lines += ["", f"## {row['コード']} {row.get('銘柄名', '')}", "", f"- 既存判断: {row['最終判断']}"]
+        for label, column in (("評価", "stocknote_評価"), ("信頼度", "stocknote_信頼度"),
+                              ("要約", "stocknote_要約"), ("逆張りスコア", "stocknote_逆張りスコア"),
+                              ("RSI", "stocknote_RSI"), ("BB位置", "stocknote_BB位置"),
+                              ("トレンド", "stocknote_トレンド"),
+                              ("推奨買い価格", "stocknote_推奨買い価格"), ("予想売り価格", "stocknote_予想売り価格"),
+                              ("最終目標価格", "stocknote_最終目標価格"), ("注意点", "stocknote_注意点")):
+            lines.append(f"- {label}: {row.get(column, '') or '未提示'}")
+        lines += [f"- PER: {row.get('stocknote_PER', '') or '未提示'}（参考値・公式未確認）",
+                  f"- PBR: {row.get('stocknote_PBR', '') or '未提示'}（参考値・公式未確認）",
+                  f"- 財務健全性: {row.get('stocknote_財務健全性', '') or '未提示'}（参考値・公式未確認）",
+                  f"- 売上成長: {row.get('stocknote_売上成長', '') or '未提示'}（参考値・公式未確認）",
+                  f"- 利益成長: {row.get('stocknote_利益成長', '') or '未提示'}（参考値・公式未確認）",
+                  f"- 公式PER（別枠）: {row.get('PER', '') or '未取得'}",
+                  f"- 公式PBR（別枠）: {row.get('PBR', '') or '未取得'}"]
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
