@@ -119,6 +119,41 @@ def test_eia_key_is_redacted_from_exception_and_audit(monkeypatch, tmp_path):
     assert key not in audit.read_text()
 
 
+def test_eia_key_encoded_with_lowercase_escapes_is_redacted(monkeypatch):
+    key = "Secret/With Spaces+"
+    monkeypatch.setenv("EIA_API_KEY", key)
+    eia = source("eia_api", 1)
+    eia.update({"url": "https://example.test/?api_key={api_key}", "unit": "usd"})
+
+    class EncodedLeakSession:
+        @staticmethod
+        def get(_url, timeout):
+            encoded = quote(key, safe="").lower()
+            raise RuntimeError(f"request failed for credential={encoded}")
+
+    with pytest.raises(FetchFailure) as caught:
+        fetch_eia(eia, EncodedLeakSession)
+    assert key.lower() not in str(caught.value).lower()
+    assert quote(key, safe="").lower() not in str(caught.value).lower()
+
+
+def test_audit_redacts_key_from_unexpected_custom_adapter(monkeypatch, tmp_path):
+    key = "audit-secret/value"
+    monkeypatch.setenv("EIA_API_KEY", key)
+    eia = source("eia_api", 1)
+    eia.update({"url": "https://example.test/?api_key={api_key}", "unit": "usd"})
+
+    def broken_adapter(*_):
+        raise RuntimeError(f"unexpected failure at {quote(key, safe='')}")
+
+    audit = tmp_path / "audit.csv"
+    assert fetch_instrument("X", config(eia), adapters={"eia_api": broken_adapter},
+                            audit_path=audit) is None
+    text = audit.read_text()
+    assert key not in text
+    assert quote(key, safe="") not in text
+
+
 def test_missing_eia_secret_is_a_normal_source_failure(monkeypatch, tmp_path):
     monkeypatch.delenv("EIA_API_KEY", raising=False)
     eia = source("eia_api", 1)

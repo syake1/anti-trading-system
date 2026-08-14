@@ -73,6 +73,14 @@ def test_header_only_market_csv_fetches_external_data(monkeypatch, tmp_path):
     assert load_market_input(config(), market_input) == expected
 
 
+def test_zero_byte_market_csv_fetches_external_data(monkeypatch, tmp_path):
+    market_input = tmp_path / "market_input.csv"
+    market_input.touch()
+    expected = [{"indicator": "VIX", "current": 20, "previous_close": 21}]
+    monkeypatch.setattr("src.investment_meeting.fetch_market_data", lambda _config: expected)
+    assert load_market_input(config(), market_input) == expected
+
+
 def test_order_levels_primary_cap_and_determinism():
     rows = pd.DataFrame([candidate(コード=f"{i:04d}", スコア=20-i, ATR14=20,
         前日高値=1010, 反転足高値=1015, 直近2日高値=1020, 直近安値=900,
