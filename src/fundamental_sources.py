@@ -183,9 +183,11 @@ def parse_xbrl(archive: bytes) -> dict:
             match = next((value for name, value, ctx in facts if name in aliases and (ctx.get("end") or ctx.get("instant")) == period), None)
             if match is not None: output[key + suffix] = match
     # YoY is valid only when both explicitly reported facts have distinct periods.
+    # A negative base is not expressed as an ordinary percentage: the sign
+    # transition derived downstream is the meaningful official-fact comparison.
     for source, target in (("revenue", "revenue_yoy"), ("operating_profit", "operating_profit_yoy"), ("net_profit", "ordinary_or_net_profit_yoy")):
         old, new = output.get(source + "_prior"), output.get(source)
-        if current and prior and old not in (None, 0) and new is not None:
+        if current and prior and old is not None and old > 0 and new is not None:
             output[target] = (new / old - 1) * 100
     output["latest_earnings_date"] = current or ""
     return output

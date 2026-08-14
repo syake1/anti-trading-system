@@ -27,7 +27,8 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
  "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
 MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
  "売上前年比", "営業利益前年比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
- "配当利回り", "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
+ "配当利回り", "利益状態", "業績4象限", "配当性向", "配当判定", "ファンダメンタル加減点理由",
+ "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
 
 
 def analysis_employee(row: dict, config: dict) -> dict:
@@ -73,6 +74,7 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     for row in candidates.fillna("").to_dict("records"):
         a = analysis_employee(row, config)
         fundamental = assess(row, config)
+        row = fundamental.data
         a["comment"] = a["comment"].replace("ファンダメンタル=入力なし（推測しない）", f"ファンダメンタル={fundamental.label}")
         sector = str(row.get("業種", "")).strip()
         news_score = news_impacts(news, sector, str(row.get("コード", "")), config)
@@ -138,6 +140,9 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "営業利益前年比": row.get("operating_profit_yoy", ""), "経常・純利益前年比": row.get("ordinary_or_net_profit_yoy", ""),
           "EPS": row.get("eps", ""), "PER": row.get("per", ""), "PBR": row.get("pbr", ""), "ROE": row.get("roe", ""),
           "自己資本比率": row.get("equity_ratio", ""), "配当利回り": row.get("dividend_yield", ""),
+          "利益状態": row.get("profit_transition", "評価不能"), "業績4象限": row.get("growth_quadrant", "評価不能"),
+          "配当性向": row.get("payout_ratio", ""), "配当判定": row.get("dividend_change", "評価不能"),
+          "ファンダメンタル加減点理由": " / ".join(fundamental.score_reasons),
           "今期会社予想": row.get("company_forecast", ""), "直近決算発表日": row.get("latest_earnings_date", ""),
           "業績修正": row.get("revision", ""), "重要適時開示": row.get("important_disclosure", ""),
           "ファンダメンタル取得元": row.get("fundamental_source", row.get("source", "")),
@@ -190,7 +195,11 @@ def fundamental_message(row) -> list[str]:
     material = str(row.get("重要適時開示", "")).strip() or "特になし"
     revision = str(row.get("業績修正", "")).strip()
     if revision: material = f"{revision} / {material}"
+    reasons = [reason.strip() for reason in str(row.get("ファンダメンタル加減点理由", "")).split("/") if reason.strip()]
+    reason_summary = " / ".join(reasons[:3]) + (f" / 他{len(reasons) - 3}件" if len(reasons) > 3 else "")
     return [f'ファンダメンタル：{int(row["ファンダメンタルスコア"])}/10 {row["ファンダメンタル評価"]}',
+            f'利益 {row.get("利益状態") or "評価不能"} / 業績 {row.get("業績4象限") or "評価不能"} / 配当 {row.get("配当判定") or "評価不能"}',
+            f'加減点：{reason_summary or "なし"}',
             f'売上 {pct("売上前年比")} / 営業利益 {pct("営業利益前年比")} / EPS {val("EPS")}',
             f'PER {val("PER", "倍")} / PBR {val("PBR", "倍")} / ROE {val("ROE", "%")}',
             f'自己資本比率 {val("自己資本比率", "%")} / 配当利回り {val("配当利回り", "%")}',
