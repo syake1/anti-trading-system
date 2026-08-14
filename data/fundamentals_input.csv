@@ -1,1 +1,1 @@
-code,source,source_reference,acquired_at,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure
+code,source,source_reference,acquired_at,revenue,revenue_prior,operating_profit,operating_profit_prior,net_profit,net_profit_prior,dividend,dividend_prior,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure

@@ -34,3 +34,16 @@ def test_xbrl_does_not_guess_a_prior_period():
       <jppfs:Revenue contextRef='CurrentYearDuration'>1200</jppfs:Revenue>
     </xbrl>"""
     assert "revenue_yoy" not in parse_xbrl(_archive(xml))
+
+
+def test_xbrl_negative_prior_uses_transition_not_misleading_yoy():
+    xml = """<xbrl xmlns='http://www.xbrl.org/2003/instance' xmlns:jppfs='urn:test'>
+      <context id='Current'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2025-04-01</startDate><endDate>2026-03-31</endDate></period></context>
+      <context id='Prior'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2024-04-01</startDate><endDate>2025-03-31</endDate></period></context>
+      <jppfs:ProfitLoss contextRef='Current'>50</jppfs:ProfitLoss>
+      <jppfs:ProfitLoss contextRef='Prior'>-100</jppfs:ProfitLoss>
+    </xbrl>"""
+    result = parse_xbrl(_archive(xml))
+    assert result["net_profit"] == 50
+    assert result["net_profit_prior"] == -100
+    assert "ordinary_or_net_profit_yoy" not in result

@@ -1,0 +1,299 @@
+From cac1b83a4318a764b7af8b794a9878318b4f9a72 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Fri, 14 Aug 2026 18:01:52 +0000
+Subject: [PATCH] Enhance official fundamental analysis
+
+---
+ README.md                         |  2 +-
+ data/fundamentals_input.csv       |  2 +-
+ src/fundamental_sources.py        |  4 +-
+ src/fundamentals.py               | 86 +++++++++++++++++++++++++------
+ src/investment_meeting.py         | 11 +++-
+ tests/test_fundamental_sources.py | 13 +++++
+ tests/test_fundamentals.py        | 36 ++++++++++++-
+ 7 files changed, 134 insertions(+), 20 deletions(-)
+
+diff --git a/README.md b/README.md
+index 05d9d73..a18cec2 100644
+--- a/README.md
++++ b/README.md
+@@ -176,6 +176,6 @@ Yahoo Financeの欠損・レート制限・上場廃止等は銘柄単位でエ
+ 
+ ## ファンダメンタル・ゲート
+ 
+-朝会は `data/fundamentals_input.csv` の正規化済み公式開示を候補へ結合し、売上高・営業利益・経常利益または純利益の前年比、EPS、PER、PBR、ROE、自己資本比率、配当利回り、会社予想、決算日、業績修正、重要適時開示を10点満点で評価します。入力元は EDINET、TDnet、企業IR、J-Quants、JPX に限定し、参照URLまたは開示識別子が必須です。株探・みんかぶ等のHTMLスクレイピングは行いません。
++朝会は `data/fundamentals_input.csv` の正規化済み公式開示を候補へ結合し、売上高・営業利益・経常利益または純利益の前年比、EPS、PER、PBR、ROE、自己資本比率、配当利回り、会社予想、決算日、業績修正、重要適時開示を10点満点で評価します。入力元は EDINET、TDnet、企業IR、J-Quants、JPX に限定し、参照URLまたは開示識別子が必須です。株探・みんかぶ等のHTMLスクレイピングは行いません。当期・前期の公式値が両方ある場合だけ、利益の黒字/赤字推移、売上高と営業利益の4象限、配当性向、増配・維持・減配・無配転落を算出します。片方でも欠ければ「評価不能」または欠損とし、前期利益が負数なら通常の前年比率ではなく黒字転換・赤字転落等の分類を優先します。候補CSVにはファンダメンタルスコアの全加点・減点理由も保存し、Discordには要約を表示します。
+ 
+ 値は公式開示や契約済みサービスから確認した値をCSVへ投入してください。取得できない値は空欄（欠損）のままにし、推測・前回値補完はしません。必須11項目を満たさない、公式取得元でない、または参照先がない銘柄は「データ不足」となり、テクニカルが良くても主力になりません。4点以下、下方修正、赤字転落、重大な悪材料も主力から降格します。各候補の取得元・取得日時・成功/失敗理由は `data/fundamentals_audit.csv` に追記されます。
+diff --git a/data/fundamentals_input.csv b/data/fundamentals_input.csv
+index 2c84bef..16e874b 100644
+--- a/data/fundamentals_input.csv
++++ b/data/fundamentals_input.csv
+@@ -1 +1 @@
+-code,source,source_reference,acquired_at,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure
++code,source,source_reference,acquired_at,revenue,revenue_prior,operating_profit,operating_profit_prior,net_profit,net_profit_prior,dividend,dividend_prior,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure
+diff --git a/src/fundamental_sources.py b/src/fundamental_sources.py
+index c38edab..47939b9 100644
+--- a/src/fundamental_sources.py
++++ b/src/fundamental_sources.py
+@@ -183,9 +183,11 @@ def parse_xbrl(archive: bytes) -> dict:
+             match = next((value for name, value, ctx in facts if name in aliases and (ctx.get("end") or ctx.get("instant")) == period), None)
+             if match is not None: output[key + suffix] = match
+     # YoY is valid only when both explicitly reported facts have distinct periods.
++    # A negative base is not expressed as an ordinary percentage: the sign
++    # transition derived downstream is the meaningful official-fact comparison.
+     for source, target in (("revenue", "revenue_yoy"), ("operating_profit", "operating_profit_yoy"), ("net_profit", "ordinary_or_net_profit_yoy")):
+         old, new = output.get(source + "_prior"), output.get(source)
+-        if current and prior and old not in (None, 0) and new is not None:
++        if current and prior and old is not None and old > 0 and new is not None:
+             output[target] = (new / old - 1) * 100
+     output["latest_earnings_date"] = current or ""
+     return output
+diff --git a/src/fundamentals.py b/src/fundamentals.py
+index a27cb20..439f2f5 100644
+--- a/src/fundamentals.py
++++ b/src/fundamentals.py
+@@ -43,16 +43,62 @@ class FundamentalAssessment:
+     label: str
+     sufficient: bool
+     reason: str
++    score_reasons: tuple[str, ...] = ()
++
++
++def derive_official_metrics(row: dict) -> dict:
++    """Derive comparisons only from pairs of explicitly supplied official facts."""
++    result = dict(row)
++    current, prior = _num(row.get("net_profit")), _num(row.get("net_profit_prior"))
++    if current is None or prior is None:
++        result["profit_transition"] = "評価不能"
++    elif prior < 0 <= current:
++        result["profit_transition"] = "黒字転換"
++    elif prior >= 0 > current:
++        result["profit_transition"] = "赤字転落"
++    elif prior < 0 and current < 0:
++        result["profit_transition"] = "赤字継続"
++    else:
++        result["profit_transition"] = "黒字継続"
++
++    revenue, revenue_prior = _num(row.get("revenue")), _num(row.get("revenue_prior"))
++    operating, operating_prior = _num(row.get("operating_profit")), _num(row.get("operating_profit_prior"))
++    if None in (revenue, revenue_prior, operating, operating_prior):
++        result["growth_quadrant"] = "評価不能"
++    else:
++        result["growth_quadrant"] = ("増収" if revenue >= revenue_prior else "減収") + ("増益" if operating >= operating_prior else "減益")
++
++    eps, dividend = _num(row.get("eps")), _num(row.get("dividend"))
++    result["payout_ratio"] = dividend / eps * 100 if eps not in (None, 0) and dividend is not None else None
++    dividend_prior = _num(row.get("dividend_prior"))
++    if dividend is None or dividend_prior is None:
++        result["dividend_change"] = "評価不能"
++    elif dividend == 0 and dividend_prior > 0:
++        result["dividend_change"] = "無配転落"
++    elif dividend > dividend_prior:
++        result["dividend_change"] = "増配"
++    elif dividend < dividend_prior:
++        result["dividend_change"] = "減配"
++    else:
++        result["dividend_change"] = "維持"
++    return result
+ 
+ 
+ def assess(row: dict, config: dict) -> FundamentalAssessment:
+     """Score only explicitly supplied values; return insufficient rather than guessing."""
++    original = row
++    row = derive_official_metrics(row)
+     fc = config.get("fundamentals", {})
+     minimum = int(fc.get("minimum_required_fields", len(REQUIRED)))
+     present = sum(_present(row.get(k)) for k in REQUIRED)
+     source = str(row.get("fundamental_source", row.get("source", ""))).strip()
+     reference = str(row.get("fundamental_source_reference", row.get("source_reference", ""))).strip()
+     official = source in set(fc.get("official_sources", OFFICIAL_SOURCES)) and bool(reference)
++    if not official:
++        # Never present classifications calculated from an unaudited input as
++        # official analysis, even if the caller supplied plausible numbers.
++        row = {**original, "profit_transition": "評価不能", "growth_quadrant": "評価不能",
++               "payout_ratio": None, "dividend_change": "評価不能"}
+     sufficient = official and present >= minimum
+     if not sufficient:
+         why = "公式取得元または参照先なし" if not official else f"必須項目 {present}/{minimum}"
+@@ -62,25 +108,33 @@ def assess(row: dict, config: dict) -> FundamentalAssessment:
+     profit = _num(row.get("ordinary_or_net_profit_yoy"))
+     roe, equity = _num(row.get("roe")), _num(row.get("equity_ratio"))
+     per, pbr, dividend = _num(row.get("per")), _num(row.get("pbr")), _num(row.get("dividend_yield"))
+-    score = 0
+-    score += 1 if revenue is not None and revenue > 0 else 0
+-    score += 2 if operating is not None and operating > 0 else 0
+-    score += 1 if profit is not None and profit > 0 else 0
+-    score += 1 if _num(row.get("eps")) is not None and _num(row.get("eps")) > 0 else 0
+-    score += 1 if per is not None and 0 < per <= 25 and pbr is not None and 0 < pbr <= 3 else 0
+-    score += 1 if roe is not None and roe >= 8 else 0
+-    score += 1 if equity is not None and equity >= 30 else 0
+-    score += 1 if dividend is not None and dividend > 0 else 0
++    score, reasons = 0, []
++    def apply(points: int, reason: str):
++        nonlocal score
++        score += points; reasons.append(f"{points:+d} {reason}")
++    if revenue is not None and revenue > 0: apply(1, "売上高前年比プラス")
++    if operating is not None and operating > 0: apply(2, "営業利益前年比プラス")
++    transition = row.get("profit_transition")
++    if transition == "黒字転換": apply(1, "黒字転換（前年比率より優先）")
++    elif transition == "赤字転落": apply(-4, "赤字転落（前年比率より優先）")
++    elif transition in ("評価不能", "黒字継続") and profit is not None and profit > 0: apply(1, "利益前年比プラス")
++    if _num(row.get("eps")) is not None and _num(row.get("eps")) > 0: apply(1, "EPSプラス")
++    if per is not None and 0 < per <= 25 and pbr is not None and 0 < pbr <= 3: apply(1, "PER・PBR基準内")
++    if roe is not None and roe >= 8: apply(1, "ROE 8%以上")
++    if equity is not None and equity >= 30: apply(1, "自己資本比率30%以上")
++    if dividend is not None and dividend > 0: apply(1, "配当利回りプラス")
+     forecast = str(row.get("company_forecast", ""))
+-    score += 1 if "増収増益" in forecast else 0
++    if "増収増益" in forecast: apply(1, "会社予想が増収増益")
+     revision = str(row.get("revision", "")); material = str(row.get("important_disclosure", ""))
+-    if "上方修正" in revision: score += 1
+-    if "下方修正" in revision: score -= 3
+-    if any(x in forecast + material for x in ("赤字転落", "債務超過", "不祥事", "重大事故")): score -= 4
+-    if "減収減益" in forecast: score -= 2
++    if "上方修正" in revision: apply(1, "上方修正")
++    if "下方修正" in revision: apply(-3, "下方修正")
++    if any(x in forecast + material for x in ("赤字転落", "債務超過", "不祥事", "重大事故")): apply(-4, "重大な悪材料")
++    if "減収減益" in forecast: apply(-2, "会社予想が減収減益")
++    raw_score = score
+     score = max(0, min(10, score))
++    if score != raw_score: reasons.append(f"得点範囲補正 {raw_score}→{score}")
+     label = "良好" if score >= 8 else "普通" if score >= 6 else "注意" if score >= 4 else "弱い"
+-    return FundamentalAssessment(row, score, label, True, "評価完了")
++    return FundamentalAssessment(row, score, label, True, "評価完了", tuple(reasons))
+ 
+ 
+ def load_fundamentals(path: Path | None = None) -> pd.DataFrame:
+@@ -114,10 +168,12 @@ def enrich_candidates(candidates: pd.DataFrame, config: dict, path: Path | None
+         record["fundamental_source"] = supplied.get("source", "")
+         record["fundamental_source_reference"] = supplied.get("source_reference", "")
+         result = assess(record, config)
++        record.update(result.data)
+         record["ファンダメンタルスコア"] = result.score
+         record["ファンダメンタル評価"] = result.label
+         record["ファンダメンタル十分"] = result.sufficient
+         record["ファンダメンタル不足理由"] = result.reason
++        record["ファンダメンタル加減点理由"] = " / ".join(result.score_reasons)
+         output.append(record)
+         audits.append({"acquired_at": supplied.get("acquired_at", acquired), "code": code,
+                        "source": supplied.get("source", "未取得"),
+diff --git a/src/investment_meeting.py b/src/investment_meeting.py
+index 931bd34..7e82ddf 100644
+--- a/src/investment_meeting.py
++++ b/src/investment_meeting.py
+@@ -27,7 +27,8 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "
+  "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
+ MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
+  "売上前年比", "営業利益前年比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
+- "配当利回り", "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
++ "配当利回り", "利益状態", "業績4象限", "配当性向", "配当判定", "ファンダメンタル加減点理由",
++ "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
+ 
+ 
+ def analysis_employee(row: dict, config: dict) -> dict:
+@@ -73,6 +74,7 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
+     for row in candidates.fillna("").to_dict("records"):
+         a = analysis_employee(row, config)
+         fundamental = assess(row, config)
++        row = fundamental.data
+         a["comment"] = a["comment"].replace("ファンダメンタル=入力なし（推測しない）", f"ファンダメンタル={fundamental.label}")
+         sector = str(row.get("業種", "")).strip()
+         news_score = news_impacts(news, sector, str(row.get("コード", "")), config)
+@@ -138,6 +140,9 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
+           "営業利益前年比": row.get("operating_profit_yoy", ""), "経常・純利益前年比": row.get("ordinary_or_net_profit_yoy", ""),
+           "EPS": row.get("eps", ""), "PER": row.get("per", ""), "PBR": row.get("pbr", ""), "ROE": row.get("roe", ""),
+           "自己資本比率": row.get("equity_ratio", ""), "配当利回り": row.get("dividend_yield", ""),
++          "利益状態": row.get("profit_transition", "評価不能"), "業績4象限": row.get("growth_quadrant", "評価不能"),
++          "配当性向": row.get("payout_ratio", ""), "配当判定": row.get("dividend_change", "評価不能"),
++          "ファンダメンタル加減点理由": " / ".join(fundamental.score_reasons),
+           "今期会社予想": row.get("company_forecast", ""), "直近決算発表日": row.get("latest_earnings_date", ""),
+           "業績修正": row.get("revision", ""), "重要適時開示": row.get("important_disclosure", ""),
+           "ファンダメンタル取得元": row.get("fundamental_source", row.get("source", "")),
+@@ -190,7 +195,11 @@ def fundamental_message(row) -> list[str]:
+     material = str(row.get("重要適時開示", "")).strip() or "特になし"
+     revision = str(row.get("業績修正", "")).strip()
+     if revision: material = f"{revision} / {material}"
++    reasons = [reason.strip() for reason in str(row.get("ファンダメンタル加減点理由", "")).split("/") if reason.strip()]
++    reason_summary = " / ".join(reasons[:3]) + (f" / 他{len(reasons) - 3}件" if len(reasons) > 3 else "")
+     return [f'ファンダメンタル：{int(row["ファンダメンタルスコア"])}/10 {row["ファンダメンタル評価"]}',
++            f'利益 {row.get("利益状態") or "評価不能"} / 業績 {row.get("業績4象限") or "評価不能"} / 配当 {row.get("配当判定") or "評価不能"}',
++            f'加減点：{reason_summary or "なし"}',
+             f'売上 {pct("売上前年比")} / 営業利益 {pct("営業利益前年比")} / EPS {val("EPS")}',
+             f'PER {val("PER", "倍")} / PBR {val("PBR", "倍")} / ROE {val("ROE", "%")}',
+             f'自己資本比率 {val("自己資本比率", "%")} / 配当利回り {val("配当利回り", "%")}',
+diff --git a/tests/test_fundamental_sources.py b/tests/test_fundamental_sources.py
+index cf5baba..53c309c 100644
+--- a/tests/test_fundamental_sources.py
++++ b/tests/test_fundamental_sources.py
+@@ -34,3 +34,16 @@ def test_xbrl_does_not_guess_a_prior_period():
+       <jppfs:Revenue contextRef='CurrentYearDuration'>1200</jppfs:Revenue>
+     </xbrl>"""
+     assert "revenue_yoy" not in parse_xbrl(_archive(xml))
++
++
++def test_xbrl_negative_prior_uses_transition_not_misleading_yoy():
++    xml = """<xbrl xmlns='http://www.xbrl.org/2003/instance' xmlns:jppfs='urn:test'>
++      <context id='Current'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2025-04-01</startDate><endDate>2026-03-31</endDate></period></context>
++      <context id='Prior'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2024-04-01</startDate><endDate>2025-03-31</endDate></period></context>
++      <jppfs:ProfitLoss contextRef='Current'>50</jppfs:ProfitLoss>
++      <jppfs:ProfitLoss contextRef='Prior'>-100</jppfs:ProfitLoss>
++    </xbrl>"""
++    result = parse_xbrl(_archive(xml))
++    assert result["net_profit"] == 50
++    assert result["net_profit_prior"] == -100
++    assert "ordinary_or_net_profit_yoy" not in result
+diff --git a/tests/test_fundamentals.py b/tests/test_fundamentals.py
+index f678b66..16ed887 100644
+--- a/tests/test_fundamentals.py
++++ b/tests/test_fundamentals.py
+@@ -1,7 +1,7 @@
+ import json
+ import pandas as pd
+ 
+-from src.fundamentals import assess, enrich_candidates
++from src.fundamentals import assess, derive_official_metrics, enrich_candidates
+ from src.investment_meeting import evaluate_candidates, fundamental_message
+ from tests.test_investment_meeting import candidate
+ 
+@@ -47,3 +47,37 @@ def test_enrichment_audits_success_and_missing_without_imputation(tmp_path):
+     logged = pd.read_csv(audit)
+     assert set(logged.status) == {"success", "failure"}
+     assert logged.loc[logged.code == 9999, "reason"].iloc[0].startswith("公式取得元")
++
++
++def test_explicit_profit_transitions_and_growth_quadrants():
++    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": 5})["profit_transition"] == "黒字転換"
++    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": -5})["profit_transition"] == "赤字転落"
++    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": -5})["profit_transition"] == "赤字継続"
++    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": 5})["profit_transition"] == "黒字継続"
++    cases = [((110, 100, 12, 10), "増収増益"), ((110, 100, 8, 10), "増収減益"),
++             ((90, 100, 12, 10), "減収増益"), ((90, 100, 8, 10), "減収減益")]
++    for values, expected in cases:
++        revenue, prior_revenue, operating, prior_operating = values
++        result = derive_official_metrics({"revenue": revenue, "revenue_prior": prior_revenue,
++                                          "operating_profit": operating, "operating_profit_prior": prior_operating})
++        assert result["growth_quadrant"] == expected
++
++
++def test_payout_and_dividend_change_require_both_explicit_values():
++    result = derive_official_metrics({"eps": 50, "dividend": 20, "dividend_prior": 10})
++    assert result["payout_ratio"] == 40
++    assert result["dividend_change"] == "増配"
++    assert derive_official_metrics({"eps": 50})["payout_ratio"] is None
++    assert derive_official_metrics({"dividend": 0, "dividend_prior": 10})["dividend_change"] == "無配転落"
++    assert derive_official_metrics({"dividend": 10})["dividend_change"] == "評価不能"
++
++
++def test_score_reasons_are_saved_and_abbreviated_for_discord():
++    result = evaluate_candidates(pd.DataFrame([candidate(net_profit_prior=-10, net_profit=5,
++        revenue=110, revenue_prior=100, operating_profit=12, operating_profit_prior=10,
++        dividend=20, dividend_prior=10)]), config()).iloc[0]
++    assert "+1 売上高前年比プラス" in result["ファンダメンタル加減点理由"]
++    message = "\n".join(fundamental_message(result))
++    assert "黒字転換 / 業績 増収増益 / 配当 増配" in message
++    assert "加減点：" in message
++    assert "他" in message
+-- 
+2.43.0
+
