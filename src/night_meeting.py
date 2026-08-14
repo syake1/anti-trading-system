@@ -22,6 +22,7 @@ from src.utils import ROOT, now_tokyo
 NIGHT_CATEGORIES = ("押し目候補", "動意候補", "翌朝再確認", "避ける")
 DETAIL_CLASSES = ("押し目候補", "押し目監視", "動意候補", "追いかけ禁止", "回避", "評価不能")
 BANK_SECTORS = {"銀行", "銀行業"}
+BANK_DISPLAY_LIMIT = 5
 _CATEGORY = {
     "押し目候補": "押し目候補", "動意候補": "動意候補",
     "押し目監視": "翌朝再確認", "評価不能": "翌朝再確認",
@@ -237,8 +238,14 @@ def weekend_message(result: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _limited_bank_line(label: str, selected: list[str]) -> str:
+    shown = selected[:BANK_DISPLAY_LIMIT]
+    suffix = f"（ほか{len(selected) - len(shown)}件は銀行監査CSV）" if len(selected) > len(shown) else ""
+    return f"{label} TOP{BANK_DISPLAY_LIMIT}：" + (" / ".join(shown) or "なし") + suffix
+
+
 def _weekend_bank_lines(evaluations: list[Mapping[str, Any]], metrics: Mapping[str, Any] | None = None) -> list[str]:
-    """Render a dedicated bank section from the sector-strategy audit result."""
+    """Render a compact bank section; full evaluations stay in the audit CSV."""
     lines = ["", "🏦 銀行セクター専用欄"]
     first = evaluations[0] if evaluations else None
     metrics = first.get("rate_metrics", {}) if first else (metrics or {})
@@ -253,9 +260,9 @@ def _weekend_bank_lines(evaluations: list[Mapping[str, Any]], metrics: Mapping[s
                                   ("追いかけ禁止", "追いかけ禁止"), ("回避", "回避")):
         selected = [f"{row['code']} {row['name']}".strip() for row in evaluations
                     if row["bank_classification"] == classification]
-        lines.append(f"{label}：" + (" / ".join(selected) or "なし"))
+        lines.append(_limited_bank_line(label, selected))
     recheck = [f"{row['code']} {row['name']}".strip() for row in evaluations if row["morning_recheck"]]
-    lines.append("月曜朝再確認：" + (" / ".join(recheck) or "なし"))
+    lines.append(_limited_bank_line("月曜朝再確認", recheck))
     return lines
 
 
@@ -286,4 +293,6 @@ def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -
     pd.DataFrame(overflow).to_csv(folder / f"weekend_meeting_{day}_audit.csv", index=False, encoding="utf-8-sig")
     pd.DataFrame(result.get("sector_rankings", [])).to_csv(
         folder / f"weekend_sector_rankings_{day}.csv", index=False, encoding="utf-8-sig")
+    pd.DataFrame(result.get("bank_evaluations", [])).to_csv(
+        folder / f"weekend_bank_audit_{day}.csv", index=False, encoding="utf-8-sig")
     return json_path, md_path
