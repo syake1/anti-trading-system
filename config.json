@@ -497,7 +497,7 @@
             "allowed_for_automation": true,
             "timeout": 10,
             "instrument_type": "government_bond_yield_2y_percent",
-            "adapter": "official_csv",
+            "adapter": "mof_jgb_csv",
             "url": "https://www.mof.go.jp/jgbs/reference/interest_rate/jgbcm.csv",
             "unit": "percent",
             "value_columns": [
@@ -528,7 +528,7 @@
             "allowed_for_automation": true,
             "timeout": 10,
             "instrument_type": "government_bond_yield_10y_percent",
-            "adapter": "official_csv",
+            "adapter": "mof_jgb_csv",
             "url": "https://www.mof.go.jp/jgbs/reference/interest_rate/jgbcm.csv",
             "unit": "percent",
             "value_columns": [
@@ -559,7 +559,7 @@
             "allowed_for_automation": true,
             "timeout": 10,
             "instrument_type": "government_bond_yield_30y_percent",
-            "adapter": "official_csv",
+            "adapter": "mof_jgb_csv",
             "url": "https://www.mof.go.jp/jgbs/reference/interest_rate/jgbcm.csv",
             "unit": "percent",
             "value_columns": [
@@ -643,24 +643,9 @@
         "instrument_type": "equity_price_index_spot",
         "sources": [
           {
-            "name": "JPX",
-            "enabled": true,
-            "priority": 1,
-            "allowed_for_automation": true,
-            "timeout": 10,
-            "instrument_type": "equity_price_index_spot",
-            "adapter": "official_csv",
-            "url": "https://www.jpx.co.jp/markets/indices/topix/tvdivq00000030ne-att/topix.csv",
-            "unit": "index_points",
-            "value_columns": [
-              "終値",
-              "close"
-            ]
-          },
-          {
             "name": "Yahoo Finance",
             "enabled": true,
-            "priority": 2,
+            "priority": 1,
             "allowed_for_automation": true,
             "timeout": 10,
             "instrument_type": "equity_price_index_spot",

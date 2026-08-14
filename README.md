@@ -27,7 +27,8 @@
 `config.json` の `data_sources.instruments` が取得許可リストです。各 source の
 `enabled`、`priority`、`allowed_for_automation`、`timeout`、`instrument_type` を確認してから、
 優先度の小さい順に取得します。標準の順序は日本国債 2Y/10Y/30Y が財務省→Yahoo Finance、
-米10年金利が FRED→Yahoo Finance、VIX が Cboe→Yahoo Finance、TOPIX が JPX→Yahoo Finance です。
+米10年金利が FRED→Yahoo Finance、VIX が Cboe→Yahoo Finance です。TOPIX は Yahoo Finance
+のみを試し、取得できなければ欠損として扱います（継続利用できる公式 JPX 自動取得 URL を未確認のため）。
 WTI は EIA の Cushing 現物価格を `WTI_SPOT` として取得し、先物 `CL=F` とは相互補完しません。
 その他の既存指標は、それぞれ同一定義の Yahoo Finance 系列だけを使用します。
 
@@ -37,9 +38,9 @@ timeout、empty data、parse error、schema change、通信エラー、Secret �
 `compare_sources` を `true` にした場合は許可済みの同一定義系列をすべて取得し、第1優先値との差を
 監査CSVの `comparison_source` / `difference` に保存します（通常は不要な外部アクセスを避けるため
 `false`）。EIA の利用には環境変数 `EIA_API_KEY` が必要です（未設定時は当該ソースを欠損扱いにし、朝会は継続します）。
-`data_sources.max_age_business_days` を超えた観測値は `stale_data` として監査し、次順位のソースへフォールバックします。財務省、FRED、Cboe、JPX、Yahoo
+`data_sources.max_age_business_days` を超えた観測値は `stale_data` として監査し、次順位のソースへフォールバックします。財務省、FRED、Cboe、Yahoo
 Finance の現在の設定には Secret はありませんが、運用開始前に各提供元の最新利用条件、再配布条件、
-アクセス頻度、および JPX CSV URL の継続提供可否を組織として再確認してください。
+アクセス頻度を組織として再確認してください。
 
 ニュースは官公庁、中央銀行、TDnet/EDINET、JPX、企業自身の IR の公式 RSS/API または監査可能な
 入力だけを信頼対象にします。みんかぶ、株探、世界の株価マーケット等の HTML スクレイピングは
