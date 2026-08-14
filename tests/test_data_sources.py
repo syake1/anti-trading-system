@@ -7,6 +7,7 @@ from urllib.parse import quote
 import pandas as pd
 import pytest
 
+import src.data_sources as data_sources
 from src.data_sources import (FetchFailure, Observation, fetch_eia, fetch_instrument,
                               fetch_mof_jgb, normalize_japanese_date)
 from src.market_environment import analyze_market
@@ -58,6 +59,38 @@ def test_japanese_observation_date_is_normalized_to_iso(raw):
 
 def test_reiwa_first_year_is_2019():
     assert normalize_japanese_date("令和元年5月1日") == "2019-05-01"
+
+
+@pytest.mark.parametrize("maturity", ["2年", "10年", "30年"])
+def test_jgb_observation_date_is_normalized_before_freshness_check(
+        maturity, monkeypatch, tmp_path):
+    content = (Path(__file__).parent / "fixtures/mof_jgbcm_cp932.csv").read_bytes()
+
+    class FixtureSession:
+        @staticmethod
+        def get(_url, timeout):
+            return type("Response", (), {"content": content, "status_code": 200, "ok": True})()
+
+    observed_dates = []
+
+    def record_freshness_date(observation_time):
+        observed_dates.append(observation_time)
+        return 0
+
+    def adapter(adapter_source, _session):
+        mof_source = {**adapter_source, "value_columns": [maturity]}
+        return fetch_mof_jgb(mof_source, FixtureSession)
+
+    monkeypatch.setattr(data_sources, "_business_day_age", record_freshness_date)
+    mof = source("mof", 1)
+    mof.update({"url": "https://example.test/jgbcm.csv", "unit": "percent"})
+
+    result = fetch_instrument(
+        "X", config(mof), adapters={"mof": adapter}, audit_path=tmp_path / "audit.csv")
+
+    assert result is not None
+    assert result.observation_time == "2026-08-13"
+    assert observed_dates == ["2026-08-13"]
 
 
 def test_mof_jgb_finds_shift_jis_header_when_skiprows_one_is_wrong():
