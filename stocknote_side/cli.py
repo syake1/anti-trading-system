@@ -17,8 +17,8 @@ def _load(spec: str):
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Process one stocknote_request_<run_id>.json file")
     parser.add_argument("request", help="exactly one request JSON file")
-    parser.add_argument("--analyzer", default="stocknote_side.analysis:analyze_candidate",
-                        help="existing stocknote analyzer as module:function")
+    parser.add_argument("--analyzer", default="stocknote_provider.analysis:analyze_candidate",
+                        help="stocknote analyzer as module:function")
     parser.add_argument("--force", action="store_true", help="replace an existing response")
     args = parser.parse_args(argv)
     try:
