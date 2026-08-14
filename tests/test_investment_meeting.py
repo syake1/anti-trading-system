@@ -2,7 +2,7 @@ import copy
 import json
 import pandas as pd
 
-from src.investment_meeting import evaluate_candidates, morning_message
+from src.investment_meeting import evaluate_candidates, load_market_input, morning_message
 from src.risk_manager import position_size
 
 
@@ -62,6 +62,15 @@ def test_workflow_utc_conversion_and_manual_dispatch():
     assert "45 20 * * 0-4" in workflow  # 05:45 JST, leaving 45 minutes before 06:30
     assert "30 23 * * 0-4" in workflow  # 08:30 JST
     assert "workflow_dispatch" in workflow
+    assert "EIA_API_KEY: ${{ secrets.EIA_API_KEY }}" in workflow
+
+
+def test_header_only_market_csv_fetches_external_data(monkeypatch, tmp_path):
+    market_input = tmp_path / "market_input.csv"
+    market_input.write_text("indicator,current,previous_close,observation_time\n", encoding="utf-8")
+    expected = [{"indicator": "TOPIX", "current": 1, "previous_close": 1}]
+    monkeypatch.setattr("src.investment_meeting.fetch_market_data", lambda _config: expected)
+    assert load_market_input(config(), market_input) == expected
 
 
 def test_order_levels_primary_cap_and_determinism():

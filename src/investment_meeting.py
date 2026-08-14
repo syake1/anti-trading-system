@@ -156,13 +156,21 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
     return "\n".join(lines)
 
 
+def load_market_input(config: dict, path: Path | None = None) -> list[dict] | pd.DataFrame:
+    """Use manual observations when present, otherwise obtain external data."""
+    market_input = path or ROOT / "data/market_input.csv"
+    market_rows = read_csv_if_populated(market_input) if market_input.exists() else pd.DataFrame()
+    return fetch_market_data(config) if market_rows.empty else market_rows
+
+
 def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Path:
     config, today = load_config(), now_tokyo().strftime("%Y%m%d")
     if candidates_path is None:
         files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True); candidates_path = files[0] if files else None
     candidates = read_csv_if_populated(candidates_path, dtype={"コード": str}) if candidates_path else pd.DataFrame()
-    market_input = ROOT / "data/market_input.csv"
-    market_rows = read_csv_if_populated(market_input) if market_input.exists() and market_input.stat().st_size > 60 else fetch_market_data(config)
+    # A header-only CSV is a valid frame but contains no observations, so fallback is
+    # deliberately decided after parsing rather than from an arbitrary byte size.
+    market_rows = load_market_input(config)
     environment = analyze_market(market_rows, config); news = analyze_news(ROOT / "data/news_input.csv", config)
     jgb = analyze_jgb(fetch_jgb_data(config), environment.observed_at)
     impacts = sector_impacts(environment, config)

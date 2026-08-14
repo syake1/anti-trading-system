@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import csv
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from io import StringIO
 from pathlib import Path
 from typing import Callable
+from urllib.parse import quote
 
 import pandas as pd
 import requests
@@ -99,19 +100,30 @@ def fetch_simple_csv(source: dict, session=requests) -> tuple[Observation, int]:
 def fetch_eia(source: dict, session=requests) -> tuple[Observation, int]:
     import os
     key = os.getenv(source.get("api_key_env", "EIA_API_KEY"))
-    if not key: raise FetchFailure("missing_secret", f"missing {source.get('api_key_env', 'EIA_API_KEY')}")
+    if not key: raise FetchFailure("missing_secret", "missing EIA API credential")
     configured = dict(source); configured["url"] = source["url"].format(api_key=key)
+    secrets = (key, quote(key, safe=""))
+
+    def masked(message: object) -> str:
+        result = str(message)
+        for secret in secrets:
+            if secret:
+                result = result.replace(secret, "***")
+        return result
     try:
         response = session.get(configured["url"], timeout=float(source.get("timeout", 10))); _failure(response)
         payload = response.json(); rows = payload["response"]["data"]
         if not rows: raise FetchFailure("empty_data", "EIA returned no observations", response.status_code)
         values = pd.Series({str(x["period"]): float(x["value"]) for x in rows}).sort_index()
         return Observation(float(values.iloc[-1]), str(values.index[-1]), source["unit"], values), response.status_code
-    except FetchFailure: raise
-    except (KeyError, TypeError) as exc: raise FetchFailure("schema_change", str(exc)) from exc
-    except (ValueError, requests.JSONDecodeError) as exc: raise FetchFailure("parse_error", str(exc)) from exc
-    except requests.Timeout as exc: raise FetchFailure("timeout", str(exc) or "request timed out") from exc
-    except requests.RequestException as exc: raise FetchFailure("network_error", str(exc)) from exc
+    except FetchFailure as exc:
+        # Never propagate an exception object whose text can contain the credential.
+        raise FetchFailure(exc.error_type, masked(exc), exc.status) from None
+    except (KeyError, TypeError) as exc: raise FetchFailure("schema_change", masked(exc)) from None
+    except (ValueError, requests.JSONDecodeError) as exc: raise FetchFailure("parse_error", masked(exc)) from None
+    except requests.Timeout as exc: raise FetchFailure("timeout", masked(exc) or "request timed out") from None
+    except requests.RequestException as exc: raise FetchFailure("network_error", masked(exc)) from None
+    except Exception as exc: raise FetchFailure("unexpected_error", masked(exc)) from None
 
 
 def fetch_yahoo(source: dict, session=None) -> tuple[Observation, int | None]:
@@ -136,6 +148,18 @@ def fetch_yahoo(source: dict, session=None) -> tuple[Observation, int | None]:
 
 ADAPTERS: dict[str, Callable] = {"fred_csv": fetch_fred, "official_csv": fetch_simple_csv,
                                  "eia_api": fetch_eia, "yahoo": fetch_yahoo}
+
+
+def _business_day_age(observation_time: str, today: date | None = None) -> int:
+    """Return weekdays elapsed after an observation date (holidays are not inferred)."""
+    try:
+        observed = pd.to_datetime(observation_time, utc=True).date()
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise FetchFailure("invalid_observation_time", "observation_time is not a valid date") from exc
+    today = today or datetime.now(timezone.utc).date()
+    if observed >= today:
+        return 0
+    return len(pd.bdate_range(observed, today, inclusive="right"))
 
 
 def save_audit(attempts: list[Attempt], path: Path | None = None) -> None:
@@ -168,6 +192,15 @@ def fetch_instrument(instrument: str, config: dict, *, session=requests,
             attempts.append(attempt); continue
         try:
             observation, status = adapters[source["adapter"]](source, session)
+            max_age = int(source.get("max_age_business_days",
+                                     source_config.get("max_age_business_days", 3)))
+            age = _business_day_age(observation.observation_time)
+            if age > max_age:
+                raise FetchFailure(
+                    "stale_data",
+                    f"observation is {age} business days old (maximum {max_age})",
+                    status,
+                )
             attempt.success, attempt.http_status = True, status
             attempt.value, attempt.unit, attempt.observation_time = observation.value, observation.unit, observation.observation_time
             successful.append((attempt, observation))

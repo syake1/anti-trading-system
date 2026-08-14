@@ -44,6 +44,9 @@ jobs:
       - run: python -m src.investment_meeting --kind '${{ steps.mode.outputs.kind }}'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          # An unset repository secret expands to an empty value; EIA then becomes a
+          # normal missing source and the meeting continues with its fallbacks.
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
       - name: Persist meeting
         run: |
           git config user.name github-actions[bot]

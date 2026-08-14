@@ -484,6 +484,7 @@
   },
   "data_sources": {
     "compare_sources": false,
+    "max_age_business_days": 3,
     "audit_path": "data/source_audit.csv",
     "instruments": {
       "JGB_2Y": {
