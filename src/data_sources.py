@@ -10,7 +10,9 @@ from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
 from io import BytesIO, StringIO
 from pathlib import Path
+import re
 from typing import Callable
+import unicodedata
 from urllib.parse import quote, quote_plus
 
 import pandas as pd
@@ -108,6 +110,54 @@ def _http_content(source: dict, session=requests) -> tuple[bytes, int]:
     return response.content, response.status_code
 
 
+_JAPANESE_ERA_START_YEARS = {
+    "明治": 1868,
+    "大正": 1912,
+    "昭和": 1926,
+    "平成": 1989,
+    "令和": 2019,
+    "M": 1868,
+    "T": 1912,
+    "S": 1926,
+    "H": 1989,
+    "R": 2019,
+}
+
+
+def normalize_japanese_date(value: object) -> str:
+    """Normalize a Gregorian or Japanese-era calendar date to ISO ``YYYY-MM-DD``.
+
+    MOF files have used both Japanese date separators and ASCII separators.  The
+    conversion is deliberately date-only and strict so an unrecognized label
+    cannot silently become the freshness date for a real yield observation.
+    """
+    text = unicodedata.normalize("NFKC", str(value)).strip()
+    gregorian = re.fullmatch(r"(\d{4})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*日?", text)
+    if gregorian:
+        year, month, day = map(int, gregorian.groups())
+    else:
+        era_date = re.fullmatch(
+            r"(明治|大正|昭和|平成|令和|[MTSHRmtshr])\s*(元|\d{1,2})\s*(?:年|[./-])\s*"
+            r"(\d{1,2})\s*(?:月|[./-])\s*(\d{1,2})\s*日?",
+            text,
+        )
+        if not era_date:
+            raise FetchFailure("invalid_observation_time", "observation_time is not a valid date")
+        era, era_year, month_text, day_text = era_date.groups()
+        era = era.upper() if len(era) == 1 else era
+        year_in_era = 1 if era_year == "元" else int(era_year)
+        if year_in_era < 1:
+            raise FetchFailure("invalid_observation_time", "observation_time is not a valid date")
+        year = _JAPANESE_ERA_START_YEARS[era] + year_in_era - 1
+        month, day = int(month_text), int(day_text)
+    try:
+        return date(year, month, day).isoformat()
+    except ValueError as exc:
+        raise FetchFailure(
+            "invalid_observation_time", "observation_time is not a valid date"
+        ) from exc
+
+
 def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
     """Read the MOF CSV using its documented one-line preamble, then fall back.
 
@@ -160,8 +210,9 @@ def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
     value_column = next(column for column in frame.columns if column in wanted)
     values = pd.to_numeric(frame[value_column].replace({"-": None, "ND": None, "N/A": None}),
                            errors="coerce")
-    dates = frame[date_column].astype(str).str.strip()
-    series = pd.Series(values.to_numpy(), index=dates).dropna()
+    numeric_rows = values.notna()
+    dates = frame.loc[numeric_rows, date_column].map(normalize_japanese_date)
+    series = pd.Series(values.loc[numeric_rows].to_numpy(), index=dates).dropna()
     if series.empty:
         raise FetchFailure("empty_data", "MOF CSV contains no numeric observations", status)
     return Observation(float(series.iloc[-1]), str(series.index[-1]), source["unit"], series), status
