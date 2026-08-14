@@ -16,10 +16,16 @@ def load_config(path: str | Path = ROOT / "config.json") -> dict:
 
 def load_json(path: str | Path, default):
     p = Path(path)
-    if not p.exists() or not p.stat().st_size:
+    if not p.exists():
         return default
-    with p.open(encoding="utf-8") as f:
-        return json.load(f)
+    content = p.read_text(encoding="utf-8")
+    if not content.strip():
+        return default
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # State files are caches; a truncated first-run file should not stop a scan.
+        return default
 
 
 def save_json(path: str | Path, value) -> None:
@@ -30,4 +36,3 @@ def save_json(path: str | Path, value) -> None:
 
 def now_tokyo() -> datetime:
     return datetime.now(TOKYO)
-
