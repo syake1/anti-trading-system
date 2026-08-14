@@ -10,11 +10,18 @@
     "watchlist_ranks": ["S", "A"], "watchlist_max_stocks": 50
   },
   "risk": {"lookback_days": 5, "atr_multiplier": 1.5, "reward_risk": 2.0},
+  "surge_exclusion": {
+    "daily_change_pct": 8, "change_3d_pct": 12, "change_5d_pct": 18,
+    "ma25_deviation_pct": 10, "rsi14": 72, "bb_sigma": 2.2,
+    "near_limit_change_pct": 7.5, "near_limit_range_atr": 1.8
+  },
   "rank_thresholds": {"S": 12, "A": 9, "B": 7},
   "weights": {
+    "recent_decline": 2, "stoch_oversold_reversal": 3, "d_improvement": 1,
+    "decline_bullish": 2, "volume_reversal": 2,
     "d_trend": 3, "k_reversal": 3, "k_d_cross": 2, "above_ma200": 2,
-    "ma25_slope": 1, "ma75_slope": 1, "rsi40_reversal": 2, "rsi_zone": 1,
-    "bb_minus1_rebound": 2, "bb_minus2_rebound": 3, "engulfing": 2,
-    "color_reversal": 1, "long_wick": 1, "volume_1_3": 1, "volume_1_5": 2
+    "ma25_slope": 1, "ma75_slope": 1, "rsi40_reversal": 3, "rsi_zone": 1,
+    "bb_minus1_rebound": 2, "bb_minus2_rebound": 3, "engulfing": 3,
+    "color_reversal": 1, "long_wick": 2, "volume_1_3": 1, "volume_1_5": 2
   }
 }

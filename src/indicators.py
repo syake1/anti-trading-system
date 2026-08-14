@@ -37,5 +37,9 @@ def enrich(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     out["ATR14"] = atr(out, config["indicators"]["atr_period"])
     out["volume_avg20"] = out["Volume"].shift(1).rolling(20).mean()
     out["volume_ratio"] = out["Volume"] / out["volume_avg20"]
+    out["change_1d"] = out["Close"].pct_change() * 100
+    out["change_3d"] = out["Close"].pct_change(3) * 100
+    out["change_5d"] = out["Close"].pct_change(5) * 100
+    out["ma25_deviation"] = (out["Close"] / out["MA25"] - 1) * 100
+    out["range_atr"] = (out["High"] - out["Low"]) / out["ATR14"]
     return out
-
