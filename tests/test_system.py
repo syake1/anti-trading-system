@@ -378,3 +378,17 @@ def test_buyback_csv_calculations(tmp_path):
     assert result["時価総額比"] == 5
     assert result["発行済株式比"] == 5
     assert result["取得期間日数"] == 10
+
+
+def test_order_backtest_keeps_unfilled_pnl_missing():
+    from src.backtest import simulate_order_methods
+    import json
+    cfg = json.load(open("config.json", encoding="utf-8"))
+    signal = {"コード":"0001", "現在値":1000, "ATR14":20, "前日高値":1100,
+              "反転足高値":1100, "直近2日高値":1100, "直近安値":900,
+              "損切り候補":900, "MA25":1000}
+    future = pd.DataFrame({"Open":[1000]*3, "High":[1010]*3, "Low":[990]*3, "Close":[1005]*3})
+    result = pd.DataFrame(simulate_order_methods(signal, future, cfg)).set_index("注文方式")
+    assert not bool(result.loc["stop", "約定"])
+    assert pd.isna(result.loc["stop", "5日後損益"])
+    assert pd.notna(result.loc["stop", "未約定後最大上昇率"])

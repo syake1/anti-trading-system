@@ -21,7 +21,9 @@ from src.utils import ROOT, load_config, now_tokyo, save_json
 
 
 RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "直近3日騰落率", "直近5日騰落率",
-                  "25日線乖離率", "ATR当日値幅", "スコア", "ランク", "%K", "%D",
+                  "25日線乖離率", "ATR当日値幅", "ATR14", "前日高値", "反転足高値", "反転足安値",
+                  "直近2日高値", "直近3日高値", "直近安値", "直近支持線", "BB-1σ", "BB-2σ", "BB下限",
+                  "スコア", "ランク", "%K", "%D",
                   "%D傾き", "RSI14", "MA25", "MA75", "MA200", "BB位置", "出来高倍率", "ローソク足パターン",
                   "アンチ判定", "買い・売り", "シグナル種別", "シグナル数", "自社株買い比率", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
 
@@ -94,6 +96,13 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
             "現在値": round(now.Close, 2), "前日比": round(now.change_1d, 2),
             "直近3日騰落率": round(now.change_3d, 2), "直近5日騰落率": round(now.change_5d, 2),
             "25日線乖離率": round(now.ma25_deviation, 2), "ATR当日値幅": round(now.range_atr, 2),
+            "ATR14": round(now.ATR14, 2), "前日高値": round(prev.High, 2),
+            "反転足高値": round(now.High, 2), "反転足安値": round(now.Low, 2),
+            "直近2日高値": round(df.High.iloc[-2:].max(), 2), "直近3日高値": round(df.High.iloc[-3:].max(), 2),
+            "直近安値": round(df.Low.iloc[-lookback:].min(), 2),
+            "直近支持線": round(df.Low.iloc[-20:].min(), 2),
+            "BB-1σ": round(now.bb_mid - (now.bb_upper - now.bb_mid) / 2, 2),
+            "BB-2σ": round(now.bb_lower, 2), "BB下限": round(now.bb_lower, 2),
             "スコア": value, "ランク": "除外" if exclusions else rank(value, config), "%K": round(now.K, 2), "%D": round(now.D, 2),
             "%D傾き": round(now.D - df.D.iloc[-1-config["stochastic"]["d_slope_days"]], 2), "RSI14": round(now.RSI14, 2),
             "MA25": round(now.MA25, 2), "MA75": round(now.MA75, 2), "MA200": round(now.MA200, 2),
