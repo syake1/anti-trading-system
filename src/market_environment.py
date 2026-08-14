@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 import pandas as pd
 
+from src.data_sources import fetch_configured
 from src.utils import ROOT, now_tokyo
 
 
@@ -60,24 +60,17 @@ def analyze_market(rows: list[dict] | pd.DataFrame | None, config: dict, observe
 
 
 def fetch_market_data(config: dict) -> list[dict]:
-    """Best-effort daily download. Failures/missing quotes are omitted, never imputed."""
-    try:
-        import yfinance as yf
-    except ImportError:
-        return []
+    """Fetch definition-safe observations; failed instruments remain absent."""
     result = []
-    for name, ticker in config["market_environment"]["tickers"].items():
-        try:
-            frame = yf.download(ticker, period="10d", interval="1d", progress=False, auto_adjust=False, timeout=10)
-            close = frame["Close"].dropna()
-            if hasattr(close, "columns"): close = close.iloc[:, 0]
-            if len(close) < 2: continue
-            previous, current = float(close.iloc[-2]), float(close.iloc[-1])
-            short = (current / float(close.iloc[-4]) - 1) * 100 if len(close) >= 4 else None
-            result.append({"indicator": name, "current": current, "previous_close": previous,
-                           "change_pct": (current / previous - 1) * 100, "short_change_pct": short})
-        except Exception:
-            continue
+    names = list(config.get("market_environment", {}).get("tickers", {}))
+    for name, observation in fetch_configured(config, names).items():
+        history = observation.history
+        if history is None or len(history) < 2: continue
+        previous, current = float(history.iloc[-2]), float(history.iloc[-1])
+        short = (current / float(history.iloc[-4]) - 1) * 100 if len(history) >= 4 else None
+        result.append({"indicator": name, "current": current, "previous_close": previous,
+                       "change_pct": (current / previous - 1) * 100, "short_change_pct": short,
+                       "observation_time": observation.observation_time})
     return result
 
 
