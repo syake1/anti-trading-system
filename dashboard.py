@@ -15,6 +15,23 @@ from src.utils import ROOT, load_config
 st.set_page_config(page_title="日本株 反転初動スクリーナー", layout="wide")
 st.title("📊 AI投資会議")
 ensure_templates(ROOT)
+st.header("🌏 市場環境")
+market_history = read_csv_if_populated(ROOT / "data/market_environment.csv")
+news_history = read_csv_if_populated(ROOT / "data/news_events.csv")
+sector_history = read_csv_if_populated(ROOT / "data/sector_impact.csv")
+if market_history.empty:
+    st.info("市場データ未取得です。取得不能な値は推測せず、朝会実行後に表示します。")
+else:
+    latest = market_history[market_history["date"] == market_history["date"].iloc[-1]]
+    a, b = st.columns([2, 1])
+    a.dataframe(latest[[c for c in ["indicator", "current", "previous_close", "change", "change_pct", "short_change_pct", "change_bp", "score"] if c in latest]], hide_index=True, use_container_width=True)
+    b.metric("市場判定", latest["market_regime"].iloc[-1]); b.metric("合計スコア", latest["total_score"].iloc[-1])
+if not news_history.empty:
+    st.subheader("重大ニュース（取得元・時刻・URLを監査）")
+    st.dataframe(news_history, hide_index=True, use_container_width=True)
+else: st.caption("信頼済みニュースは0件です。未設定時は data/news_input.csv を利用できます。")
+if not sector_history.empty:
+    st.subheader("業種別影響"); st.dataframe(sector_history.tail(30), hide_index=True, use_container_width=True)
 files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True)
 candidates = read_csv_if_populated(files[0], dtype={"コード": str}) if files else pd.DataFrame()
 stats = summary(); config = load_config()

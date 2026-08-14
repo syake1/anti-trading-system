@@ -1,15 +1,45 @@
 {
-  "stochastic": {"k_period": 7, "d_period": 10, "d_slope_days": 3},
-  "indicators": {"rsi_period": 14, "bb_period": 20, "bb_std": 2, "atr_period": 14},
-  "liquidity": {"min_price": 100, "min_avg_volume_20": 100000, "min_avg_trading_value_20": 100000000},
-  "scan": {
-    "history_period": "2y", "batch_size": 100, "batch_pause_seconds": 2,
-    "download_timeout": 30, "download_threads": 5,
-    "download_max_attempts": 4, "retry_backoff_seconds": 5, "scan_limit": 0,
-    "notify_ranks": ["S", "A"], "discord_max_alerts": 20,
-    "watchlist_ranks": ["S", "A"], "watchlist_max_stocks": 50
+  "stochastic": {
+    "k_period": 7,
+    "d_period": 10,
+    "d_slope_days": 3
   },
-  "risk": {"lookback_days": 5, "atr_multiplier": 1.5, "reward_risk": 2.0},
+  "indicators": {
+    "rsi_period": 14,
+    "bb_period": 20,
+    "bb_std": 2,
+    "atr_period": 14
+  },
+  "liquidity": {
+    "min_price": 100,
+    "min_avg_volume_20": 100000,
+    "min_avg_trading_value_20": 100000000
+  },
+  "scan": {
+    "history_period": "2y",
+    "batch_size": 100,
+    "batch_pause_seconds": 2,
+    "download_timeout": 30,
+    "download_threads": 5,
+    "download_max_attempts": 4,
+    "retry_backoff_seconds": 5,
+    "scan_limit": 0,
+    "notify_ranks": [
+      "S",
+      "A"
+    ],
+    "discord_max_alerts": 20,
+    "watchlist_ranks": [
+      "S",
+      "A"
+    ],
+    "watchlist_max_stocks": 50
+  },
+  "risk": {
+    "lookback_days": 5,
+    "atr_multiplier": 1.5,
+    "reward_risk": 2.0
+  },
   "portfolio": {
     "initial_capital": 3000000,
     "current_cash": 3000000,
@@ -41,7 +71,11 @@
     "chase_pct": 3.0,
     "stop_atr_multiplier": 1.5,
     "reward_risk": 2.0,
-    "rr_research_values": [1.5, 2.0, 2.5],
+    "rr_research_values": [
+      1.5,
+      2.0,
+      2.5
+    ],
     "gap_warning_pct": 3.0,
     "gap_skip_pct": 5.0,
     "market_max_gap_pct": 3.0,
@@ -52,23 +86,370 @@
     "minimum_order_volume_ratio": 0.6,
     "recent_rise_skip_pct": 12.0
   },
-  "order_backtest": {"valid_days": 3},
-  "surge_exclusion": {
-    "daily_change_pct": 8, "change_3d_pct": 12, "change_5d_pct": 18,
-    "ma25_deviation_pct": 10, "rsi14": 72, "bb_sigma": 2.2,
-    "near_limit_change_pct": 7.5, "near_limit_range_atr": 1.8
+  "order_backtest": {
+    "valid_days": 3
   },
-  "rank_thresholds": {"S": 15, "A": 11, "B": 8},
-  "accumulation": {"lookback_days": 10, "atr_contraction_ratio": 0.9, "bb_width_ratio": 0.9,
-    "quiet_volume_ratio": 0.9, "breakout_volume_ratio": 1.2, "minimum_features": 3},
-  "materials": {"buyback_market_cap_pct": 5, "buyback_shares_pct": 5},
+  "surge_exclusion": {
+    "daily_change_pct": 8,
+    "change_3d_pct": 12,
+    "change_5d_pct": 18,
+    "ma25_deviation_pct": 10,
+    "rsi14": 72,
+    "bb_sigma": 2.2,
+    "near_limit_change_pct": 7.5,
+    "near_limit_range_atr": 1.8
+  },
+  "rank_thresholds": {
+    "S": 15,
+    "A": 11,
+    "B": 8
+  },
+  "accumulation": {
+    "lookback_days": 10,
+    "atr_contraction_ratio": 0.9,
+    "bb_width_ratio": 0.9,
+    "quiet_volume_ratio": 0.9,
+    "breakout_volume_ratio": 1.2,
+    "minimum_features": 3
+  },
+  "materials": {
+    "buyback_market_cap_pct": 5,
+    "buyback_shares_pct": 5
+  },
   "weights": {
-    "recent_decline": 2, "stoch_oversold_reversal": 3, "d_improvement": 1,
-    "decline_bullish": 2, "volume_reversal": 2,
-    "d_trend": 3, "k_reversal": 3, "k_d_cross": 2, "above_ma200": 2,
-    "ma25_slope": 1, "ma75_slope": 1, "rsi40_reversal": 3, "rsi_zone": 1,
-    "bb_minus1_rebound": 2, "bb_minus2_rebound": 3, "engulfing": 3,
-    "color_reversal": 1, "long_wick": 2, "volume_1_3": 1, "volume_1_5": 2,
-    "higher_low": 2, "accumulation": 2, "buyback": 3, "positive_event": 2
+    "recent_decline": 2,
+    "stoch_oversold_reversal": 3,
+    "d_improvement": 1,
+    "decline_bullish": 2,
+    "volume_reversal": 2,
+    "d_trend": 3,
+    "k_reversal": 3,
+    "k_d_cross": 2,
+    "above_ma200": 2,
+    "ma25_slope": 1,
+    "ma75_slope": 1,
+    "rsi40_reversal": 3,
+    "rsi_zone": 1,
+    "bb_minus1_rebound": 2,
+    "bb_minus2_rebound": 3,
+    "engulfing": 3,
+    "color_reversal": 1,
+    "long_wick": 2,
+    "volume_1_3": 1,
+    "volume_1_5": 2,
+    "higher_low": 2,
+    "accumulation": 2,
+    "buyback": 3,
+    "positive_event": 2
+  },
+  "market_environment": {
+    "tickers": {
+      "NIKKEI_FUTURES": "NKD=F",
+      "TOPIX": "^TOPX",
+      "SP500": "^GSPC",
+      "NASDAQ": "^IXIC",
+      "SOX": "^SOX",
+      "VIX": "^VIX",
+      "USDJPY": "JPY=X",
+      "US10Y": "^TNX",
+      "WTI": "CL=F",
+      "GOLD": "GC=F"
+    },
+    "indicator_rules": {
+      "NIKKEI_FUTURES": {
+        "thresholds": [
+          -1.5,
+          -0.5,
+          0.5,
+          1.5
+        ]
+      },
+      "TOPIX": {
+        "thresholds": [
+          -1.5,
+          -0.5,
+          0.5,
+          1.5
+        ]
+      },
+      "SP500": {
+        "thresholds": [
+          -1.5,
+          -0.5,
+          0.5,
+          1.5
+        ]
+      },
+      "NASDAQ": {
+        "thresholds": [
+          -1.5,
+          -0.5,
+          0.5,
+          1.5
+        ]
+      },
+      "SOX": {
+        "thresholds": [
+          -2,
+          -0.7,
+          0.7,
+          2
+        ]
+      },
+      "VIX": {
+        "thresholds": [
+          -10,
+          -3,
+          3,
+          10
+        ],
+        "reverse": true
+      },
+      "USDJPY": {
+        "thresholds": [
+          -1,
+          -0.3,
+          0.3,
+          1
+        ]
+      },
+      "US10Y": {
+        "thresholds": [
+          -10,
+          -5,
+          5,
+          10
+        ],
+        "reverse": true,
+        "unit": "bp"
+      },
+      "WTI": {
+        "thresholds": [
+          -3,
+          -1,
+          1,
+          3
+        ]
+      },
+      "GOLD": {
+        "thresholds": [
+          -2,
+          -0.5,
+          0.5,
+          2
+        ]
+      }
+    },
+    "weights": {
+      "NIKKEI_FUTURES": 1.5,
+      "TOPIX": 1,
+      "SP500": 1,
+      "NASDAQ": 1.25,
+      "SOX": 1,
+      "VIX": 1.5,
+      "USDJPY": 0.75,
+      "US10Y": 1,
+      "WTI": 0.5,
+      "GOLD": 0.25
+    },
+    "regime_thresholds": {
+      "strong_risk_on": 6,
+      "risk_on": 2,
+      "caution": -2,
+      "strong_risk_off": -6
+    },
+    "capital_ratios": {
+      "強いリスクオン": 1,
+      "リスクオン": 1,
+      "中立": 0.75,
+      "警戒": 0.5,
+      "強いリスクオフ": 0.25
+    }
+  },
+  "sector_impacts": {
+    "SOX": {
+      "半導体": 2,
+      "電子部品": 1.5,
+      "製造装置": 2
+    },
+    "US10Y": {
+      "グロース": -1.5,
+      "銀行": 1,
+      "保険": 1
+    },
+    "USDJPY": {
+      "自動車": 1.5,
+      "輸出": 1,
+      "小売": -1,
+      "食品": -1
+    },
+    "WTI": {
+      "石油・資源": 2,
+      "航空": -2,
+      "運輸": -1
+    }
+  },
+  "news_analysis": {
+    "trusted_sources": [
+      "Reuters",
+      "日本銀行",
+      "Federal Reserve",
+      "TDnet",
+      "EDINET",
+      "気象庁",
+      "内閣府",
+      "企業IR",
+      "取引所"
+    ],
+    "emergency_min_severity": 4,
+    "emergency_categories": [
+      "earthquake",
+      "disaster",
+      "war",
+      "terror",
+      "financial_crisis",
+      "major_accident"
+    ],
+    "categories": {
+      "earthquake": {
+        "keywords": [
+          "地震",
+          "津波"
+        ],
+        "severity": 5,
+        "direction": -2,
+        "persistence": "短期",
+        "sectors": {
+          "建設": 1,
+          "保険": -1,
+          "鉄道": -1,
+          "電力": -1
+        }
+      },
+      "disaster": {
+        "keywords": [
+          "台風",
+          "洪水"
+        ],
+        "severity": 4,
+        "direction": -2,
+        "sectors": {
+          "建設": 1,
+          "保険": -1,
+          "鉄道": -1
+        }
+      },
+      "war": {
+        "keywords": [
+          "戦争",
+          "侵攻",
+          "地政学",
+          "テロ"
+        ],
+        "severity": 5,
+        "direction": -2,
+        "sectors": {
+          "石油・資源": 1,
+          "航空": -2
+        }
+      },
+      "financial_crisis": {
+        "keywords": [
+          "金融危機",
+          "銀行不安",
+          "破綻"
+        ],
+        "severity": 5,
+        "direction": -2,
+        "sectors": {
+          "銀行": -2,
+          "保険": -1
+        }
+      },
+      "tariff": {
+        "keywords": [
+          "関税"
+        ],
+        "severity": 3,
+        "direction": -1,
+        "sectors": {
+          "自動車": -2,
+          "輸出": -1
+        }
+      },
+      "semiconductor_restriction": {
+        "keywords": [
+          "半導体規制",
+          "半導体輸出規制",
+          "輸出規制"
+        ],
+        "severity": 4,
+        "direction": -2,
+        "sectors": {
+          "半導体": -2,
+          "電子部品": -1,
+          "製造装置": -2
+        }
+      },
+      "oil": {
+        "keywords": [
+          "原油急騰",
+          "原油高"
+        ],
+        "severity": 3,
+        "direction": -1,
+        "sectors": {
+          "石油・資源": 2,
+          "航空": -2,
+          "運輸": -1
+        }
+      },
+      "monetary_policy": {
+        "keywords": [
+          "日銀",
+          "FRB",
+          "利上げ",
+          "利下げ"
+        ],
+        "severity": 3,
+        "direction": 0,
+        "sectors": {
+          "銀行": 1,
+          "グロース": -1
+        }
+      },
+      "positive_corporate": {
+        "keywords": [
+          "上方修正",
+          "増配",
+          "自社株買い",
+          "大型受注",
+          "好決算"
+        ],
+        "severity": 3,
+        "direction": 2,
+        "sectors": {}
+      },
+      "negative_corporate": {
+        "keywords": [
+          "下方修正",
+          "減配",
+          "不祥事",
+          "製品事故"
+        ],
+        "severity": 4,
+        "direction": -2,
+        "sectors": {}
+      },
+      "m_and_a": {
+        "keywords": [
+          "M&A",
+          "買収"
+        ],
+        "severity": 3,
+        "direction": 1,
+        "sectors": {}
+      }
+    }
   }
 }
