@@ -80,9 +80,41 @@ def _ticker_frame(download: pd.DataFrame, ticker: str) -> pd.DataFrame:
 def _download_batch(tickers: list[str], config: dict) -> pd.DataFrame:
     return yf.download(
         tickers, period=config["scan"]["history_period"], group_by="column",
-        threads=True, progress=False, auto_adjust=False,
+        # yfinance の既定値に任せるとバッチ内の全銘柄へ同時に接続し得るため、
+        # 同時接続数にも上限を設ける。
+        threads=max(1, int(config["scan"].get("download_threads", 5))),
+        progress=False, auto_adjust=False,
         timeout=config["scan"].get("download_timeout", 30),
     )
+
+
+def _download_with_retry(tickers: list[str], config: dict) -> dict[str, pd.DataFrame]:
+    """Download a batch, retrying only missing tickers with exponential backoff."""
+    frames = {ticker: pd.DataFrame() for ticker in tickers}
+    pending = list(tickers)
+    attempts = max(1, int(config["scan"].get("download_max_attempts", 4)))
+    backoff = max(0, float(config["scan"].get("retry_backoff_seconds", 5)))
+
+    for attempt in range(1, attempts + 1):
+        try:
+            downloaded = _download_batch(pending, config)
+            for ticker in pending:
+                frame = _ticker_frame(downloaded, ticker)
+                required = {"Open", "High", "Low", "Close", "Volume"}
+                if required.issubset(frame.columns) and not frame.dropna(subset=list(required)).empty:
+                    frames[ticker] = frame
+        except Exception as exc:
+            # 429に限らず一時的な通信障害も同じ方法で回復させる。
+            print(f"一括取得失敗 (試行 {attempt}/{attempts}, {len(pending)}銘柄): {exc}")
+
+        pending = [ticker for ticker in pending if frames[ticker].empty]
+        if not pending:
+            break
+        if attempt < attempts:
+            delay = backoff * (2 ** (attempt - 1))
+            print(f"未取得 {len(pending)}銘柄を {delay:g}秒後に再取得します")
+            time.sleep(delay)
+    return frames
 
 
 def run(notify: bool = True) -> Path:
@@ -104,25 +136,12 @@ def run(notify: bool = True) -> Path:
     print("処理開始")
     rows = []
     success = failed = completed = liquid_count = 0
+    failed_stocks = []
     batch_size = max(1, int(config["scan"].get("batch_size", 50)))
     for start in range(0, total, batch_size):
         batch = stocks[start:start + batch_size]
         tickers = [f'{stock["code"]}.T' for stock in batch]
-        try:
-            downloaded = _download_batch(tickers, config)
-        except Exception as exc:
-            print(f"バッチ取得失敗 ({start + 1}-{start + len(batch)}): {exc}")
-            downloaded = pd.DataFrame()
-        frames = {ticker: _ticker_frame(downloaded, ticker) for ticker in tickers}
-        missing = [ticker for ticker in tickers if frames[ticker].empty]
-        # 欠損を一銘柄ずつ要求せず、まとめて一度だけ再取得してAPI呼び出し数を抑える。
-        if missing and config["scan"].get("retry_failed_batch", True):
-            try:
-                retried = _download_batch(missing, config)
-                for ticker in missing:
-                    frames[ticker] = _ticker_frame(retried, ticker)
-            except Exception as exc:
-                print(f"欠損銘柄の一括再取得失敗 ({len(missing)}銘柄): {exc}")
+        frames = _download_with_retry(tickers, config)
         for stock, ticker in zip(batch, tickers):
             data = frames[ticker]
             try:
@@ -131,6 +150,7 @@ def run(notify: bool = True) -> Path:
                     raise ValueError("空データ")
             except Exception as exc:
                 failed += 1
+                failed_stocks.append({"コード": stock["code"], "会社名": stock["name"], "理由": str(exc)})
                 print(f"{stock['code']} 取得失敗 → スキップ: {exc}")
                 continue
             success += 1
@@ -153,6 +173,10 @@ def run(notify: bool = True) -> Path:
             time.sleep(max(0, float(config["scan"].get("batch_pause_seconds", 0.5))))
     result = pd.DataFrame(rows, columns=RESULT_COLUMNS).sort_values("スコア", ascending=False, ignore_index=True)
     result.to_csv(output, index=False, encoding="utf-8-sig")
+    failure_log = ROOT / f'data/download_failures_{now_tokyo():%Y%m%d}.csv'
+    pd.DataFrame(failed_stocks, columns=["コード", "会社名", "理由"]).to_csv(
+        failure_log, index=False, encoding="utf-8-sig"
+    )
     if rows:
         history = ROOT / "data/signal_history.csv"
         result.to_csv(history, mode="a", header=not history.exists() or not history.stat().st_size, index=False, encoding="utf-8-sig")

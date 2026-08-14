@@ -95,6 +95,39 @@ def test_daily_scan_defaults_to_entire_stock_list():
     assert config["scan"]["scan_limit"] == 0
 
 
+def test_batch_download_retries_only_missing_tickers_with_exponential_backoff(monkeypatch):
+    fields = ["Open", "High", "Low", "Close", "Volume"]
+    columns = pd.MultiIndex.from_product([fields, ["7203.T", "6758.T"]])
+    first = pd.DataFrame([[100, np.nan] * len(fields)], columns=columns)
+    second = pd.DataFrame({field: [200] for field in fields})
+    downloads = iter([first, second])
+    calls = []
+    sleeps = []
+    monkeypatch.setattr(scanner, "_download_batch", lambda tickers, config: (calls.append(tickers.copy()), next(downloads))[1])
+    monkeypatch.setattr(scanner.time, "sleep", sleeps.append)
+    config = {"scan": {"download_max_attempts": 4, "retry_backoff_seconds": 3}}
+
+    frames = scanner._download_with_retry(["7203.T", "6758.T"], config)
+
+    assert calls == [["7203.T", "6758.T"], ["6758.T"]]
+    assert sleeps == [3]
+    assert all(not frame.empty for frame in frames.values())
+
+
+def test_batch_download_continues_after_exhausting_retries(monkeypatch):
+    monkeypatch.setattr(scanner, "_download_batch", lambda tickers, config: (_ for _ in ()).throw(RuntimeError("429")))
+    sleeps = []
+    monkeypatch.setattr(scanner.time, "sleep", sleeps.append)
+
+    frames = scanner._download_with_retry(
+        ["7203.T", "6758.T"],
+        {"scan": {"download_max_attempts": 3, "retry_backoff_seconds": 2}},
+    )
+
+    assert all(frame.empty for frame in frames.values())
+    assert sleeps == [2, 4]
+
+
 def test_empty_scan_prints_action_summary(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(scanner, "ROOT", tmp_path)
     (tmp_path / "data").mkdir()
