@@ -18,6 +18,7 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
                             jgb_sector_impacts, save_jgb_analysis)
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
+from src.stocknote import consume_shadow, export_request, write_shadow_report
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
@@ -229,6 +230,14 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     save_market_environment(environment); save_jgb_analysis(jgb); save_news(news); save_sector_impacts(impacts, environment.observed_at)
     candidates = enrich_candidates(candidates, config)
     result = evaluate_candidates(candidates, config, environment, news, jgb)
+    stocknote = config.get("stocknote", {})
+    if stocknote.get("enabled", False):
+        exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")
+        run_id, _ = export_request(result, exchange)
+        result, stocknote_status = consume_shadow(
+            result, exchange, run_id, max_age_hours=float(stocknote.get("max_response_age_hours", 24)))
+        write_shadow_report(result, ROOT / "reports/stocknote" / f"stocknote_shadow_{run_id}.md",
+                            run_id, stocknote_status)
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]
     output = ROOT / "reports/meeting" / folder / f"{prefix}_{today}.md"; output.parent.mkdir(parents=True, exist_ok=True)

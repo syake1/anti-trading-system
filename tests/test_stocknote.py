@@ -1,0 +1,88 @@
+from datetime import datetime, timedelta, timezone
+import json
+
+import pandas as pd
+import pytest
+
+from src.stocknote import (StocknoteContractError, consume_shadow, export_request,
+                           validate_response, write_shadow_report)
+
+
+NOW = datetime(2026, 8, 14, 0, 0, tzinfo=timezone.utc)
+
+
+def meeting_result():
+    return pd.DataFrame([{
+        "コード": "9065", "銘柄名": "山九", "最終判断": "小口",
+        "ファンダメンタル評価": "良好", "ファンダメンタルスコア": 8,
+        "ファンダメンタル取得元": "EDINET", "注文方式": "指値",
+        "買いゾーン下限": 980, "買いゾーン上限": 1000,
+        "損切り価格": 900, "利確目標": 1200, "RR": 2.0,
+    }])
+
+
+def response(run_id="run_123456", **changes):
+    value = {"schema_version": "1.0", "run_id": run_id, "generated_at": NOW.isoformat(),
+             "analyses": [{"code": "9065", "assessment": "positive",
+                            "confidence": .8, "summary": "堅調"}]}
+    value.update(changes)
+    return value
+
+
+def test_request_contract_and_filename(tmp_path):
+    run_id, path = export_request(meeting_result(), tmp_path, run_id="run_123456", generated_at=NOW)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert path.name == "stocknote_request_run_123456.json"
+    assert payload["schema_version"] == "1.0"
+    assert payload["candidates"][0]["code"] == "9065"
+    assert run_id == payload["run_id"]
+
+
+@pytest.mark.parametrize("payload", [
+    response(run_id="wrong_run"),
+    response(schema_version="2.0"),
+    response(analyses=[{"code": "123", "assessment": "neutral", "confidence": .5, "summary": "x"}]),
+    response(analyses=[{"code": "9065", "assessment": "neutral", "confidence": .5, "summary": "x"},
+                       {"code": "9065", "assessment": "neutral", "confidence": .5, "summary": "x"}]),
+])
+def test_response_rejects_identity_version_code_and_duplicates(payload):
+    with pytest.raises(StocknoteContractError):
+        validate_response(payload, "run_123456", {"9065"}, now=NOW)
+
+
+def test_expired_response_and_non_finite_json_fail_open(tmp_path):
+    run_id = "run_123456"
+    old = response(generated_at=(NOW - timedelta(hours=25)).isoformat())
+    (tmp_path / f"stocknote_response_{run_id}.json").write_text(json.dumps(old), encoding="utf-8")
+    annotated, status = consume_shadow(meeting_result(), tmp_path, run_id, now=NOW)
+    assert status.startswith("response_rejected")
+    assert annotated.loc[0, "stocknote_評価"] == ""
+    (tmp_path / f"stocknote_response_{run_id}.json").write_text(
+        json.dumps(response()).replace("0.8", "NaN"), encoding="utf-8")
+    _, status = consume_shadow(meeting_result(), tmp_path, run_id, now=NOW)
+    assert "non-finite" in status
+
+
+def test_missing_and_broken_response_never_stop_meeting(tmp_path):
+    result, status = consume_shadow(meeting_result(), tmp_path, "run_123456", now=NOW)
+    assert status == "response_missing"
+    assert list(result["最終判断"]) == ["小口"]
+    (tmp_path / "stocknote_response_run_123456.json").write_text("{broken", encoding="utf-8")
+    result, status = consume_shadow(meeting_result(), tmp_path, "run_123456", now=NOW)
+    assert status.startswith("response_rejected")
+    assert result.loc[0, "損切り価格"] == 900
+
+
+def test_accepted_response_only_adds_dedicated_columns_and_shadow_report(tmp_path):
+    baseline = meeting_result()
+    (tmp_path / "stocknote_response_run_123456.json").write_text(
+        json.dumps(response(), ensure_ascii=False), encoding="utf-8")
+    result, status = consume_shadow(baseline, tmp_path, "run_123456", now=NOW)
+    assert status == "accepted"
+    assert result.loc[0, "stocknote_評価"] == "positive"
+    for protected in ("最終判断", "ファンダメンタル評価", "ファンダメンタルスコア",
+                      "損切り価格", "利確目標", "RR", "買いゾーン下限", "買いゾーン上限"):
+        assert result.loc[0, protected] == baseline.loc[0, protected]
+    report = tmp_path / "report.md"
+    write_shadow_report(result, report, "run_123456", status)
+    assert "注文・最終判断・公式ファンダメンタルへの反映: なし" in report.read_text(encoding="utf-8")
