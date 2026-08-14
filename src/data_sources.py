@@ -8,7 +8,7 @@ from __future__ import annotations
 import csv
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
-from io import StringIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Callable
 from urllib.parse import quote, quote_plus
@@ -108,53 +108,60 @@ def _http_content(source: dict, session=requests) -> tuple[bytes, int]:
     return response.content, response.status_code
 
 
-def _decode_japanese_csv(content: bytes) -> str:
-    """Decode Japanese government CSV bytes without relying on response.text."""
-    for encoding in ("utf-8-sig", "cp932", "shift_jis"):
-        try:
-            return content.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-    raise FetchFailure("parse_error", "CSV is not UTF-8, CP932, or Shift_JIS")
-
-
 def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
-    """Parse the MOF JGB yield CSV's title/unit rows and maturity header."""
-    content, status = _http_content(source, session)
-    try:
-        rows = [[cell.strip().replace("\u3000", "") for cell in row]
-                for row in csv.reader(StringIO(_decode_japanese_csv(content)))]
-    except csv.Error as exc:
-        raise FetchFailure("parse_error", str(exc), status) from exc
+    """Read the MOF CSV using its documented one-line preamble, then fall back.
 
+    The normal path deliberately mirrors ``pd.read_csv(url, skiprows=1,
+    encoding="shift-jis")``.  The byte download keeps timeouts and HTTP audit
+    information under our control, while the parser remains pandas' CSV parser.
+    """
+    content, status = _http_content(source, session)
     wanted = tuple(source.get("value_columns", ()))
     date_labels = {"基準日", "年月日", "日付"}
-    header_index = next((i for i, row in enumerate(rows)
-                         if any(cell in date_labels for cell in row)
-                         and any(cell in wanted for cell in row)), None)
-    if header_index is None:
-        preview = rows[:5]
-        raise FetchFailure("schema_change", f"MOF maturity header not found; got {preview}", status)
 
-    header = rows[header_index]
-    date_column = next(i for i, cell in enumerate(header) if cell in date_labels)
-    value_column = next((i for i, cell in enumerate(header) if cell in wanted), None)
-    if value_column is None:
-        raise FetchFailure("schema_change", f"MOF maturity column not found: {wanted}", status)
+    def clean_columns(frame: pd.DataFrame) -> pd.DataFrame:
+        frame.columns = [str(column).strip().replace("\u3000", "") for column in frame.columns]
+        return frame
 
-    observations: dict[str, float] = {}
-    for row in rows[header_index + 1:]:
-        if max(date_column, value_column) >= len(row):
-            continue
-        observed = row[date_column].strip()
-        raw_value = row[value_column].strip()
-        if not observed or raw_value in {"", "-", "ND", "N/A"}:
-            continue
+    frame = None
+    errors = []
+    # Baseline first; CP932 is a superset commonly used for Japanese Windows CSVs.
+    for encoding in ("shift_jis", "cp932"):
         try:
-            observations[observed] = float(raw_value.replace(",", ""))
-        except ValueError:
-            continue
-    series = pd.Series(observations, dtype=float)
+            candidate = clean_columns(pd.read_csv(BytesIO(content), skiprows=1, encoding=encoding))
+            if any(column in date_labels for column in candidate.columns) and any(
+                    column in wanted for column in candidate.columns):
+                frame = candidate
+                break
+        except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as exc:
+            errors.append(f"{encoding}/skiprows=1: {exc}")
+
+    # If the publisher inserts another title/unit line, locate the real header.
+    if frame is None:
+        for encoding in ("cp932", "shift_jis"):
+            for header_index in range(10):
+                try:
+                    candidate = clean_columns(pd.read_csv(
+                        BytesIO(content), header=header_index, encoding=encoding))
+                except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as exc:
+                    errors.append(f"{encoding}/header={header_index}: {exc}")
+                    continue
+                if any(column in date_labels for column in candidate.columns) and any(
+                        column in wanted for column in candidate.columns):
+                    frame = candidate
+                    break
+            if frame is not None:
+                break
+    if frame is None:
+        detail = "; ".join(errors[-3:])
+        raise FetchFailure("schema_change", f"MOF maturity header not found ({detail})", status)
+
+    date_column = next(column for column in frame.columns if column in date_labels)
+    value_column = next(column for column in frame.columns if column in wanted)
+    values = pd.to_numeric(frame[value_column].replace({"-": None, "ND": None, "N/A": None}),
+                           errors="coerce")
+    dates = frame[date_column].astype(str).str.strip()
+    series = pd.Series(values.to_numpy(), index=dates).dropna()
     if series.empty:
         raise FetchFailure("empty_data", "MOF CSV contains no numeric observations", status)
     return Observation(float(series.iloc[-1]), str(series.index[-1]), source["unit"], series), status

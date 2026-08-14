@@ -24,6 +24,27 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12', cache: pip}
       - run: pip install -r requirements.txt
+      - name: Verify MOF JGB CSV yields
+        # Visibility check only: a temporary MOF outage must not stop the existing
+        # meeting pipeline, whose source adapters already treat failures as missing.
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import json
+          import math
+
+          from src.data_sources import fetch_mof_jgb
+
+          with open("config.json", encoding="utf-8") as stream:
+              instruments = json.load(stream)["data_sources"]["instruments"]
+          for tenor in ("2Y", "10Y", "30Y"):
+              source = next(item for item in instruments[f"JGB_{tenor}"]["sources"]
+                            if item["adapter"] == "mof_jgb_csv")
+              observation, _ = fetch_mof_jgb(source)
+              assert math.isfinite(observation.value)
+              print(f"MOF JGB {tenor}: date={observation.observation_time}, "
+                    f"yield={observation.value:.3f}% (numeric)")
+          PY
       - name: Select meeting
         id: mode
         shell: bash
