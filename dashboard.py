@@ -11,6 +11,7 @@ from src.indicators import enrich
 from src.materials import BUYBACK_COLUMNS, ensure_templates
 from src.stochastic import stochastic
 from src.utils import ROOT, load_config
+from src.japan_rates import JapanRates, rate_sector_impacts
 
 st.set_page_config(page_title="日本株 反転初動スクリーナー", layout="wide")
 st.title("📊 AI投資会議")
@@ -19,6 +20,7 @@ st.header("🌏 市場環境")
 market_history = read_csv_if_populated(ROOT / "data/market_environment.csv")
 news_history = read_csv_if_populated(ROOT / "data/news_events.csv")
 sector_history = read_csv_if_populated(ROOT / "data/sector_impact.csv")
+japan_rate_history = read_csv_if_populated(ROOT / "data/japan_rates.csv")
 if market_history.empty:
     st.info("市場データ未取得です。取得不能な値は推測せず、朝会実行後に表示します。")
 else:
@@ -32,11 +34,27 @@ if not news_history.empty:
 else: st.caption("信頼済みニュースは0件です。未設定時は data/news_input.csv を利用できます。")
 if not sector_history.empty:
     st.subheader("業種別影響"); st.dataframe(sector_history.tail(30), hide_index=True, use_container_width=True)
+st.header("🇯🇵 日本金利")
+if japan_rate_history.empty:
+    current_japan_rates = JapanRates(timestamp="")
+    st.info("日本金利データ：取得不可（欠損のまま他の市場分析を継続します）")
+else:
+    raw_rate = japan_rate_history.iloc[-1].where(pd.notna(japan_rate_history.iloc[-1]), None).to_dict()
+    allowed = JapanRates.__dataclass_fields__.keys()
+    current_japan_rates = JapanRates(**{k: raw_rate.get(k) for k in allowed if k in raw_rate})
+    rate_cols = st.columns(4)
+    rate_cols[0].metric("日本2年", f"{current_japan_rates.jp_2y_yield:.3f}%" if current_japan_rates.jp_2y_yield is not None else "NA")
+    rate_cols[1].metric("日本10年", f"{current_japan_rates.jp_10y_yield:.3f}%" if current_japan_rates.jp_10y_yield is not None else "NA", f"{current_japan_rates.jp_10y_change_bp:+.1f}bp" if current_japan_rates.jp_10y_change_bp is not None else None)
+    rate_cols[2].metric("日本30年", f"{current_japan_rates.jp_30y_yield:.3f}%" if current_japan_rates.jp_30y_yield is not None else "NA")
+    rate_cols[3].metric("10年－2年", f"{current_japan_rates.jp_10y_2y_spread:.3f}%" if current_japan_rates.jp_10y_2y_spread is not None else "NA")
+    st.write(f"5日変化 **{current_japan_rates.jp_10y_change_5d_bp:+.1f}bp** / 20日変化 **{current_japan_rates.jp_10y_change_20d_bp:+.1f}bp**" if current_japan_rates.jp_10y_change_5d_bp is not None and current_japan_rates.jp_10y_change_20d_bp is not None else "5日・20日変化: NA")
+    st.write(f"金利環境判定: **{current_japan_rates.jp_rate_regime}** / 日銀金融政策警戒: **{'あり' if current_japan_rates.boj_tightening_risk else 'なし'}**")
+    st.dataframe(pd.DataFrame([rate_sector_impacts(current_japan_rates)]).T.rename(columns={0:"影響スコア"}), use_container_width=True)
 files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True)
 candidates = read_csv_if_populated(files[0], dtype={"コード": str}) if files else pd.DataFrame()
 stats = summary(); config = load_config()
 from src.investment_meeting import evaluate_candidates
-meeting = evaluate_candidates(candidates, config)
+meeting = evaluate_candidates(candidates, config, japan_rates=current_japan_rates)
 portfolio = config["portfolio"]
 cols = st.columns(6)
 values = [("運用資産", f'{portfolio["initial_capital"]:,.0f}円'),
@@ -49,14 +67,14 @@ for col, (label, value) in zip(cols, values): col.metric(label, value)
 
 upload = st.file_uploader("候補CSVをアップロード", type="csv")
 if upload is not None: candidates = pd.read_csv(upload, dtype={"コード": str})
-meeting = evaluate_candidates(candidates, config)
+meeting = evaluate_candidates(candidates, config, japan_rates=current_japan_rates)
 if candidates.empty:
     st.info("候補CSVは空です。スキャン後、またはCSVアップロード後に候補が表示されます。")
 else:
     left, right = st.columns(2)
     with left:
         st.subheader("AI社員① 投資分析担当")
-        st.dataframe(meeting[["コード", "銘柄名", "分析評価", "分析コメント"]], hide_index=True, use_container_width=True)
+        st.dataframe(meeting[["コード", "銘柄名", "分析評価", "日本金利影響", "日本金利影響理由", "分析コメント"]], hide_index=True, use_container_width=True)
     with right:
         st.subheader("AI社員② 運用・検証担当")
         st.dataframe(meeting[["コード", "運用評価", "推奨株数", "必要資金", "運用コメント"]], hide_index=True, use_container_width=True)

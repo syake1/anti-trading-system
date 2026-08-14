@@ -4,6 +4,32 @@ from pathlib import Path
 import pandas as pd
 
 
+def japan_rate_performance(samples: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate rate bands, sectors, and JP/US combinations for the AI researcher."""
+    columns = ["検証軸", "環境", "業種", "サンプル数", "勝率", "平均損益", "PF", "MFE", "MAE"]
+    required = {"jp_10y_change_bp", "5日損益率"}
+    if samples.empty or not required.issubset(samples.columns): return pd.DataFrame(columns=columns)
+    data = samples.copy()
+    data["金利変化幅"] = pd.cut(pd.to_numeric(data["jp_10y_change_bp"], errors="coerce"),
+        [-float("inf"), -10, -5, 0, 5, 10, float("inf")],
+        labels=["-10bp以下", "-10～-5bp", "-5～0bp", "0～+5bp", "+5～10bp", "+10bp以上"], include_lowest=True)
+    jp = pd.to_numeric(data["jp_10y_change_bp"], errors="coerce")
+    us = pd.to_numeric(data.get("us_10y_change_bp"), errors="coerce")
+    data["日米金利"] = (jp.ge(0).map({True:"日本↑", False:"日本↓"}) + " " + us.ge(0).map({True:"米国↑", False:"米国↓"}))
+    result = []
+    for axis, key in (("変化幅", "金利変化幅"), ("日米組合せ", "日米金利")):
+        groups = data.groupby([key, data.get("業種", pd.Series("全体", index=data.index))], observed=True)
+        for (environment, sector), group in groups:
+            pnl = pd.to_numeric(group["5日損益率"], errors="coerce").dropna()
+            losses = abs(pnl[pnl < 0].sum())
+            result.append({"検証軸": axis, "環境": environment, "業種": sector, "サンプル数": len(pnl),
+                "勝率": (pnl > 0).mean() if len(pnl) else 0, "平均損益": pnl.mean(),
+                "PF": pnl[pnl > 0].sum()/losses if losses else None,
+                "MFE": pd.to_numeric(group.get("MFE"), errors="coerce").mean(),
+                "MAE": pd.to_numeric(group.get("MAE"), errors="coerce").mean()})
+    return pd.DataFrame(result, columns=columns)
+
+
 def grouped_performance(trades: pd.DataFrame, group: str, minimum_samples=20) -> pd.DataFrame:
     rows = []
     if trades.empty or group not in trades: return pd.DataFrame()

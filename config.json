@@ -266,6 +266,15 @@
       "強いリスクオフ": 0.25
     }
   },
+  "japan_rates": {
+    "tickers": {"JP2Y": "^JP2Y", "JP10Y": "^JP10Y", "JP30Y": "^JP30Y"},
+    "regime_thresholds_bp": {
+      "surge": 10, "rise": 3, "fall": -3, "plunge": -10,
+      "five_day_weight": 0.15, "twenty_day_weight": 0.05
+    },
+    "boj_risk_2y_bp": 5,
+    "boj_risk_usdjpy_pct": -0.3
+  },
   "sector_impacts": {
     "SOX": {
       "半導体": 2,
@@ -407,6 +416,10 @@
       "monetary_policy": {
         "keywords": [
           "日銀",
+          "植田総裁",
+          "政策金利",
+          "国債買い入れ",
+          "金融政策決定会合",
           "FRB",
           "利上げ",
           "利下げ"
