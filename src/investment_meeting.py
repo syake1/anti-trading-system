@@ -5,6 +5,8 @@ This creates proposals for human review only; it never sends an order to a broke
 from __future__ import annotations
 import argparse
 from pathlib import Path
+import subprocess
+import sys
 import pandas as pd
 
 from src.backtest import order_method_summary, read_csv_if_populated
@@ -241,11 +243,43 @@ def load_market_input(config: dict, path: Path | None = None) -> list[dict] | pd
     return fetch_market_data(config) if market_rows.empty else market_rows
 
 
+def join_candidate_sectors(candidates: pd.DataFrame, master_path: Path | None = None) -> pd.DataFrame:
+    """Fill only missing candidate sectors from the existing JPX security master."""
+    if candidates.empty:
+        return candidates.copy()
+    result = candidates.copy()
+    if "業種" not in result:
+        result["業種"] = ""
+    path = master_path or ROOT / "stocks.csv"
+    master = read_csv_if_populated(path, dtype={"code": str}) if path.exists() else pd.DataFrame()
+    if not {"code", "industry"}.issubset(master.columns):
+        return result
+    sectors = (master.assign(code=master["code"].astype(str).str.strip())
+               .drop_duplicates("code").set_index("code")["industry"])
+    missing = result["業種"].fillna("").astype(str).str.strip().eq("")
+    codes = result["コード"].astype(str).str.strip()
+    result.loc[missing, "業種"] = codes[missing].map(sectors).fillna("")
+    return result
+
+
+def run_stocknote_cli(request_path: Path, timeout_seconds: float) -> bool:
+    """Run the existing side CLI; optional analysis always fails open."""
+    try:
+        subprocess.run([sys.executable, "-m", "stocknote_side.cli", str(request_path)],
+                       cwd=ROOT, check=True, timeout=timeout_seconds,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Path:
     config, today = load_config(), now_tokyo().strftime("%Y%m%d")
     if candidates_path is None:
         files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True); candidates_path = files[0] if files else None
     candidates = read_csv_if_populated(candidates_path, dtype={"コード": str}) if candidates_path else pd.DataFrame()
+    if kind == "weekend":
+        candidates = join_candidate_sectors(candidates)
     # A header-only CSV is a valid frame but contains no observations, so fallback is
     # deliberately decided after parsing rather than from an arbitrary byte size.
     market_rows = load_market_input(config)
@@ -266,10 +300,13 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         stocknote = config.get("stocknote", {})
         if stocknote.get("enabled", False):
             exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")
-            run_id, request_path = export_request(candidates, exchange)
+            # The established stocknote contract accepts at most three candidates.
+            # Discord TOP limits and the complete weekend audit remain unchanged.
+            run_id, request_path = export_request(candidates.head(3), exchange)
             weekend_result["stocknote_employee"] = "request_exported"
             weekend_result["stocknote_run_id"] = run_id
             weekend_result["stocknote_request"] = str(request_path.relative_to(ROOT))
+            run_stocknote_cli(request_path, float(stocknote.get("timeout_seconds", 300)))
             annotated, status = consume_shadow(
                 candidates, exchange, run_id,
                 max_age_hours=float(stocknote.get("max_response_age_hours", 24)))

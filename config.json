@@ -812,6 +812,7 @@
   "stocknote": {
     "enabled": true,
     "exchange_directory": "data/stocknote",
-    "max_response_age_hours": 24
+    "max_response_age_hours": 24,
+    "timeout_seconds": 300
   }
 }

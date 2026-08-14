@@ -4,7 +4,8 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from src.investment_meeting import evaluate_candidates
+from src.investment_meeting import evaluate_candidates, join_candidate_sectors, run_stocknote_cli
+from src.stocknote import consume_shadow, export_request
 from src.jgb_yields import analyze_jgb
 from src.night_meeting import (generate_night_result, generate_weekend_result, night_message,
                                save_night_result, save_weekend_result, load_latest_night_result,
@@ -119,6 +120,58 @@ def test_weekend_integrates_bank_strategy_and_has_dedicated_section():
                   "銀行押し目候補", "押し目監視", "追いかけ禁止", "回避", "月曜朝再確認"):
         assert label in message
     assert "注目セクター：不明" not in message
+
+
+def test_weekend_carries_observed_jgb_even_without_bank_candidate():
+    observed = datetime(2026, 8, 15, 6, tzinfo=ZoneInfo("Asia/Tokyo"))
+    frame = pd.DataFrame([{**bank(コード="7203", 会社名="テスト自動車"), "業種": "自動車"}])
+    result = generate_weekend_result(frame, rates(), config(), observed)
+    assert result["jgb_rate_metrics"] == {
+        "2Y_yield_pct": .52, "10Y_yield_pct": 1.08, "30Y_yield_pct": 1.57,
+        "spread_10y_2y_bp": 56.0,
+    }
+    message = weekend_message(result)
+    assert "金利局面：実データ取得済み（銀行候補なし）" in message
+    assert "2年・10年・30年金利：+0.520% / +1.080% / +1.570%" in message
+    assert "10年-2年スプレッド：+56.000bp" in message
+
+
+def test_sector_master_fills_only_missing_sectors_and_focus_is_not_empty(tmp_path):
+    master = tmp_path / "stocks.csv"
+    pd.DataFrame([
+        {"code": "1860", "name": "戸田建設", "market": "プライム", "industry": "建設"},
+        {"code": "6758", "name": "ソニー", "market": "プライム", "industry": "電気機器"},
+    ]).to_csv(master, index=False)
+    candidates = pd.DataFrame([
+        {**bank(コード="1860", 会社名="戸田建設"), "業種": ""},
+        {**bank(コード="6758", 会社名="ソニー"), "業種": "電気機器"},
+        {**bank(コード="9999", 会社名="不明"), "業種": ""},
+    ])
+    joined = join_candidate_sectors(candidates, master)
+    result = generate_weekend_result(joined)
+    assert result["focus_sectors"] == ["建設", "電気機器"]
+    assert len(result["candidates"]) == 3 and result["candidates"][2]["sector"] == ""
+
+
+def test_weekend_stocknote_cli_success_and_missing_response_fail_open(tmp_path):
+    candidates = pd.DataFrame([bank()])
+    run_id, request = export_request(candidates, tmp_path, run_id="weekend_123456")
+    assert run_stocknote_cli(request, 30)
+    annotated, status = consume_shadow(candidates, tmp_path, run_id)
+    assert status == "accepted"
+    analysis = annotated.iloc[0]
+    result = generate_weekend_result(candidates)
+    result["stocknote_employee"] = status
+    result["stocknote_analyses"] = [{
+        "code": "8300", "name": "テスト銀行",
+        "assessment": analysis["stocknote_評価"], "confidence": analysis["stocknote_信頼度"],
+        "contrarian_score": analysis["stocknote_逆張りスコア"], "summary": analysis["stocknote_要約"],
+    }]
+    assert "stocknote上位候補" in weekend_message(result)
+
+    missing, missing_status = consume_shadow(candidates, tmp_path, "missing_123456")
+    assert missing_status == "response_missing"
+    assert missing["コード"].tolist() == candidates["コード"].tolist()
 
 
 def test_weekend_discord_limits_and_overflow_audit_csv(tmp_path):

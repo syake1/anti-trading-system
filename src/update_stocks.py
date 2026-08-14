@@ -28,7 +28,7 @@ def fetch(url: str = JPX_LIST_URL, timeout: int = 30) -> pd.DataFrame:
     response.raise_for_status()
     source = pd.read_excel(BytesIO(response.content), dtype=str)
     source.columns = [str(column).strip() for column in source.columns]
-    required = {"コード", "銘柄名", "市場・商品区分"}
+    required = {"コード", "銘柄名", "市場・商品区分", "33業種区分"}
     if not required.issubset(source.columns):
         raise ValueError(f"JPX一覧の列が想定外です: {list(source.columns)}")
     stocks = source[source["市場・商品区分"].isin(MARKETS)].copy()
@@ -36,7 +36,10 @@ def fetch(url: str = JPX_LIST_URL, timeout: int = 30) -> pd.DataFrame:
     stocks = stocks[stocks["code"].str.fullmatch(r"\d{4}", na=False)]
     stocks["name"] = stocks["銘柄名"].str.strip()
     stocks["market"] = stocks["市場・商品区分"].map(MARKETS)
-    stocks = stocks[["code", "name", "market"]].drop_duplicates("code").sort_values("code")
+    # JPX is the existing security master.  Keep its official industry alongside
+    # the listing fields so downstream meetings do not have to infer a sector.
+    stocks["industry"] = stocks["33業種区分"].fillna("").str.strip()
+    stocks = stocks[["code", "name", "market", "industry"]].drop_duplicates("code").sort_values("code")
     if len(stocks) < 1000:
         raise ValueError(f"取得銘柄数が不自然です: {len(stocks)}")
     return stocks.reset_index(drop=True)

@@ -167,11 +167,13 @@ def generate_weekend_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping
         if row["sector"]:
             sectors[row["sector"]] = sectors.get(row["sector"], 0) + 1
     monday = observed_at.date() + timedelta(days=(7 - observed_at.weekday()) % 7)
+    rate_metrics = _weekend_rate_metrics(jgb)
     return {"status": "provisional", "final_decision": False,
             "basis": "Friday close", "observed_at": observed_at.isoformat(timespec="seconds"),
             "monday_recheck_date": monday.isoformat(), "stocknote_employee": "enabled",
             "focus_sectors": sorted(sectors, key=lambda name: (-sectors[name], name)),
             "candidates": rows,
+            "jgb_rate_metrics": rate_metrics,
             "bank_evaluations": bank_evaluations,
             "monday_recheck_conditions": ["最新ニュース", "日経先物", "TOPIX", "為替", "米国市場",
                                            "日本2年・10年・30年金利", "10年-2年スプレッド", "気配"]}
@@ -187,7 +189,7 @@ def weekend_message(result: Mapping[str, Any]) -> str:
         shown = selected[:limits[category]]
         suffix = f"（ほか{len(selected) - len(shown)}件は監査CSV）" if len(selected) > len(shown) else ""
         lines.append(f"{category} TOP{limits[category]}：" + (" / ".join(shown) or "なし") + suffix)
-    lines += _weekend_bank_lines(result.get("bank_evaluations", []))
+    lines += _weekend_bank_lines(result.get("bank_evaluations", []), result.get("jgb_rate_metrics", {}))
     analyses = result.get("stocknote_analyses", [])
     if analyses:
         lines += ["", "stocknote上位候補（参考情報・判断には未反映）："]
@@ -202,12 +204,14 @@ def weekend_message(result: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _weekend_bank_lines(evaluations: list[Mapping[str, Any]]) -> list[str]:
+def _weekend_bank_lines(evaluations: list[Mapping[str, Any]], metrics: Mapping[str, Any] | None = None) -> list[str]:
     """Render a dedicated bank section from the sector-strategy audit result."""
     lines = ["", "🏦 銀行セクター専用欄"]
     first = evaluations[0] if evaluations else None
-    metrics = first.get("rate_metrics", {}) if first else {}
-    lines.append("金利局面：" + (first["rate_regime"] if first else "評価不能"))
+    metrics = first.get("rate_metrics", {}) if first else (metrics or {})
+    rates_available = all(metrics.get(f"{tenor}_yield_pct") is not None for tenor in ("2Y", "10Y", "30Y"))
+    regime = first["rate_regime"] if first else ("実データ取得済み（銀行候補なし）" if rates_available else "評価不能")
+    lines.append("金利局面：" + regime)
     lines.append("2年・10年・30年金利：" + " / ".join(
         _fmt(metrics.get(f"{tenor}_yield_pct"), "%") for tenor in ("2Y", "10Y", "30Y")))
     lines.append(f"10年-2年スプレッド：{_fmt(metrics.get('spread_10y_2y_bp'), 'bp')}")
@@ -220,6 +224,19 @@ def _weekend_bank_lines(evaluations: list[Mapping[str, Any]]) -> list[str]:
     recheck = [f"{row['code']} {row['name']}".strip() for row in evaluations if row["morning_recheck"]]
     lines.append("月曜朝再確認：" + (" / ".join(recheck) or "なし"))
     return lines
+
+
+def _weekend_rate_metrics(jgb: JGBAnalysis | Mapping[str, Any] | None) -> dict[str, Any]:
+    """Copy observed yields into the result even when there is no bank candidate."""
+    if jgb is None:
+        return {}
+    raw = jgb.tenors if isinstance(jgb, JGBAnalysis) else jgb.get("tenors", ())
+    rows = {str(row.get("tenor")): row for row in raw}
+    metrics = {f"{tenor}_yield_pct": rows.get(tenor, {}).get("yield_pct")
+               for tenor in ("2Y", "10Y", "30Y")}
+    metrics["spread_10y_2y_bp"] = (jgb.spread_10y_2y_bp if isinstance(jgb, JGBAnalysis)
+                                     else jgb.get("spread_10y_2y_bp"))
+    return metrics
 
 
 def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -> tuple[Path, Path]:
