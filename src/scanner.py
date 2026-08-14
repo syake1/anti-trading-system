@@ -6,6 +6,7 @@ import time
 
 import pandas as pd
 import yfinance as yf
+from yfinance import shared as yf_shared
 
 from src.anti_signal import detect
 from src.candlestick import patterns
@@ -20,6 +21,11 @@ RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在
                   "25日線乖離率", "ATR当日値幅", "スコア", "ランク", "%K", "%D",
                   "%D傾き", "RSI14", "MA25", "MA75", "MA200", "BB位置", "出来高倍率", "ローソク足パターン",
                   "アンチ判定", "買い・売り", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
+
+# yf.download() は銘柄ごとの例外をワーカースレッド内で捕捉し、呼び出し元へ
+# raise せず shared._ERRORS にだけ保存する。このスナップショットは各呼出し直後に
+# 取得しないと、次の yf.download() によって上書きされる。
+_LAST_DOWNLOAD_ERRORS: dict[str, str] = {}
 
 
 def surge_exclusion(row: pd.Series, config: dict) -> list[str]:
@@ -99,17 +105,24 @@ def _ticker_frame(download: pd.DataFrame, ticker: str) -> pd.DataFrame:
 
 
 def _download_batch(tickers: list[str], config: dict) -> pd.DataFrame:
-    return yf.download(
-        tickers, period=config["scan"]["history_period"], group_by="column",
-        # yfinance の既定値に任せるとバッチ内の全銘柄へ同時に接続し得るため、
-        # 同時接続数にも上限を設ける。
-        threads=max(1, int(config["scan"].get("download_threads", 5))),
-        progress=False, auto_adjust=False,
-        timeout=config["scan"].get("download_timeout", 30),
-    )
+    global _LAST_DOWNLOAD_ERRORS
+    _LAST_DOWNLOAD_ERRORS = {}
+    try:
+        return yf.download(
+            tickers, period=config["scan"]["history_period"], group_by="column",
+            # yfinance の既定値に任せるとバッチ内の全銘柄へ同時に接続し得るため、
+            # 同時接続数にも上限を設ける。
+            threads=max(1, int(config["scan"].get("download_threads", 5))),
+            progress=False, auto_adjust=False,
+            timeout=config["scan"].get("download_timeout", 30),
+        )
+    finally:
+        _LAST_DOWNLOAD_ERRORS = dict(yf_shared._ERRORS)
 
 
-def _download_with_retry(tickers: list[str], config: dict) -> dict[str, pd.DataFrame]:
+def _download_with_retry(
+        tickers: list[str], config: dict, rate_limited: set[str] | None = None
+) -> dict[str, pd.DataFrame]:
     """Download a batch, retrying only missing tickers with exponential backoff."""
     frames = {ticker: pd.DataFrame() for ticker in tickers}
     pending = list(tickers)
@@ -119,6 +132,16 @@ def _download_with_retry(tickers: list[str], config: dict) -> dict[str, pd.DataF
     for attempt in range(1, attempts + 1):
         try:
             downloaded = _download_batch(pending, config)
+            # yfinance は YFRateLimitError を内部で握り潰すため、戻り値だけでなく
+            # shared._ERRORS の直後のスナップショットも明示的に確認する。
+            limited = {
+                ticker for ticker, error in _LAST_DOWNLOAD_ERRORS.items()
+                if "429" in str(error) or "rate limit" in str(error).lower()
+            }
+            if rate_limited is not None:
+                rate_limited.update(limited)
+            if limited:
+                print(f"Yahoo Finance 429 (試行 {attempt}/{attempts}): {len(limited)}銘柄")
             for ticker in pending:
                 frame = _ticker_frame(downloaded, ticker)
                 required = {"Open", "High", "Low", "Close", "Volume"}
@@ -126,6 +149,8 @@ def _download_with_retry(tickers: list[str], config: dict) -> dict[str, pd.DataF
                     frames[ticker] = frame
         except Exception as exc:
             # 429に限らず一時的な通信障害も同じ方法で回復させる。
+            if rate_limited is not None and ("429" in str(exc) or "rate limit" in str(exc).lower()):
+                rate_limited.update(pending)
             print(f"一括取得失敗 (試行 {attempt}/{attempts}, {len(pending)}銘柄): {exc}")
 
         pending = [ticker for ticker in pending if frames[ticker].empty]
@@ -146,7 +171,8 @@ def run(notify: bool = True) -> Path:
     if not stocks:
         pd.DataFrame(columns=RESULT_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
         save_json(ROOT / "data/watchlist.json", [])
-        print("対象銘柄数: 0\n取得成功数: 0\n取得失敗数: 0\n判定完了数: 0\nSランク件数: 0\nAランク件数: 0\n急騰除外件数: 0")
+        print("対象銘柄数: 0\n取得成功数: 0\n取得失敗数: 0\n429件数: 0\n判定完了数: 0\nSランク件数: 0\nAランク件数: 0\n急騰除外件数: 0")
+        print("取得成功数 / 取得失敗数 / 429件数 / 全対象数: 0 / 0 / 0 / 0")
         print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
         return output
     limit = int(config["scan"].get("scan_limit", 0))
@@ -158,11 +184,13 @@ def run(notify: bool = True) -> Path:
     rows = []
     success = failed = completed = liquid_count = 0
     failed_stocks = []
+    rate_limited: set[str] = set()
     batch_size = max(1, int(config["scan"].get("batch_size", 50)))
     for start in range(0, total, batch_size):
         batch = stocks[start:start + batch_size]
         tickers = [f'{stock["code"]}.T' for stock in batch]
-        frames = _download_with_retry(tickers, config)
+        # バッチの一時障害は空フレームとして扱い、この後の全バッチとCSV保存を続ける。
+        frames = _download_with_retry(tickers, config, rate_limited)
         for stock, ticker in zip(batch, tickers):
             data = frames[ticker]
             try:
@@ -207,17 +235,23 @@ def run(notify: bool = True) -> Path:
         if notify:
             alerts = result[result["ランク"].isin(config["scan"]["notify_ranks"])]
             for row in alerts.head(int(config["scan"].get("discord_max_alerts", 20))).to_dict("records"):
-                post(candidate_message(row))
+                try:
+                    post(candidate_message(row))
+                except Exception as exc:
+                    # 通知の障害で、保存済みのスキャン結果を失敗扱いにしない。
+                    print(f"{row['コード']} Discord通知失敗 → 続行: {exc}")
     else: save_json(ROOT / "data/watchlist.json", [])
     print(f"対象銘柄数: {total}")
     print(f"取得成功数: {success}")
     print(f"取得失敗数: {failed}")
+    print(f"429件数: {len(rate_limited)}")
     print(f"判定完了数: {completed}")
     print(f"一次フィルター通過: {liquid_count}")
     print(f"アンチ候補件数: {len(result)}")
     print(f"Sランク件数: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
     print(f"Aランク件数: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
     print(f"急騰除外件数: {(result['除外理由'].fillna('').str.startswith('急騰済み')).sum() if not result.empty else 0}")
+    print(f"取得成功数 / 取得失敗数 / 429件数 / 全対象数: {success} / {failed} / {len(rate_limited)} / {total}")
     print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
     return output
 
