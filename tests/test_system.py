@@ -81,3 +81,22 @@ def test_batch_ticker_frame_accepts_yfinance_multiindex():
     frame = scanner._ticker_frame(downloaded, "7203.T")
     assert list(frame.columns) == ["Close", "Volume"]
     assert frame.iloc[0].Close == 100
+
+
+def test_daily_scan_defaults_to_entire_stock_list():
+    config = json.load(open("config.json", encoding="utf-8"))
+    assert config["scan"]["scan_limit"] == 0
+
+
+def test_empty_scan_prints_action_summary(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(scanner, "ROOT", tmp_path)
+    (tmp_path / "data").mkdir()
+    (tmp_path / "config.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "stocks.csv").write_text("code,name,market\n", encoding="utf-8")
+
+    scanner.run(notify=False)
+
+    output = capsys.readouterr().out
+    for label in ("対象銘柄数", "取得成功数", "取得失敗数", "判定完了数",
+                  "Sランク件数", "Aランク件数", "処理時間"):
+        assert f"{label}:" in output

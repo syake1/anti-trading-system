@@ -86,22 +86,24 @@ def _download_batch(tickers: list[str], config: dict) -> pd.DataFrame:
 
 
 def run(notify: bool = True) -> Path:
+    started_at = time.monotonic()
     config = load_config()
     stocks = pd.read_csv(ROOT / "stocks.csv", dtype={"code": str}).to_dict("records")
     output = ROOT / f'anti_candidates_{now_tokyo():%Y%m%d}.csv'
     if not stocks:
         pd.DataFrame(columns=RESULT_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
         save_json(ROOT / "data/watchlist.json", [])
-        print("全上場銘柄: 0\n処理開始\n総銘柄数: 0\n成功件数: 0\n失敗件数: 0\n一次フィルター通過: 0\nアンチ候補件数: 0\nSランク: 0\nAランク: 0")
+        print("対象銘柄数: 0\n取得成功数: 0\n取得失敗数: 0\n判定完了数: 0\nSランク件数: 0\nAランク件数: 0")
+        print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
         return output
     limit = int(config["scan"].get("scan_limit", 0))
     if limit > 0:
         stocks = stocks[:limit]
     total = len(stocks)
-    print(f"全上場銘柄: {total}")
+    print(f"対象銘柄数: {total}")
     print("処理開始")
     rows = []
-    success = failed = liquid_count = 0
+    success = failed = completed = liquid_count = 0
     batch_size = max(1, int(config["scan"].get("batch_size", 50)))
     for start in range(0, total, batch_size):
         batch = stocks[start:start + batch_size]
@@ -111,18 +113,28 @@ def run(notify: bool = True) -> Path:
         except Exception as exc:
             print(f"バッチ取得失敗 ({start + 1}-{start + len(batch)}): {exc}")
             downloaded = pd.DataFrame()
+        frames = {ticker: _ticker_frame(downloaded, ticker) for ticker in tickers}
+        missing = [ticker for ticker in tickers if frames[ticker].empty]
+        # 欠損を一銘柄ずつ要求せず、まとめて一度だけ再取得してAPI呼び出し数を抑える。
+        if missing and config["scan"].get("retry_failed_batch", True):
+            try:
+                retried = _download_batch(missing, config)
+                for ticker in missing:
+                    frames[ticker] = _ticker_frame(retried, ticker)
+            except Exception as exc:
+                print(f"欠損銘柄の一括再取得失敗 ({len(missing)}銘柄): {exc}")
         for stock, ticker in zip(batch, tickers):
-            data = _ticker_frame(downloaded, ticker)
-            if data.empty and config["scan"].get("retry_failed_individually", True):
-                try:
-                    data = _download_batch([ticker], config)
-                except Exception as exc:
-                    print(f"{stock['code']} 取得失敗 → スキップ: {exc}")
+            data = frames[ticker]
             try:
                 normalized = normalize(data)
                 if normalized.empty:
                     raise ValueError("空データ")
-                success += 1
+            except Exception as exc:
+                failed += 1
+                print(f"{stock['code']} 取得失敗 → スキップ: {exc}")
+                continue
+            success += 1
+            try:
                 recent = normalized.iloc[-20:]
                 liquidity = config["liquidity"]
                 if (len(normalized) >= 205 and normalized.Close.iloc[-1] >= liquidity["min_price"]
@@ -130,12 +142,11 @@ def run(notify: bool = True) -> Path:
                         and (recent.Close * recent.Volume).mean() >= liquidity.get("min_avg_trading_value_20", 0)):
                     liquid_count += 1
                 candidate = analyze(normalized, stock, config)
+                completed += 1
                 if candidate:
                     rows.append(candidate)
             except Exception as exc:
-                failed += 1
-                success = max(0, success - 1)
-                print(f"{stock['code']} 取得失敗 → スキップ: {exc}")
+                print(f"{stock['code']} 判定失敗 → スキップ: {exc}")
         done = min(start + len(batch), total)
         print(f"{done} / {total}")
         if done < total:
@@ -153,13 +164,15 @@ def run(notify: bool = True) -> Path:
             for row in alerts.head(int(config["scan"].get("discord_max_alerts", 20))).to_dict("records"):
                 post(candidate_message(row))
     else: save_json(ROOT / "data/watchlist.json", [])
-    print(f"総銘柄数: {total}")
-    print(f"成功件数: {success}")
-    print(f"失敗件数: {failed}")
+    print(f"対象銘柄数: {total}")
+    print(f"取得成功数: {success}")
+    print(f"取得失敗数: {failed}")
+    print(f"判定完了数: {completed}")
     print(f"一次フィルター通過: {liquid_count}")
     print(f"アンチ候補件数: {len(result)}")
-    print(f"Sランク: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
-    print(f"Aランク: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
+    print(f"Sランク件数: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
+    print(f"Aランク件数: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
+    print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
     return output
 
 
