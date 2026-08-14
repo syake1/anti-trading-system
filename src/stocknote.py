@@ -122,9 +122,16 @@ def export_request(result: pd.DataFrame, directory: Path, *, run_id: str | None 
 
     candidates = []
     for _, row in result.iterrows():
+        technical = {}
+        for key in ("現在値", "RSI14", "BB位置", "MA25", "MA75", "MA200", "出来高倍率", "ATR14",
+                    "ローソク足パターン", "シグナル種別", "RR"):
+            technical[key] = safe(row.get(key))
+        technical["損切り候補"] = safe(row.get("損切り候補", row.get("損切り価格")))
+        technical["利確候補"] = safe(row.get("利確候補", row.get("利確目標")))
         candidates.append({"code": str(row["コード"]), "name": str(row.get("銘柄名", "")),
             "meeting_decision": str(row.get("最終判断", "")),
             "official_fundamentals": {k: safe(row.get(k, "")) for k in ("ファンダメンタル評価", "ファンダメンタルスコア", "ファンダメンタル取得元")},
+            "technical_values": technical,
             "order_plan": {k: safe(row.get(k, "")) for k in ("注文方式", "買いゾーン下限", "買いゾーン上限", "損切り価格", "利確目標", "RR")}})
     created = generated_at or datetime.now(timezone.utc)
     if created.tzinfo is None:

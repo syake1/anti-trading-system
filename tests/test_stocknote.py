@@ -44,6 +44,12 @@ def test_request_contract_and_filename(tmp_path):
     assert path.name == "stocknote_request_run_123456.json"
     assert payload["schema_version"] == "1.0"
     assert payload["candidates"][0]["code"] == "9065"
+    candidate = payload["candidates"][0]
+    assert candidate["technical_values"]["損切り候補"] == 900
+    assert candidate["technical_values"]["利確候補"] == 1200
+    assert candidate["technical_values"]["RR"] == 2.0
+    assert "RSI14" not in candidate["official_fundamentals"]
+    assert candidate["order_plan"]["損切り価格"] == 900
     assert run_id == payload["run_id"]
 
 
