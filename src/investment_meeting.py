@@ -178,10 +178,29 @@ def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, enviro
           f'推奨株数：{r["推奨株数"]}株', f'必要資金：{r["必要資金"]:,.0f}円',
           f'最大想定損失：{r["最大想定損失"]:,.0f}円 / RR {r["RR"]:.2f}',
           *(fundamental_message(r)),
+          *(stocknote_message(r, result.attrs.get("stocknote_status")) if config.get("stocknote", {}).get("enabled", False) else []),
           f'分析担当：{r["分析コメント"]}', f'運用担当：{r["運用コメント"]}', f'実行条件：{r["注文理由"]}']
     if recheck: lines += ["", "気配・寄値の更新データなし：朝会から判断変更なし"]
     lines += ["", "※証券会社への自動発注は行いません。注文前に人間が価格・気配・材料を確認してください。"]
     return "\n".join(lines)
+
+
+def stocknote_message(row, status: str | None) -> list[str]:
+    """Compact advisory section; the complete payload is kept in the audit report."""
+    if status == "response_missing" or not status:
+        return ["stocknote分析社員：stocknote未取得"]
+    if status.startswith("response_rejected"):
+        reason = status.partition(":")[2].strip()
+        return [f"stocknote分析社員：response_rejected（{reason[:80]}）"]
+    if not str(row.get("stocknote_評価", "")).strip():
+        return ["stocknote分析社員：stocknote未取得"]
+    confidence = row.get("stocknote_信頼度", "")
+    try: confidence = f"{float(confidence):.0%}"
+    except (TypeError, ValueError): confidence = str(confidence)
+    summary = str(row.get("stocknote_要約", "")).replace("\n", " ")[:160]
+    return ["stocknote分析社員（参考情報・売買判断には未反映）：",
+            f"評価 {row.get('stocknote_評価')} / 信頼度 {confidence} / {summary}",
+            "PER・PBR等は参考値・公式未確認。詳細はstocknote分析監査レポート参照。"]
 
 
 def fundamental_message(row) -> list[str]:

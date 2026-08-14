@@ -29,6 +29,15 @@ def response(run_id="run_123456", **changes):
     return value
 
 
+def detailed_response():
+    item = response()["analyses"][0]
+    item.update({"contrarian_score": 72, "rsi": 38.5, "bb_position": "-1.2σ", "trend": "反転待ち",
+                 "per": 13.2, "pbr": 1.3, "financial_health": "健全", "revenue_growth": "+6%",
+                 "profit_growth": "+10%", "recommended_buy_price": 990,
+                 "expected_sell_price": 1150, "final_target_price": 1200, "cautions": "出来高に注意"})
+    return response(analyses=[item])
+
+
 def test_request_contract_and_filename(tmp_path):
     run_id, path = export_request(meeting_result(), tmp_path, run_id="run_123456", generated_at=NOW)
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -86,3 +95,34 @@ def test_accepted_response_only_adds_dedicated_columns_and_shadow_report(tmp_pat
     report = tmp_path / "report.md"
     write_shadow_report(result, report, "run_123456", status)
     assert "注文・最終判断・公式ファンダメンタルへの反映: なし" in report.read_text(encoding="utf-8")
+
+
+def test_phase2_details_are_advisory_and_official_values_remain_separate(tmp_path):
+    baseline = meeting_result()
+    baseline["PER"], baseline["PBR"], baseline["推奨株数"] = 12.6, 1.1, 100
+    (tmp_path / "stocknote_response_run_123456.json").write_text(
+        json.dumps(detailed_response(), ensure_ascii=False), encoding="utf-8")
+    result, status = consume_shadow(baseline, tmp_path, "run_123456", now=NOW)
+    assert result.loc[0, "stocknote_PER"] == 13.2
+    assert result.loc[0, "PER"] == 12.6
+    for protected in ("最終判断", "注文方式", "買いゾーン下限", "買いゾーン上限", "推奨株数"):
+        assert result.loc[0, protected] == baseline.loc[0, protected]
+    report = tmp_path / "audit.md"
+    write_shadow_report(result, report, "run_123456", status)
+    audit = report.read_text(encoding="utf-8")
+    assert "13.2（参考値・公式未確認）" in audit
+    assert "公式PER（別枠）: 12.6" in audit
+    assert "最終目標価格: 1200" in audit
+
+
+def test_stocknote_message_is_compact():
+    result = meeting_result()
+    result["推奨株数"] = 100
+    result["stocknote_評価"], result["stocknote_信頼度"], result["stocknote_要約"] = "positive", .8, "堅調"
+    result.attrs["stocknote_status"] = "accepted"
+    # Avoid constructing unrelated market fixtures: this test checks the dedicated formatter through its public helper.
+    from src.investment_meeting import stocknote_message
+    assert "参考情報・売買判断には未反映" in "\n".join(stocknote_message(result.iloc[0], "accepted"))
+    assert stocknote_message(result.iloc[0], "response_missing") == ["stocknote分析社員：stocknote未取得"]
+    rejected = stocknote_message(result.iloc[0], "response_rejected: invalid JSON")
+    assert rejected == ["stocknote分析社員：response_rejected（invalid JSON）"]
