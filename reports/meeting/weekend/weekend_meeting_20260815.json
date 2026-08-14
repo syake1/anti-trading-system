@@ -2,7 +2,7 @@
   "status": "provisional",
   "final_decision": false,
   "basis": "Friday close",
-  "observed_at": "2026-08-15T07:22:47+09:00",
+  "observed_at": "2026-08-15T08:10:07+09:00",
   "monday_recheck_date": "2026-08-17",
   "stocknote_employee": "accepted",
   "focus_sectors": [
@@ -10,34 +10,297 @@
     "情報・通信業",
     "銀行業",
     "機械",
-    "サービス業",
-    "化学",
-    "建設業",
-    "小売業",
-    "卸売業",
-    "精密機器",
-    "食料品",
-    "不動産業",
-    "その他金融業",
-    "輸送用機器",
-    "その他製品",
-    "ガラス・土石製品",
-    "証券、商品先物取引業",
-    "医薬品",
-    "陸運業",
-    "非鉄金属",
-    "金属製品",
-    "繊維製品",
-    "電気・ガス業",
-    "パルプ・紙",
-    "海運業",
-    "ゴム製品",
-    "鉄鋼",
-    "水産・農林業",
-    "鉱業",
-    "保険業",
-    "倉庫・運輸関連業",
-    "空運業"
+    "サービス業"
+  ],
+  "sector_rankings": [
+    {
+      "sector": "電気機器",
+      "score": 81.9957,
+      "candidate_count": 81,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.9957,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "情報・通信業",
+      "score": 62.2574,
+      "candidate_count": 61,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.2574,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "銀行業",
+      "score": 54.1064,
+      "candidate_count": 53,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.1064,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "機械",
+      "score": 47.0683,
+      "candidate_count": 46,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0683,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "サービス業",
+      "score": 45.647,
+      "candidate_count": 44,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.647,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "化学",
+      "score": 45.3255,
+      "candidate_count": 44,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.3255,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "建設業",
+      "score": 34.8535,
+      "candidate_count": 34,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.8535,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "小売業",
+      "score": 34.077,
+      "candidate_count": 33,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.077,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "卸売業",
+      "score": 24.0343,
+      "candidate_count": 23,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0343,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "精密機器",
+      "score": 18.1135,
+      "candidate_count": 17,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.1135,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "食料品",
+      "score": 17.9312,
+      "candidate_count": 17,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.9312,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "不動産業",
+      "score": 17.3794,
+      "candidate_count": 16,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.3794,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "その他金融業",
+      "score": 15.5593,
+      "candidate_count": 14,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.5593,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "輸送用機器",
+      "score": 15.5007,
+      "candidate_count": 14,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.5007,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "その他製品",
+      "score": 14.1377,
+      "candidate_count": 13,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.1377,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "ガラス・土石製品",
+      "score": 12.9658,
+      "candidate_count": 12,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.9658,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "証券、商品先物取引業",
+      "score": 12.78,
+      "candidate_count": 12,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.78,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "医薬品",
+      "score": 12.7655,
+      "candidate_count": 11,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.7655,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "非鉄金属",
+      "score": 12.0582,
+      "candidate_count": 11,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0582,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "陸運業",
+      "score": 11.8645,
+      "candidate_count": 11,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.8645,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "金属製品",
+      "score": 10.0322,
+      "candidate_count": 9,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0322,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "繊維製品",
+      "score": 7.8833,
+      "candidate_count": 6,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.8833,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "電気・ガス業",
+      "score": 5.706,
+      "candidate_count": 5,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.706,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "海運業",
+      "score": 4.82,
+      "candidate_count": 4,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.82,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "パルプ・紙",
+      "score": 4.6925,
+      "candidate_count": 4,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.6925,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "ゴム製品",
+      "score": 4.0067,
+      "candidate_count": 3,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0067,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "鉱業",
+      "score": 3.93,
+      "candidate_count": 2,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.93,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "鉄鋼",
+      "score": 3.8967,
+      "candidate_count": 3,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.8967,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "水産・農林業",
+      "score": 2.815,
+      "candidate_count": 2,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.815,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "保険業",
+      "score": 2.07,
+      "candidate_count": 1,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.07,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "空運業",
+      "score": 2.0,
+      "candidate_count": 1,
+      "relative_strength": 0.0,
+      "volume_ratio": 1.0,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    },
+    {
+      "sector": "倉庫・運輸関連業",
+      "score": 1.73,
+      "candidate_count": 1,
+      "relative_strength": 0.0,
+      "volume_ratio": 0.73,
+      "material_score": 0.0,
+      "macro_score": 0.0
+    }
   ],
   "candidates": [
     {
@@ -890,13 +1153,17 @@
       "code": "8366",
       "name": "滋賀銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8368",
       "name": "百五銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "3778",
@@ -1268,7 +1535,9 @@
       "code": "8338",
       "name": "筑波銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "3445",
@@ -1286,7 +1555,9 @@
       "code": "8399",
       "name": "琉球銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "3853",
@@ -1304,7 +1575,9 @@
       "code": "5831",
       "name": "しずおかフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "4997",
@@ -1376,7 +1649,9 @@
       "code": "8316",
       "name": "三井住友フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "3465",
@@ -1730,7 +2005,9 @@
       "code": "8714",
       "name": "池田泉州ホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8707",
@@ -1790,19 +2067,25 @@
       "code": "5844",
       "name": "京都フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "5838",
       "name": "楽天銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "5832",
       "name": "ちゅうぎんフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8604",
@@ -1814,7 +2097,9 @@
       "code": "8600",
       "name": "トモニホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "8570",
@@ -1826,31 +2111,41 @@
       "code": "8558",
       "name": "東和銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8550",
       "name": "栃木銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8541",
       "name": "愛媛銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8524",
       "name": "北洋銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8522",
       "name": "名古屋銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8511",
@@ -1862,7 +2157,9 @@
       "code": "8418",
       "name": "山口フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "6323",
@@ -1964,91 +2261,121 @@
       "code": "8411",
       "name": "みずほフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8393",
       "name": "宮崎銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8392",
       "name": "大分銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8388",
       "name": "阿波銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8386",
       "name": "百十四銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8381",
       "name": "山陰合同銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8377",
       "name": "ほくほくフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8370",
       "name": "紀陽銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8361",
       "name": "大垣共立銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8360",
       "name": "山梨中央銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8359",
       "name": "八十二長野銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8358",
       "name": "スルガ銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8354",
       "name": "ふくおかフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8346",
       "name": "東邦銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "8345",
       "name": "岩手銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "2802",
@@ -2078,67 +2405,89 @@
       "code": "8344",
       "name": "山形銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8343",
       "name": "秋田銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "8341",
       "name": "七十七銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8337",
       "name": "千葉興業銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8336",
       "name": "武蔵野銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8334",
       "name": "群馬銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8331",
       "name": "千葉銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8309",
       "name": "三井住友トラストグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8308",
       "name": "りそなホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "8306",
       "name": "三菱ＵＦＪフィナンシャル・グループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "8304",
       "name": "あおぞら銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "8233",
@@ -2354,25 +2703,33 @@
       "code": "7381",
       "name": "ＣＣＩグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "7380",
       "name": "十六フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "7337",
       "name": "ひろぎんホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "7327",
       "name": "第四北越フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "7280",
@@ -2384,25 +2741,33 @@
       "code": "7189",
       "name": "西日本フィナンシャルホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "7186",
       "name": "横浜フィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "7184",
       "name": "富山第一銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false
     },
     {
       "code": "7167",
       "name": "めぶきフィナンシャルグループ",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "7164",
@@ -2492,7 +2857,9 @@
       "code": "5830",
       "name": "いよぎんホールディングス",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true
     },
     {
       "code": "5805",
@@ -3002,7 +3369,9 @@
       "code": "8367",
       "name": "南都銀行",
       "sector": "銀行業",
-      "category": "翌週再確認"
+      "category": "翌週再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true
     },
     {
       "code": "5563",
@@ -3695,7 +4064,2499 @@
     "30Y_yield_pct": 4.002,
     "spread_10y_2y_bp": 122.2
   },
-  "bank_evaluations": [],
+  "bank_evaluations": [
+    {
+      "code": "8366",
+      "name": "滋賀銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2691.0,
+          "MA25": 2642.32,
+          "25日線乖離率": 1.84,
+          "RSI14": 56.89,
+          "BB位置": 0.87,
+          "出来高倍率": 0.72,
+          "当日騰落率": 5.08,
+          "3日騰落率": 5.41,
+          "5日騰落率": 3.22,
+          "reversal_pattern": true,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8368",
+      "name": "百五銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2278.0,
+          "MA25": 2069.96,
+          "25日線乖離率": 10.05,
+          "RSI14": 63.29,
+          "BB位置": 2.23,
+          "出来高倍率": 1.16,
+          "当日騰落率": 5.95,
+          "3日騰落率": 7.4,
+          "5日騰落率": 5.12,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8338",
+      "name": "筑波銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 724.0,
+          "MA25": 648.8,
+          "25日線乖離率": 11.59,
+          "RSI14": 62.42,
+          "BB位置": 2.31,
+          "出来高倍率": 1.64,
+          "当日騰落率": 8.22,
+          "3日騰落率": 10.2,
+          "5日騰落率": 8.38,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8399",
+      "name": "琉球銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3195.0,
+          "MA25": 2929.36,
+          "25日線乖離率": 9.07,
+          "RSI14": 69.34,
+          "BB位置": 2.16,
+          "出来高倍率": 1.43,
+          "当日騰落率": 4.58,
+          "3日騰落率": 3.23,
+          "5日騰落率": 6.89,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "5831",
+      "name": "しずおかフィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3480.0,
+          "MA25": 3304.04,
+          "25日線乖離率": 5.33,
+          "RSI14": 63.14,
+          "BB位置": 1.75,
+          "出来高倍率": 1.05,
+          "当日騰落率": 2.29,
+          "3日騰落率": 1.96,
+          "5日騰落率": 8.04,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8316",
+      "name": "三井住友フィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 6969.0,
+          "MA25": 6874.92,
+          "25日線乖離率": 1.37,
+          "RSI14": 56.3,
+          "BB位置": 0.46,
+          "出来高倍率": 0.9,
+          "当日騰落率": 1.63,
+          "3日騰落率": 2.76,
+          "5日騰落率": 4.55,
+          "reversal_pattern": true,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8714",
+      "name": "池田泉州ホールディングス",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1099.0,
+          "MA25": 1023.24,
+          "25日線乖離率": 7.4,
+          "RSI14": 62.64,
+          "BB位置": 1.79,
+          "出来高倍率": 1.45,
+          "当日騰落率": 5.77,
+          "3日騰落率": 6.6,
+          "5日騰落率": 7.32,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "5844",
+      "name": "京都フィナンシャルグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 5000.0,
+          "MA25": 4638.96,
+          "25日線乖離率": 7.78,
+          "RSI14": 67.13,
+          "BB位置": 2.85,
+          "出来高倍率": 1.59,
+          "当日騰落率": 5.06,
+          "3日騰落率": 7.11,
+          "5日騰落率": 6.91,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "5838",
+      "name": "楽天銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 5916.0,
+          "MA25": 5586.76,
+          "25日線乖離率": 5.89,
+          "RSI14": 60.99,
+          "BB位置": 2.2,
+          "出来高倍率": 1.17,
+          "当日騰落率": 3.97,
+          "3日騰落率": 2.41,
+          "5日騰落率": 6.56,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "5832",
+      "name": "ちゅうぎんフィナンシャルグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3535.0,
+          "MA25": 3331.48,
+          "25日線乖離率": 6.11,
+          "RSI14": 64.8,
+          "BB位置": 2.3,
+          "出来高倍率": 1.03,
+          "当日騰落率": 3.91,
+          "3日騰落率": 4.43,
+          "5日騰落率": 5.59,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8600",
+      "name": "トモニホールディングス",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1105.0,
+          "MA25": 991.24,
+          "25日線乖離率": 11.48,
+          "RSI14": 69.12,
+          "BB位置": 2.17,
+          "出来高倍率": 1.15,
+          "当日騰落率": 5.64,
+          "3日騰落率": 2.5,
+          "5日騰落率": 8.55,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8558",
+      "name": "東和銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1487.0,
+          "MA25": 1373.52,
+          "25日線乖離率": 8.26,
+          "RSI14": 61.01,
+          "BB位置": 2.21,
+          "出来高倍率": 1.16,
+          "当日騰落率": 6.82,
+          "3日騰落率": 7.36,
+          "5日騰落率": 12.48,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8550",
+      "name": "栃木銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1080.0,
+          "MA25": 997.56,
+          "25日線乖離率": 8.26,
+          "RSI14": 62.29,
+          "BB位置": 1.88,
+          "出来高倍率": 0.98,
+          "当日騰落率": 5.47,
+          "3日騰落率": 5.06,
+          "5日騰落率": 7.25,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8541",
+      "name": "愛媛銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3040.0,
+          "MA25": 2608.8,
+          "25日線乖離率": 16.53,
+          "RSI14": 70.38,
+          "BB位置": 1.75,
+          "出来高倍率": 0.57,
+          "当日騰落率": 7.23,
+          "3日騰落率": 6.55,
+          "5日騰落率": 11.56,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8524",
+      "name": "北洋銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1305.0,
+          "MA25": 1196.72,
+          "25日線乖離率": 9.05,
+          "RSI14": 66.18,
+          "BB位置": 2.31,
+          "出来高倍率": 0.87,
+          "当日騰落率": 5.07,
+          "3日騰落率": 6.88,
+          "5日騰落率": 7.32,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8522",
+      "name": "名古屋銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 6910.0,
+          "MA25": 6579.2,
+          "25日線乖離率": 5.03,
+          "RSI14": 62.78,
+          "BB位置": 1.59,
+          "出来高倍率": 1.03,
+          "当日騰落率": 4.38,
+          "3日騰落率": 7.13,
+          "5日騰落率": 6.47,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8418",
+      "name": "山口フィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3197.0,
+          "MA25": 3037.72,
+          "25日線乖離率": 5.24,
+          "RSI14": 62.15,
+          "BB位置": 1.97,
+          "出来高倍率": 1.36,
+          "当日騰落率": 5.06,
+          "3日騰落率": 3.97,
+          "5日騰落率": 5.93,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8411",
+      "name": "みずほフィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 8775.0,
+          "MA25": 8360.4,
+          "25日線乖離率": 4.96,
+          "RSI14": 60.61,
+          "BB位置": 1.54,
+          "出来高倍率": 0.96,
+          "当日騰落率": 3.21,
+          "3日騰落率": 3.9,
+          "5日騰落率": 3.6,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8393",
+      "name": "宮崎銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2502.0,
+          "MA25": 2349.12,
+          "25日線乖離率": 6.51,
+          "RSI14": 59.84,
+          "BB位置": 1.37,
+          "出来高倍率": 1.29,
+          "当日騰落率": 3.65,
+          "3日騰落率": 4.73,
+          "5日騰落率": 4.38,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8392",
+      "name": "大分銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2855.0,
+          "MA25": 2639.16,
+          "25日線乖離率": 8.18,
+          "RSI14": 62.34,
+          "BB位置": 1.75,
+          "出来高倍率": 1.5,
+          "当日騰落率": 5.7,
+          "3日騰落率": 5.27,
+          "5日騰落率": 7.41,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8388",
+      "name": "阿波銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 9390.0,
+          "MA25": 8318.8,
+          "25日線乖離率": 12.88,
+          "RSI14": 72.73,
+          "BB位置": 2.13,
+          "出来高倍率": 1.93,
+          "当日騰落率": 4.8,
+          "3日騰落率": 5.15,
+          "5日騰落率": 8.18,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8386",
+      "name": "百十四銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3090.0,
+          "MA25": 2816.8,
+          "25日線乖離率": 9.7,
+          "RSI14": 66.39,
+          "BB位置": 2.32,
+          "出来高倍率": 1.49,
+          "当日騰落率": 6.4,
+          "3日騰落率": 7.59,
+          "5日騰落率": 6.99,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8381",
+      "name": "山陰合同銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2579.0,
+          "MA25": 2450.28,
+          "25日線乖離率": 5.25,
+          "RSI14": 63.66,
+          "BB位置": 1.86,
+          "出来高倍率": 1.19,
+          "当日騰落率": 3.24,
+          "3日騰落率": 3.0,
+          "5日騰落率": 5.96,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8377",
+      "name": "ほくほくフィナンシャルグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 8458.0,
+          "MA25": 7673.0,
+          "25日線乖離率": 10.23,
+          "RSI14": 66.74,
+          "BB位置": 2.31,
+          "出来高倍率": 0.79,
+          "当日騰落率": 4.15,
+          "3日騰落率": 5.03,
+          "5日騰落率": 7.02,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8370",
+      "name": "紀陽銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 5020.0,
+          "MA25": 4757.4,
+          "25日線乖離率": 5.52,
+          "RSI14": 62.52,
+          "BB位置": 1.89,
+          "出来高倍率": 0.87,
+          "当日騰落率": 3.61,
+          "3日騰落率": 3.61,
+          "5日騰落率": 6.24,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8361",
+      "name": "大垣共立銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 8040.0,
+          "MA25": 7674.0,
+          "25日線乖離率": 4.77,
+          "RSI14": 58.11,
+          "BB位置": 1.17,
+          "出来高倍率": 1.03,
+          "当日騰落率": 5.65,
+          "3日騰落率": 6.35,
+          "5日騰落率": 7.49,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8360",
+      "name": "山梨中央銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 7440.0,
+          "MA25": 6762.0,
+          "25日線乖離率": 10.03,
+          "RSI14": 63.75,
+          "BB位置": 1.96,
+          "出来高倍率": 1.62,
+          "当日騰落率": 5.68,
+          "3日騰落率": 5.23,
+          "5日騰落率": 6.13,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8359",
+      "name": "八十二長野銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2680.5,
+          "MA25": 2578.9,
+          "25日線乖離率": 3.94,
+          "RSI14": 60.43,
+          "BB位置": 1.46,
+          "出来高倍率": 1.12,
+          "当日騰落率": 2.94,
+          "3日騰落率": 2.82,
+          "5日騰落率": 3.9,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8358",
+      "name": "スルガ銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2880.0,
+          "MA25": 2683.92,
+          "25日線乖離率": 7.31,
+          "RSI14": 70.04,
+          "BB位置": 2.31,
+          "出来高倍率": 1.27,
+          "当日騰落率": 2.75,
+          "3日騰落率": 5.3,
+          "5日騰落率": 6.16,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8354",
+      "name": "ふくおかフィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 7704.0,
+          "MA25": 7474.08,
+          "25日線乖離率": 3.08,
+          "RSI14": 58.34,
+          "BB位置": 1.27,
+          "出来高倍率": 0.97,
+          "当日騰落率": 2.43,
+          "3日騰落率": 2.12,
+          "5日騰落率": 2.65,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8346",
+      "name": "東邦銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 989.0,
+          "MA25": 881.96,
+          "25日線乖離率": 12.14,
+          "RSI14": 69.21,
+          "BB位置": 2.19,
+          "出来高倍率": 1.29,
+          "当日騰落率": 5.78,
+          "3日騰落率": 4.99,
+          "5日騰落率": 6.8,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8345",
+      "name": "岩手銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2474.0,
+          "MA25": 2222.48,
+          "25日線乖離率": 11.32,
+          "RSI14": 66.01,
+          "BB位置": 2.27,
+          "出来高倍率": 1.19,
+          "当日騰落率": 4.7,
+          "3日騰落率": 4.92,
+          "5日騰落率": 8.8,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8344",
+      "name": "山形銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 4585.0,
+          "MA25": 3937.8,
+          "25日線乖離率": 16.44,
+          "RSI14": 70.01,
+          "BB位置": 2.66,
+          "出来高倍率": 1.1,
+          "当日騰落率": 7.88,
+          "3日騰落率": 8.39,
+          "5日騰落率": 13.91,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8343",
+      "name": "秋田銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 8450.0,
+          "MA25": 7453.6,
+          "25日線乖離率": 13.37,
+          "RSI14": 72.84,
+          "BB位置": 2.36,
+          "出来高倍率": 1.13,
+          "当日騰落率": 5.23,
+          "3日騰落率": 5.23,
+          "5日騰落率": 12.52,
+          "reversal_pattern": true,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8341",
+      "name": "七十七銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3834.0,
+          "MA25": 3564.56,
+          "25日線乖離率": 7.56,
+          "RSI14": 65.73,
+          "BB位置": 2.27,
+          "出来高倍率": 1.25,
+          "当日騰落率": 2.57,
+          "3日騰落率": 4.73,
+          "5日騰落率": 6.5,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8337",
+      "name": "千葉興業銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2764.0,
+          "MA25": 2655.8,
+          "25日線乖離率": 4.07,
+          "RSI14": 62.5,
+          "BB位置": 1.57,
+          "出来高倍率": 0.97,
+          "当日騰落率": 2.29,
+          "3日騰落率": 7.34,
+          "5日騰落率": 6.14,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8336",
+      "name": "武蔵野銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2776.0,
+          "MA25": 2648.76,
+          "25日線乖離率": 4.8,
+          "RSI14": 61.13,
+          "BB位置": 1.6,
+          "出来高倍率": 1.02,
+          "当日騰落率": 4.36,
+          "3日騰落率": 4.6,
+          "5日騰落率": 5.51,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8334",
+      "name": "群馬銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2740.5,
+          "MA25": 2561.56,
+          "25日線乖離率": 6.99,
+          "RSI14": 66.91,
+          "BB位置": 2.46,
+          "出来高倍率": 1.24,
+          "当日騰落率": 2.87,
+          "3日騰落率": 5.61,
+          "5日騰落率": 6.72,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8331",
+      "name": "千葉銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2842.0,
+          "MA25": 2702.42,
+          "25日線乖離率": 5.17,
+          "RSI14": 65.95,
+          "BB位置": 2.09,
+          "出来高倍率": 1.08,
+          "当日騰落率": 3.46,
+          "3日騰落率": 6.6,
+          "5日騰落率": 8.23,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8309",
+      "name": "三井住友トラストグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1753.0,
+          "MA25": 1675.96,
+          "25日線乖離率": 4.6,
+          "RSI14": 67.41,
+          "BB位置": 2.12,
+          "出来高倍率": 1.02,
+          "当日騰落率": 2.82,
+          "3日騰落率": 4.31,
+          "5日騰落率": 5.54,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8308",
+      "name": "りそなホールディングス",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2446.5,
+          "MA25": 2311.4,
+          "25日線乖離率": 5.84,
+          "RSI14": 62.39,
+          "BB位置": 2.05,
+          "出来高倍率": 1.07,
+          "当日騰落率": 4.37,
+          "3日騰落率": 5.77,
+          "5日騰落率": 7.16,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8306",
+      "name": "三菱ＵＦＪフィナンシャル・グループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3709.0,
+          "MA25": 3589.76,
+          "25日線乖離率": 3.32,
+          "RSI14": 60.53,
+          "BB位置": 1.03,
+          "出来高倍率": 0.87,
+          "当日騰落率": 2.86,
+          "3日騰落率": 4.07,
+          "5日騰落率": 4.74,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8304",
+      "name": "あおぞら銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3395.0,
+          "MA25": 3077.06,
+          "25日線乖離率": 10.33,
+          "RSI14": 80.34,
+          "BB位置": 2.01,
+          "出来高倍率": 0.89,
+          "当日騰落率": 2.94,
+          "3日騰落率": 4.17,
+          "5日騰落率": 5.4,
+          "reversal_pattern": true,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7381",
+      "name": "ＣＣＩグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1257.0,
+          "MA25": 1134.72,
+          "25日線乖離率": 10.78,
+          "RSI14": 68.55,
+          "BB位置": 2.08,
+          "出来高倍率": 0.77,
+          "当日騰落率": 3.46,
+          "3日騰落率": 3.54,
+          "5日騰落率": 7.8,
+          "reversal_pattern": true,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7380",
+      "name": "十六フィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2579.0,
+          "MA25": 2451.64,
+          "25日線乖離率": 5.19,
+          "RSI14": 60.42,
+          "BB位置": 1.53,
+          "出来高倍率": 1.31,
+          "当日騰落率": 6.39,
+          "3日騰落率": 6.75,
+          "5日騰落率": 8.18,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7337",
+      "name": "ひろぎんホールディングス",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2350.0,
+          "MA25": 2241.62,
+          "25日線乖離率": 4.83,
+          "RSI14": 62.95,
+          "BB位置": 1.95,
+          "出来高倍率": 0.84,
+          "当日騰落率": 2.78,
+          "3日騰落率": 3.62,
+          "5日騰落率": 5.88,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7327",
+      "name": "第四北越フィナンシャルグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 2494.0,
+          "MA25": 2323.84,
+          "25日線乖離率": 7.32,
+          "RSI14": 67.2,
+          "BB位置": 2.49,
+          "出来高倍率": 0.96,
+          "当日騰落率": 2.8,
+          "3日騰落率": 5.14,
+          "5日騰落率": 5.99,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7189",
+      "name": "西日本フィナンシャルホールディングス",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 4781.0,
+          "MA25": 4389.68,
+          "25日線乖離率": 8.91,
+          "RSI14": 65.79,
+          "BB位置": 2.46,
+          "出来高倍率": 1.06,
+          "当日騰落率": 3.04,
+          "3日騰落率": 5.49,
+          "5日騰落率": 7.7,
+          "reversal_pattern": false,
+          "volume_confirmed": true,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7186",
+      "name": "横浜フィナンシャルグループ",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1927.0,
+          "MA25": 1882.32,
+          "25日線乖離率": 2.37,
+          "RSI14": 59.33,
+          "BB位置": 0.91,
+          "出来高倍率": 0.89,
+          "当日騰落率": 2.8,
+          "3日騰落率": 4.79,
+          "5日騰落率": 3.88,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7184",
+      "name": "富山第一銀行",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": false,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3265.0,
+          "MA25": 2939.44,
+          "25日線乖離率": 11.08,
+          "RSI14": 64.15,
+          "BB位置": 2.19,
+          "出来高倍率": 0.98,
+          "当日騰落率": 7.4,
+          "3日騰落率": 6.87,
+          "5日騰落率": 8.47,
+          "reversal_pattern": true,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "7167",
+      "name": "めぶきフィナンシャルグループ",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1637.0,
+          "MA25": 1529.5,
+          "25日線乖離率": 7.03,
+          "RSI14": 63.7,
+          "BB位置": 2.14,
+          "出来高倍率": 0.81,
+          "当日騰落率": 2.73,
+          "3日騰落率": 3.61,
+          "5日騰落率": 7.56,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "5830",
+      "name": "いよぎんホールディングス",
+      "night_category": "避ける",
+      "bank_classification": "追いかけ禁止",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 3979.0,
+          "MA25": 3539.56,
+          "25日線乖離率": 12.42,
+          "RSI14": 70.56,
+          "BB位置": 2.19,
+          "出来高倍率": 0.87,
+          "当日騰落率": 3.89,
+          "3日騰落率": 4.35,
+          "5日騰落率": 10.19,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": true
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "急騰除外またはテクニカル過熱"
+      ],
+      "missing_data": []
+    },
+    {
+      "code": "8367",
+      "name": "南都銀行",
+      "night_category": "翌朝再確認",
+      "bank_classification": "押し目監視",
+      "morning_recheck": true,
+      "rate_regime": "上昇・フラット化",
+      "rate_wind": "追い風候補",
+      "rate_confidence": "中",
+      "rate_metrics": {
+        "2Y_yield_pct": 1.651,
+        "2Y_change_1d_bp": 0.5,
+        "2Y_change_5d_bp": 8.2,
+        "10Y_yield_pct": 2.873,
+        "10Y_change_1d_bp": 1.7,
+        "10Y_change_5d_bp": 6.0,
+        "30Y_yield_pct": 4.002,
+        "30Y_change_1d_bp": 1.3,
+        "30Y_change_5d_bp": 3.6,
+        "spread_10y_2y_bp": 122.2,
+        "spread_change_1d_bp": 1.2,
+        "spread_change_5d_bp": -2.2,
+        "rapid_yield_drop": false,
+        "rapid_inversion": false,
+        "technical": {
+          "終値": 1925.0,
+          "MA25": 1839.0,
+          "25日線乖離率": 4.68,
+          "RSI14": 60.28,
+          "BB位置": 1.17,
+          "出来高倍率": 0.74,
+          "当日騰落率": 4.05,
+          "3日騰落率": 6.47,
+          "5日騰落率": 7.6,
+          "reversal_pattern": false,
+          "volume_confirmed": false,
+          "trend_maintained": true,
+          "surge_excluded": false
+        }
+      },
+      "principle": "金利上昇基調でも高値追いせず、反転確認後の押し目を拾う",
+      "reasons": [
+        "金利局面=上昇・フラット化（追い風候補、確信度=中）",
+        "金利追い風だけでは昇格せず、反転足または出来高の完成待ち"
+      ],
+      "missing_data": []
+    }
+  ],
   "monday_recheck_conditions": [
     "最新ニュース",
     "日経先物",
@@ -3706,32 +6567,32 @@
     "10年-2年スプレッド",
     "気配"
   ],
-  "stocknote_run_id": "eecf6445d7dd4a48b6712e736add8631",
-  "stocknote_request": "data/stocknote/stocknote_request_eecf6445d7dd4a48b6712e736add8631.json",
+  "stocknote_run_id": "ccb573a7b0d340798d5210a560adad07",
+  "stocknote_request": "data/stocknote/stocknote_request_ccb573a7b0d340798d5210a560adad07.json",
   "stocknote_analyses": [
     {
       "code": "4751",
       "name": "サイバーエージェント",
-      "assessment": "insufficient",
-      "confidence": 0.0,
-      "contrarian_score": "",
-      "summary": "分析に必要なstocknoteデータが不足しています。"
+      "assessment": "positive",
+      "confidence": 0.7,
+      "contrarian_score": 91.3,
+      "summary": "4751: 逆張りスコア91.3（RSI14=request、BB位置=request）。 観測済み損切り候補 1165.5、観測済み利確候補 1434、観測済みRR 2。"
     },
     {
       "code": "1860",
       "name": "戸田建設",
-      "assessment": "insufficient",
-      "confidence": 0.0,
-      "contrarian_score": "",
-      "summary": "分析に必要なstocknoteデータが不足しています。"
+      "assessment": "negative",
+      "confidence": 0.7,
+      "contrarian_score": 33.6,
+      "summary": "1860: 逆張りスコア33.6（RSI14=request、BB位置=request）。 観測済み損切り候補 1435.11、観測済み利確候補 1595.29、観測済みRR 2。"
     },
     {
       "code": "1968",
       "name": "太平電業",
-      "assessment": "insufficient",
-      "confidence": 0.0,
-      "contrarian_score": "",
-      "summary": "分析に必要なstocknoteデータが不足しています。"
+      "assessment": "neutral",
+      "confidence": 0.7,
+      "contrarian_score": 55.0,
+      "summary": "1968: 逆張りスコア55.0（RSI14=request、BB位置=request）。 観測済み損切り候補 2258.34、観測済み利確候補 2635.32、観測済みRR 2。"
     }
   ]
 }
