@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import pandas as pd
 
+from src.data_sources import fetch_configured
 from src.utils import ROOT, now_tokyo
 
 
@@ -41,24 +42,10 @@ def analyze_jgb(history: dict[str, pd.Series] | None, observed_at: str | None = 
 
 
 def fetch_jgb_data(config: dict) -> dict[str, pd.Series]:
-    """Fetch configured yield tickers. Failed/empty tenors are omitted, never filled."""
-    try:
-        import yfinance as yf
-    except ImportError:
-        return {}
-    result = {}
-    for tenor, ticker in config.get("jgb_yields", {}).get("tickers", {}).items():
-        try:
-            frame = yf.download(ticker, period="3mo", interval="1d", progress=False,
-                                auto_adjust=False, timeout=10)
-            close = frame["Close"]
-            if hasattr(close, "columns"): close = close.iloc[:, 0]
-            close = pd.to_numeric(close, errors="coerce").dropna()
-            if not close.empty:
-                result[tenor] = close
-        except Exception:
-            continue
-    return result
+    """Fetch MOF-first yield histories without substituting other definitions."""
+    observations = fetch_configured(config, [f"JGB_{tenor}" for tenor in TENORS])
+    return {tenor: observations[f"JGB_{tenor}"].history for tenor in TENORS
+            if f"JGB_{tenor}" in observations and observations[f"JGB_{tenor}"].history is not None}
 
 
 def jgb_sector_impacts(analysis: JGBAnalysis, config: dict) -> dict[str, float]:

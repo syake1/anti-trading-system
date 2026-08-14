@@ -22,6 +22,28 @@
 
 監査CSVは `data/market_environment.csv`、`data/news_events.csv`、`data/sector_impact.csv` です。最終候補にはファンダメンタル、テクニカル、反転確認、市場、業種、ニュース、資金・リスクの内訳を保存します。朝会Discordは冒頭に主要指標、市場判定、重大ニュース、資金方針を表示します。8:30は取得可能な変化だけを再確認し、取得できない値を作りません。
 
+### 市場データの許可済みフォールバック
+
+`config.json` の `data_sources.instruments` が取得許可リストです。各 source の
+`enabled`、`priority`、`allowed_for_automation`、`timeout`、`instrument_type` を確認してから、
+優先度の小さい順に取得します。標準の順序は日本国債 2Y/10Y/30Y が財務省→Yahoo Finance、
+米10年金利が FRED→Yahoo Finance、VIX が Cboe→Yahoo Finance、TOPIX が JPX→Yahoo Finance です。
+WTI は EIA の Cushing 現物価格を `WTI_SPOT` として取得し、先物 `CL=F` とは相互補完しません。
+その他の既存指標は、それぞれ同一定義の Yahoo Finance 系列だけを使用します。
+
+各試行は成功・失敗を問わず `data/source_audit.csv` に追記されます。HTTP 403、HTTP 429、
+timeout、empty data、parse error、schema change、通信エラー、Secret 不足を別々に記録します。
+全取得元が失敗した instrument は欠損のまま朝会を続行し、推測・前回値補完はしません。
+`compare_sources` を `true` にした場合は許可済みの同一定義系列をすべて取得し、第1優先値との差を
+監査CSVの `comparison_source` / `difference` に保存します（通常は不要な外部アクセスを避けるため
+`false`）。EIA の利用には環境変数 `EIA_API_KEY` が必要です。財務省、FRED、Cboe、JPX、Yahoo
+Finance の現在の設定には Secret はありませんが、運用開始前に各提供元の最新利用条件、再配布条件、
+アクセス頻度、および JPX CSV URL の継続提供可否を組織として再確認してください。
+
+ニュースは官公庁、中央銀行、TDnet/EDINET、JPX、企業自身の IR の公式 RSS/API または監査可能な
+入力だけを信頼対象にします。みんかぶ、株探、世界の株価マーケット等の HTML スクレイピングは
+実装していません。
+
 APIキーや追加Secretは必須ではありません。市場データは無料データ源の遅延・欠損・ティッカー仕様に依存します。ニュースRSS/APIの自動収集器は未同梱なので、現状は信頼できる公的発表・IR・取引所開示等をCSVへ投入してください。ニュース本文の意味理解、企業の輸出比率・原油感応度、高PER判定は構造化入力がない限り推測しない既知の制限です。
 
 ```bash
