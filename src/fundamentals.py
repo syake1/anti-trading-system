@@ -22,7 +22,7 @@ REQUIRED = ("revenue_yoy", "operating_profit_yoy", "ordinary_or_net_profit_yoy",
             "eps", "per", "pbr", "roe", "equity_ratio", "dividend_yield",
             "company_forecast", "latest_earnings_date")
 OFFICIAL_SOURCES = {"EDINET", "TDnet", "企業IR", "J-Quants", "JPX"}
-AUDIT_COLUMNS = ["acquired_at", "code", "source", "source_reference", "status", "reason"]
+AUDIT_COLUMNS = ["acquired_at", "code", "source", "document_id", "source_reference", "status", "reason"]
 
 
 def _present(value) -> bool:
@@ -97,6 +97,13 @@ def enrich_candidates(candidates: pd.DataFrame, config: dict, path: Path | None 
     """Left join reviewed fundamentals and audit every success and failure."""
     if candidates.empty: return candidates.copy()
     data = load_fundamentals(path)
+    # Automated official data takes precedence when the EDINET secret is present;
+    # failures are isolated inside the adapter and the reviewed CSV remains usable.
+    if path is None:
+        from src.fundamental_sources import acquire
+        automated = acquire(candidates, config, audit_path=audit_path)
+        if not automated.empty:
+            data = pd.concat([data, automated], ignore_index=True)
     indexed = data.drop_duplicates("code", keep="last").set_index("code") if "code" in data else pd.DataFrame()
     output, audits = [], []
     acquired = datetime.now(timezone.utc).isoformat()
@@ -114,6 +121,7 @@ def enrich_candidates(candidates: pd.DataFrame, config: dict, path: Path | None 
         output.append(record)
         audits.append({"acquired_at": supplied.get("acquired_at", acquired), "code": code,
                        "source": supplied.get("source", "未取得"),
+                       "document_id": supplied.get("document_id", ""),
                        "source_reference": supplied.get("source_reference", ""),
                        "status": "success" if result.sufficient else "failure", "reason": result.reason})
     audit_path = audit_path or ROOT / config.get("fundamentals", {}).get("audit_path", "data/fundamentals_audit.csv")
