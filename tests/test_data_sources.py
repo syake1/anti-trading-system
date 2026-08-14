@@ -7,7 +7,8 @@ from urllib.parse import quote
 import pandas as pd
 import pytest
 
-from src.data_sources import FetchFailure, Observation, fetch_eia, fetch_instrument, fetch_mof_jgb
+from src.data_sources import (FetchFailure, Observation, fetch_eia, fetch_instrument,
+                              fetch_mof_jgb, normalize_japanese_date)
 from src.market_environment import analyze_market
 
 
@@ -42,7 +43,21 @@ def test_mof_jgb_cp932_title_unit_and_maturity_header_fixture(maturity, expected
          "unit": "percent", "value_columns": [maturity]}, FixtureSession)
     assert status == 200
     assert observation.value == pytest.approx(expected)
-    assert observation.observation_time == "2026/8/13"
+    assert observation.observation_time == "2026-08-13"
+
+
+@pytest.mark.parametrize("raw", [
+    "2026-08-14",
+    "2026/8/14",
+    "令和8年8月14日",
+    "R8.8.14",
+])
+def test_japanese_observation_date_is_normalized_to_iso(raw):
+    assert normalize_japanese_date(raw) == "2026-08-14"
+
+
+def test_reiwa_first_year_is_2019():
+    assert normalize_japanese_date("令和元年5月1日") == "2019-05-01"
 
 
 def test_mof_jgb_finds_shift_jis_header_when_skiprows_one_is_wrong():
