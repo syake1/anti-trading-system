@@ -11,7 +11,7 @@ from datetime import date, datetime, timezone
 from io import StringIO
 from pathlib import Path
 from typing import Callable
-from urllib.parse import quote
+from urllib.parse import quote, quote_plus
 
 import pandas as pd
 import requests
@@ -27,6 +27,21 @@ AUDIT_COLUMNS = ["instrument", "source", "timestamp", "success", "http_status",
 class FetchFailure(Exception):
     def __init__(self, error_type: str, message: str, status: int | None = None):
         super().__init__(message); self.error_type, self.status = error_type, status
+
+
+def _redact(message: object, secrets: tuple[str, ...]) -> str:
+    """Remove raw and URL-encoded secret values from externally supplied text."""
+    result = str(message)
+    for secret in secrets:
+        if not secret:
+            continue
+        variants = {secret, quote(secret, safe=""), quote_plus(secret)}
+        # Percent escapes are case-insensitive and libraries do not agree on case.
+        variants.update({value.lower() for value in variants})
+        variants.update({value.upper() for value in variants})
+        for value in sorted(variants, key=len, reverse=True):
+            result = result.replace(value, "***")
+    return result
 
 
 @dataclass
@@ -102,14 +117,7 @@ def fetch_eia(source: dict, session=requests) -> tuple[Observation, int]:
     key = os.getenv(source.get("api_key_env", "EIA_API_KEY"))
     if not key: raise FetchFailure("missing_secret", "missing EIA API credential")
     configured = dict(source); configured["url"] = source["url"].format(api_key=key)
-    secrets = (key, quote(key, safe=""))
-
-    def masked(message: object) -> str:
-        result = str(message)
-        for secret in secrets:
-            if secret:
-                result = result.replace(secret, "***")
-        return result
+    secrets = (key,)
     try:
         response = session.get(configured["url"], timeout=float(source.get("timeout", 10))); _failure(response)
         payload = response.json(); rows = payload["response"]["data"]
@@ -118,12 +126,12 @@ def fetch_eia(source: dict, session=requests) -> tuple[Observation, int]:
         return Observation(float(values.iloc[-1]), str(values.index[-1]), source["unit"], values), response.status_code
     except FetchFailure as exc:
         # Never propagate an exception object whose text can contain the credential.
-        raise FetchFailure(exc.error_type, masked(exc), exc.status) from None
-    except (KeyError, TypeError) as exc: raise FetchFailure("schema_change", masked(exc)) from None
-    except (ValueError, requests.JSONDecodeError) as exc: raise FetchFailure("parse_error", masked(exc)) from None
-    except requests.Timeout as exc: raise FetchFailure("timeout", masked(exc) or "request timed out") from None
-    except requests.RequestException as exc: raise FetchFailure("network_error", masked(exc)) from None
-    except Exception as exc: raise FetchFailure("unexpected_error", masked(exc)) from None
+        raise FetchFailure(exc.error_type, _redact(exc, secrets), exc.status) from None
+    except (KeyError, TypeError) as exc: raise FetchFailure("schema_change", _redact(exc, secrets)) from None
+    except (ValueError, requests.JSONDecodeError) as exc: raise FetchFailure("parse_error", _redact(exc, secrets)) from None
+    except requests.Timeout as exc: raise FetchFailure("timeout", _redact(exc, secrets) or "request timed out") from None
+    except requests.RequestException as exc: raise FetchFailure("network_error", _redact(exc, secrets)) from None
+    except Exception as exc: raise FetchFailure("unexpected_error", _redact(exc, secrets)) from None
 
 
 def fetch_yahoo(source: dict, session=None) -> tuple[Observation, int | None]:
@@ -181,6 +189,14 @@ def fetch_instrument(instrument: str, config: dict, *, session=requests,
     definition = definitions.get(instrument)
     if not definition: return None
     adapters = adapters or ADAPTERS; attempts: list[Attempt] = []; successful: list[tuple[Attempt, Observation]] = []
+    # Defense in depth: even a custom/broken EIA adapter must not write its key to
+    # source_audit.csv.  The adapter itself performs the same redaction before an
+    # exception can escape to a caller.
+    import os
+    eia_secrets = tuple(filter(None, (
+        os.getenv(source.get("api_key_env", "EIA_API_KEY"))
+        for source in definition.get("sources", []) if source.get("adapter") == "eia_api"
+    )))
     sources = sorted(definition.get("sources", []), key=lambda x: (int(x["priority"]), x["name"]))
     expected_type = definition["instrument_type"]
     for source in sources:
@@ -206,9 +222,10 @@ def fetch_instrument(instrument: str, config: dict, *, session=requests,
             successful.append((attempt, observation))
             if not config.get("data_sources", {}).get("compare_sources", False): break
         except FetchFailure as exc:
-            attempt.http_status, attempt.error_type, attempt.error_message = exc.status, exc.error_type, str(exc)
+            attempt.http_status, attempt.error_type = exc.status, exc.error_type
+            attempt.error_message = _redact(exc, eia_secrets)
         except Exception as exc:
-            attempt.error_type, attempt.error_message = "unexpected_error", str(exc)
+            attempt.error_type, attempt.error_message = "unexpected_error", _redact(exc, eia_secrets)
         attempts.append(attempt)
     if successful:
         selected_attempt, selected = successful[0]; selected_attempt.selected = True
