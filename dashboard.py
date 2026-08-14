@@ -19,6 +19,7 @@ st.header("🌏 市場環境")
 market_history = read_csv_if_populated(ROOT / "data/market_environment.csv")
 news_history = read_csv_if_populated(ROOT / "data/news_events.csv")
 sector_history = read_csv_if_populated(ROOT / "data/sector_impact.csv")
+jgb_history = read_csv_if_populated(ROOT / "data/jgb_yields.csv")
 if market_history.empty:
     st.info("市場データ未取得です。取得不能な値は推測せず、朝会実行後に表示します。")
 else:
@@ -26,6 +27,12 @@ else:
     a, b = st.columns([2, 1])
     a.dataframe(latest[[c for c in ["indicator", "current", "previous_close", "change", "change_pct", "short_change_pct", "change_bp", "score"] if c in latest]], hide_index=True, use_container_width=True)
     b.metric("市場判定", latest["market_regime"].iloc[-1]); b.metric("合計スコア", latest["total_score"].iloc[-1])
+st.subheader("🇯🇵 日本国債金利")
+if jgb_history.empty:
+    st.info("国債金利データ未取得です。取得不能な値は推測せず欠損として扱います。")
+else:
+    latest_jgb = jgb_history[jgb_history["date"] == jgb_history["date"].iloc[-1]]
+    st.dataframe(latest_jgb[[c for c in ["tenor", "yield_pct", "change_1d_bp", "change_5d_bp", "change_20d_bp", "spread_10y_2y_bp"] if c in latest_jgb]], hide_index=True, use_container_width=True)
 if not news_history.empty:
     st.subheader("重大ニュース（取得元・時刻・URLを監査）")
     st.dataframe(news_history, hide_index=True, use_container_width=True)

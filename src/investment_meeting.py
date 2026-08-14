@@ -14,6 +14,9 @@ from src.utils import ROOT, load_config, now_tokyo
 from src.market_environment import analyze_market, fetch_market_data, save_market_environment
 from src.news_analysis import analyze_news, news_impacts, save_news
 from src.sector_impact import sector_impacts, save_sector_impacts
+from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
+                            jgb_sector_impacts, save_jgb_analysis)
+from src.market_research import write_research_report
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
@@ -52,12 +55,15 @@ def _method_stats() -> dict:
     return order_method_summary(ROOT / "data/order_method_performance.csv")
 
 
-def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None, news=None) -> pd.DataFrame:
+def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None, news=None, jgb=None) -> pd.DataFrame:
     if candidates.empty:
         return pd.DataFrame(columns=MEETING_COLUMNS)
     environment = environment or analyze_market([], config)
     news = news if news is not None else analyze_news(None, config)
     sector_scores = sector_impacts(environment, config)
+    if jgb is not None:
+        for sector, score in jgb_sector_impacts(jgb, config).items():
+            sector_scores[sector] = sector_scores.get(sector, 0) + score
     emergency = bool(news["emergency_risk"].any()) if not news.empty else False
     stats, staged = _method_stats(), []
     for row in candidates.fillna("").to_dict("records"):
@@ -120,13 +126,15 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
-def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None) -> str:
+def morning_message(result: pd.DataFrame, config: dict, *, recheck=False, environment=None, news=None, jgb=None) -> str:
     p = config["portfolio"]
     title = "📊 AI投資会議・8:30再確認" if recheck else "📊 AI投資会議・朝会\n最終注文案"
     actionable = result[result["最終判断"].isin(["主力", "小口"])] if not result.empty else result
     environment = environment or analyze_market([], config); news = news if news is not None else analyze_news(None, config)
     values = {x['indicator']: x for x in environment.indicators}
     lines = ["🌏 市場環境"] + [f"{name}: {values[name]['current']:,.2f} ({values[name]['change_pct']:+.2f}%) score {values[name]['score']:+d}" for name in config['market_environment']['tickers'] if name in values]
+    if jgb is not None:
+        lines += format_jgb_message(jgb)
     headlines = news.loc[news['trusted'], 'title'].head(3).tolist() if not news.empty else []
     lines += [f"市場判定：{environment.regime} ({environment.total_score:+.1f})", "重大ニュース：" + (" / ".join(headlines) if headlines else "取得・入力された信頼済みニュースなし"), f"本日の資金方針：通常の{environment.capital_ratio:.0%}", "", title, "", f'運用資産：{p["initial_capital"]:,.0f}円',
              f'現金比率：{p.get("current_cash", p["initial_capital"])/p["initial_capital"]:.0%}',
@@ -156,12 +164,15 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     market_input = ROOT / "data/market_input.csv"
     market_rows = read_csv_if_populated(market_input) if market_input.exists() and market_input.stat().st_size > 60 else fetch_market_data(config)
     environment = analyze_market(market_rows, config); news = analyze_news(ROOT / "data/news_input.csv", config)
-    impacts = sector_impacts(environment, config); save_market_environment(environment); save_news(news); save_sector_impacts(impacts, environment.observed_at)
-    result = evaluate_candidates(candidates, config, environment, news)
+    jgb = analyze_jgb(fetch_jgb_data(config), environment.observed_at)
+    impacts = sector_impacts(environment, config)
+    for sector, score in jgb_sector_impacts(jgb, config).items(): impacts[sector] = impacts.get(sector, 0) + score
+    save_market_environment(environment); save_jgb_analysis(jgb); save_news(news); save_sector_impacts(impacts, environment.observed_at)
+    result = evaluate_candidates(candidates, config, environment, news, jgb)
     folder = "morning" if kind == "recheck" else kind
     prefix = {"morning":"morning_meeting", "recheck":"morning_recheck", "close":"close_meeting", "weekly":"weekly_meeting"}[kind]
     output = ROOT / "reports/meeting" / folder / f"{prefix}_{today}.md"; output.parent.mkdir(parents=True, exist_ok=True)
-    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news)
+    if kind in ("morning", "recheck"): message = morning_message(result, config, recheck=kind == "recheck", environment=environment, news=news, jgb=jgb)
     elif kind == "close":
         message = "📊 AI投資会議・大引け後\n\n朝の注文案ごとに、約定／未約定／追いかけ禁止見送り／損切り／利確／保有継続を data/order_method_performance.csv へ記録します。価格データ未確定時は推測しません。"
     else:
@@ -172,6 +183,9 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
             f"- {ORDER_LABELS.get(k,k)}: PF={v['PF']}, 約定率={v['約定率']:.1%}, MFE={v['MFE']:.2f}, MAE={v['MAE']:.2f}"
             for k,v in s.items()) if s else "十分なサンプルがないためルール変更を提案しません。") +
             "\n\nRR 1.5/2.0/2.5、逆指値ATR幅、追いかけ禁止幅は追加サンプルで比較してください。設定は自動変更していません。\n", encoding="utf-8")
+        performance = read_csv_if_populated(ROOT / "data/performance.csv")
+        write_research_report(performance, ROOT / "reports/proposals" / f"market_research_{today}.md",
+                              config["meeting"]["minimum_backtest_samples"])
     output.write_text(message + "\n\n## 全候補監査表\n\n```csv\n" + result.to_csv(index=False) + "```\n", encoding="utf-8")
     if notify: post(message)
     print(message); return output
