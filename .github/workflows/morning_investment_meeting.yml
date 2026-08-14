@@ -1,0 +1,52 @@
+name: AI investment meetings
+on:
+  schedule:
+    - cron: '45 20 * * 0-4' # 翌営業日 05:45 JST開始（06:30通知完了目標）
+    - cron: '30 23 * * 0-4' # 翌営業日 08:30 JST再確認
+    - cron: '30 6 * * 1-5'  # 15:30 JST 大引け後
+    - cron: '0 8 * * 5'     # 金曜17:00 JST 週次
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: Meeting type
+        type: choice
+        options: [morning, recheck, close, weekly]
+        default: morning
+permissions:
+  contents: write
+concurrency: investment-meeting
+jobs:
+  meeting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Select meeting
+        id: mode
+        shell: bash
+        run: |
+          KIND='${{ inputs.kind }}'
+          if [ -z "$KIND" ]; then
+            case '${{ github.event.schedule }}' in
+              '45 20 * * 0-4') KIND=morning ;;
+              '30 23 * * 0-4') KIND=recheck ;;
+              '30 6 * * 1-5') KIND=close ;;
+              *) KIND=weekly ;;
+            esac
+          fi
+          echo "kind=$KIND" >> "$GITHUB_OUTPUT"
+      - name: Refresh closing-price candidates for morning
+        if: steps.mode.outputs.kind == 'morning'
+        run: python -m src.scanner --no-notify
+      - run: python -m src.investment_meeting --kind '${{ steps.mode.outputs.kind }}'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Persist meeting
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add reports/meeting/ data/ anti_candidates_*.csv
+          git diff --cached --quiet || (git commit -m 'chore: record investment meeting' && git push)

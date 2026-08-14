@@ -13,23 +13,38 @@ from src.stochastic import stochastic
 from src.utils import ROOT, load_config
 
 st.set_page_config(page_title="日本株 反転初動スクリーナー", layout="wide")
-st.title("日本株 反転初動スクリーナー")
+st.title("📊 AI投資会議")
 ensure_templates(ROOT)
 files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True)
 candidates = read_csv_if_populated(files[0], dtype={"コード": str}) if files else pd.DataFrame()
-stats = summary()
-cols = st.columns(5)
-values = [("本日のSランク", (candidates.get("ランク") == "S").sum() if not candidates.empty else 0),
-          ("Aランク", (candidates.get("ランク") == "A").sum() if not candidates.empty else 0),
-          ("DOUBLE SIGNAL以上", (candidates.get("シグナル数", pd.Series(dtype=int)) >= 2).sum()),
-          ("過去勝率", f'{stats.get("勝率", 0):.1%}'), ("PF", f'{stats.get("PF") or 0:.2f}')]
+stats = summary(); config = load_config()
+from src.investment_meeting import evaluate_candidates
+meeting = evaluate_candidates(candidates, config)
+portfolio = config["portfolio"]
+cols = st.columns(6)
+values = [("運用資産", f'{portfolio["initial_capital"]:,.0f}円'),
+          ("現金比率", f'{portfolio.get("current_cash", portfolio["initial_capital"])/portfolio["initial_capital"]:.0%}'),
+          ("保有銘柄数", portfolio.get("current_positions", 0)),
+          ("主力候補数", (meeting.get("最終分類") == "主力候補").sum() if not meeting.empty else 0),
+          ("小口候補数", (meeting.get("最終分類") == "小口候補").sum() if not meeting.empty else 0),
+          ("最大許容損失", f'{portfolio["initial_capital"]*portfolio["max_risk_per_trade_pct"]/100:,.0f}円')]
 for col, (label, value) in zip(cols, values): col.metric(label, value)
 
 upload = st.file_uploader("候補CSVをアップロード", type="csv")
 if upload is not None: candidates = pd.read_csv(upload, dtype={"コード": str})
+meeting = evaluate_candidates(candidates, config)
 if candidates.empty:
     st.info("候補CSVは空です。スキャン後、またはCSVアップロード後に候補が表示されます。")
 else:
+    left, right = st.columns(2)
+    with left:
+        st.subheader("AI社員① 投資分析担当")
+        st.dataframe(meeting[["コード", "銘柄名", "分析評価", "分析コメント"]], hide_index=True, use_container_width=True)
+    with right:
+        st.subheader("AI社員② 運用・検証担当")
+        st.dataframe(meeting[["コード", "運用評価", "推奨株数", "必要資金", "運用コメント"]], hide_index=True, use_container_width=True)
+    st.subheader("最終候補")
+    st.dataframe(meeting, use_container_width=True, hide_index=True)
     shown = [c for c in ["コード", "会社名", "現在値", "ランク", "スコア", "シグナル種別", "RSI14", "BB位置",
              "直近3日騰落率", "直近5日騰落率", "25日線乖離率", "出来高倍率", "自社株買い比率", "除外理由"] if c in candidates]
     st.dataframe(candidates[shown], use_container_width=True, hide_index=True)

@@ -2,6 +2,21 @@
 
 約3,500銘柄の日足から、すでに上がった株ではなく **下落後、BB下限・低位RSI・足型・ストキャスで反転を確認した初動** を抽出し、材料と実績を検証するプロジェクトです。アンチは比較用の補助戦略です。これは売買助言ではありません。
 
+## AI社員2人の投資会議と300万円運用
+
+`src.investment_meeting` は自由作文ではなく、保存済み入力 → 設定済み閾値 → 数値評価 → 4分類の順で常に同じ結果を返します。投資分析担当は押し、RSI・BB・ストキャス・足型、出来高、急騰と暴落リバウンドを確認し、運用・検証担当はRR、損失上限、現金、売買単位、投入額と保有上限を確認します。意見が割れた場合は **主力候補 → 小口候補 → 監視 → 見送り** のうち慎重な方を採用します。急騰済みは見送り、出来高0.6倍未満は主力から除外、3日-10%・5日-15%・25日線乖離-10%以下の暴落リバウンドは小口以下です。候補ゼロは異常ではなく「本日は新規買いなし」と報告します。
+
+資金ルールは `config.json` の `portfolio` に集約しています。既定は資産300万円、1取引リスク0.7%（21,000円）、1銘柄50万円、最大5銘柄、最低現金25%、100株単位です。主力100%、小口50%、暴落リバウンド25%も変更できます。株数はリスク上限と投入可能額の小さい方を100株単位へ切り下げるため、条件を満たせない銘柄は買いません。`current_cash` と `current_positions` は実残高に更新してください。
+
+```bash
+python -m src.investment_meeting --kind morning --no-notify
+python -m src.investment_meeting --kind recheck --no-notify
+python -m src.investment_meeting --kind close --no-notify
+python -m src.investment_meeting --kind weekly --no-notify
+```
+
+レポートは `reports/meeting/{morning,close,weekly}/` へ保存します。8:30再確認は前日終値しかない場合に「6:30朝会から更新なし」と明示し、疑似価格を作りません。大引け後は候補結果・警戒・翌日監視、週次は勝率、PF、MFE/MAE、最大DDおよび見送り後の値動きを `data/performance.csv` と候補履歴で検証する入口です。AI社員は提案を `reports/proposals/` に書けますが、設定や売買ロジックを自動変更しません。
+
 ## 独立戦略と優先順位
 
 日足スキャナーは A「BB逆張り」、B「BB＋RSI＋ストキャス」、C「底固め」、D「アンチ」、E「自社株買い」、F「決算・上方修正」を別々に記録します。2つ以上は DOUBLE SIGNAL、3つ以上は TRIPLE SIGNAL として通知対象になります。材料だけでは候補にせず、A～Dの価格確認を必須とします。
@@ -80,6 +95,8 @@ GitHub リポジトリの **Settings → Secrets and variables → Actions** に
 * `DISCORD_WEBHOOK`（任意：未設定なら通知をスキップ）
 
 `.github/workflows/update_stocks.yml` は毎週日曜12:00 UTC（JST 21:00）に一覧を更新し、変更時だけcommit/pushします。`anti_daily_scan.yml` は平日09:00 UTC（18:00 JST、30分timeout）に backtest → scanner の順、`anti_intraday_alert.yml` は平日00:00～06:59 UTCに5分間隔で起動します。各ワークフローはGitHubの **Actions** タブで選択し **Run workflow** から手動実行できます。日足Discord通知はS/Aをスコア順に `scan.discord_max_alerts`（既定20）件まで送ります。全銘柄スキャンは通常数分～30分程度を想定しますが、無料APIの応答・レート制限に依存します。結果をcommitするため `contents: write` を使用し、ブランチ保護時はartifact等への変更が必要です。
+
+`morning_investment_meeting.yml` は月～金06:30 JSTまでの完了余裕を確保するため05:45 JST（前日20:45 UTC）にスキャンを開始し、8:30 JST（前日23:30 UTC）再確認、15:30 JST（06:30 UTC）大引け後、金曜17:00 JST（08:00 UTC）週次会議を実行します。すべて `workflow_dispatch` で手動実行できます。Discord Secret未設定時は送信だけを安全にスキップします。GitHub Actionsの混雑や無料データAPI障害による06:30超過は保証できないため、Actionsの実行履歴とDiscord到着を人間が監視してください。
 
 ## Version 1 / Version 2 構造
 
