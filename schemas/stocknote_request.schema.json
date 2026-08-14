@@ -14,12 +14,32 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["code", "name", "meeting_decision", "official_fundamentals", "order_plan"],
+        "required": ["code", "name", "meeting_decision", "official_fundamentals", "technical_values", "order_plan"],
         "properties": {
           "code": {"type": "string", "pattern": "^[0-9]{4}$"},
           "name": {"type": "string"},
           "meeting_decision": {"type": "string"},
           "official_fundamentals": {"type": "object"},
+          "technical_values": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["現在値", "RSI14", "BB位置", "MA25", "MA75", "MA200", "出来高倍率", "ATR14", "ローソク足パターン", "シグナル種別", "損切り候補", "利確候補", "RR"],
+            "properties": {
+              "現在値": {"type": ["number", "null"]},
+              "RSI14": {"type": ["number", "null"]},
+              "BB位置": {"type": ["string", "null"], "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)σ$"},
+              "MA25": {"type": ["number", "null"]},
+              "MA75": {"type": ["number", "null"]},
+              "MA200": {"type": ["number", "null"]},
+              "出来高倍率": {"type": ["number", "null"]},
+              "ATR14": {"type": ["number", "null"]},
+              "ローソク足パターン": {"type": ["string", "null"], "minLength": 1},
+              "シグナル種別": {"type": ["string", "null"], "minLength": 1},
+              "損切り候補": {"type": ["number", "null"]},
+              "利確候補": {"type": ["number", "null"]},
+              "RR": {"type": ["number", "null"]}
+            }
+          },
           "order_plan": {"type": "object"}
         }
       }

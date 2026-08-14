@@ -7,11 +7,14 @@ from stocknote_side.runner import ContractError, process_request, validate_respo
 
 
 NOW = datetime(2026, 8, 14, tzinfo=timezone.utc)
+TECHNICAL_FIELDS = ("現在値", "RSI14", "BB位置", "MA25", "MA75", "MA200", "出来高倍率", "ATR14",
+                    "ローソク足パターン", "シグナル種別", "損切り候補", "利確候補", "RR")
 
 
 def write_request(tmp_path, codes=("1111",), run_id="run_123456", **changes):
     candidates = [{"code": code, "name": f"name-{code}", "meeting_decision": "watch",
-                   "official_fundamentals": {"per": 10.0}, "order_plan": {}}
+                   "official_fundamentals": {"per": 10.0},
+                   "technical_values": {key: None for key in TECHNICAL_FIELDS}, "order_plan": {}}
                   for code in codes]
     payload = {"schema_version": "1.0", "run_id": run_id, "generated_at": NOW.isoformat(),
                "candidates": candidates}
@@ -59,6 +62,38 @@ def test_non_finite_request_values_are_rejected(tmp_path, constant):
     path.write_text(path.read_text().replace("10.0", constant), encoding="utf-8")
     with pytest.raises(ContractError, match="non-finite"):
         process_request(path, good_analyzer)
+
+
+@pytest.mark.parametrize("field,value", [("RSI14", True), ("BB位置", "oversold"), ("ローソク足パターン", "")])
+def test_invalid_technical_values_are_rejected(tmp_path, field, value):
+    path = write_request(tmp_path)
+    payload = json.loads(path.read_text())
+    payload["candidates"][0]["technical_values"][field] = value
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(ContractError, match="technical_values"):
+        process_request(path, good_analyzer)
+
+
+def test_unknown_technical_field_is_rejected(tmp_path):
+    path = write_request(tmp_path)
+    payload = json.loads(path.read_text())
+    payload["candidates"][0]["technical_values"]["推測値"] = 1
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(ContractError, match="technical_values"):
+        process_request(path, good_analyzer)
+
+
+def test_analyzer_receives_technical_information_separately(tmp_path):
+    path = write_request(tmp_path)
+    payload = json.loads(path.read_text())
+    payload["candidates"][0]["technical_values"]["RSI14"] = 30.63
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    def analyzer(*, code, official_information, reference_information, technical_information):
+        assert official_information == {"per": 10.0}
+        assert reference_information == {}
+        assert technical_information["RSI14"] == 30.63
+        return {"assessment": "neutral", "confidence": .5, "summary": code}
+    process_request(path, analyzer, now=NOW)
 
 
 def test_official_values_are_not_overwritten_by_reference_values(tmp_path):
