@@ -19,7 +19,8 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
 from src.stocknote import consume_shadow, export_request, write_shadow_report
-from src.night_meeting import generate_night_result, load_latest_night_result, night_message, save_night_result
+from src.night_meeting import (generate_night_result, generate_weekend_result, load_latest_night_result,
+                               night_message, save_night_result, save_weekend_result, weekend_message)
 
 CAUTION = {"主力": 0, "小口": 1, "監視": 2, "見送り": 3}
 MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "注文方式", "買いゾーン下限", "買いゾーン上限",
@@ -260,6 +261,20 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         if notify: post(message)
         print(message)
         return output
+    if kind == "weekend":
+        weekend_result = generate_weekend_result(candidates)
+        stocknote = config.get("stocknote", {})
+        if stocknote.get("enabled", False):
+            exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")
+            run_id, request_path = export_request(candidates, exchange)
+            weekend_result["stocknote_employee"] = "request_exported"
+            weekend_result["stocknote_run_id"] = run_id
+            weekend_result["stocknote_request"] = str(request_path.relative_to(ROOT))
+        _, output = save_weekend_result(weekend_result)
+        message = weekend_message(weekend_result)
+        if notify: post(message)
+        print(message)
+        return output
     candidates = enrich_candidates(candidates, config)
     result = evaluate_candidates(candidates, config, environment, news, jgb)
     stocknote = config.get("stocknote", {})
@@ -293,5 +308,5 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
 
 
 if __name__ == "__main__":
-    parser=argparse.ArgumentParser(); parser.add_argument("--kind", choices=["night","morning","recheck","close","weekly"], default="morning"); parser.add_argument("--no-notify", action="store_true")
+    parser=argparse.ArgumentParser(); parser.add_argument("--kind", choices=["night","weekend","morning","recheck","close","weekly"], default="morning"); parser.add_argument("--no-notify", action="store_true")
     args=parser.parse_args(); run(args.kind, not args.no_notify)

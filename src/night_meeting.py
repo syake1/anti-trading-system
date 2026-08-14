@@ -133,3 +133,52 @@ def load_latest_night_result(folder: Path | None = None) -> dict[str, Any] | Non
     except (OSError, json.JSONDecodeError):
         return None
     return result if result.get("status") == "provisional" and result.get("final_decision") is False else None
+
+
+def generate_weekend_result(candidates: pd.DataFrame, observed_at: datetime | None = None) -> dict[str, Any]:
+    """Create a broad Friday-close watch list without producing executable orders."""
+    observed_at = observed_at or now_tokyo()
+    if observed_at.tzinfo is None:
+        observed_at = observed_at.replace(tzinfo=ZoneInfo("Asia/Tokyo"))
+    rows = []
+    for row in candidates.fillna("").to_dict("records"):
+        rsi = float(row.get("RSI14") or 50)
+        change = float(row.get("当日騰落率") or 0)
+        category = "押し目候補" if rsi <= 45 else "動意候補" if change > 0 else "翌週再確認"
+        rows.append({"code": str(row.get("コード", "")),
+                     "name": str(row.get("会社名", row.get("銘柄名", ""))),
+                     "sector": str(row.get("業種", "不明") or "不明"),
+                     "category": category})
+    sectors: dict[str, int] = {}
+    for row in rows:
+        sectors[row["sector"]] = sectors.get(row["sector"], 0) + 1
+    monday = observed_at.date() + timedelta(days=(7 - observed_at.weekday()) % 7)
+    return {"status": "provisional", "final_decision": False,
+            "basis": "Friday close", "observed_at": observed_at.isoformat(timespec="seconds"),
+            "monday_recheck_date": monday.isoformat(), "stocknote_employee": "enabled",
+            "focus_sectors": sorted(sectors, key=lambda name: (-sectors[name], name)),
+            "candidates": rows,
+            "monday_recheck_conditions": ["最新ニュース", "日経先物", "TOPIX", "為替", "米国市場",
+                                           "日本2年・10年・30年金利", "10年-2年スプレッド", "気配"]}
+
+
+def weekend_message(result: Mapping[str, Any]) -> str:
+    lines = ["📅 週末投資会議", "status=provisional", "final_decision=false",
+             "基準：金曜終値", f"stocknote分析社員：{result['stocknote_employee']}（参考情報）",
+             "注目セクター：" + (" / ".join(result["focus_sectors"]) or "なし")]
+    for category in ("押し目候補", "動意候補", "翌週再確認"):
+        selected = [f"{r['code']} {r['name']}".strip() for r in result["candidates"] if r["category"] == category]
+        lines.append(f"{category}：" + (" / ".join(selected) or "なし"))
+    lines += ["月曜朝の再確認条件：" + " / ".join(result["monday_recheck_conditions"]),
+              "※主力・小口・注文は確定せず、月曜朝会で最終判断します。"]
+    return "\n".join(lines)
+
+
+def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -> tuple[Path, Path]:
+    folder = folder or ROOT / "reports/meeting/weekend"
+    folder.mkdir(parents=True, exist_ok=True)
+    day = str(result["observed_at"])[:10].replace("-", "")
+    json_path, md_path = folder / f"weekend_meeting_{day}.json", folder / f"weekend_meeting_{day}.md"
+    json_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    md_path.write_text(weekend_message(result) + "\n", encoding="utf-8")
+    return json_path, md_path
