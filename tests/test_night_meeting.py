@@ -136,6 +136,24 @@ def test_weekend_carries_observed_jgb_even_without_bank_candidate():
     assert "10年-2年スプレッド：+56.000bp" in message
 
 
+def test_jpx_bank_industry_is_sent_to_dedicated_evaluation():
+    candidate = bank(業種="銀行業")
+    assert make([candidate])["bank_evaluations"][0]["code"] == "8300"
+    weekend = generate_weekend_result(pd.DataFrame([candidate]), rates(), config())
+    assert weekend["bank_evaluations"][0]["code"] == "8300"
+
+
+def test_weekend_focus_sectors_are_ranked_top_five_and_all_are_audited(tmp_path):
+    rows = [{**bank(コード=str(8300 + i)), "業種": f"業種{i}", "相対強度": i}
+            for i in range(7)]
+    result = generate_weekend_result(pd.DataFrame(rows), rates(), config())
+    assert result["focus_sectors"] == ["業種6", "業種5", "業種4", "業種3", "業種2"]
+    assert len(result["sector_ranking"]) == 7
+    save_weekend_result(result, tmp_path)
+    audit = pd.read_csv(next(tmp_path.glob("*_sector_audit.csv")))
+    assert audit["sector"].tolist() == [f"業種{i}" for i in range(6, -1, -1)]
+
+
 def test_sector_master_fills_only_missing_sectors_and_focus_is_not_empty(tmp_path):
     master = tmp_path / "stocks.csv"
     pd.DataFrame([

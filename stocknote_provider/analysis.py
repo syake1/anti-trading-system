@@ -15,8 +15,9 @@ CODE = re.compile(r"^[0-9]{4}$")
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_HISTORY_PATH = ROOT / "data" / "signal_history.csv"
 BB_VALUE = re.compile(r"^([+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+))σ$")
-NUMERIC_TECHNICAL = {"現在値", "RSI14", "MA25", "MA75", "MA200", "出来高倍率", "ATR14", "損切り候補", "利確候補", "RR"}
-TEXT_TECHNICAL = {"BB位置", "ローソク足パターン", "シグナル種別"}
+NUMERIC_TECHNICAL = {"現在値", "RSI14", "MA25", "MA75", "MA200", "出来高倍率", "ATR14",
+                     "25日線乖離率", "損切り候補", "利確候補", "RR"}
+TEXT_TECHNICAL = {"BB位置", "反転足", "ローソク足パターン", "シグナル種別"}
 _FUNDAMENTALS = {
     "per": ("per", "PER"), "pbr": ("pbr", "PBR"),
     "financial_health": ("financial_health", "財務健全性"),
@@ -136,14 +137,17 @@ def analyze_candidate(*, code: str, official_information: dict | None = None,
     observations = _clean_technical(technical_information)
     sources = {key: "request" for key in observations}
 
-    # RSI and BB are the two existing contrarian components.  Seek lower-priority
-    # sources only while either component is absent.
-    if not {"RSI14", "BB位置"} <= observations.keys():
+    def analyzable(values: dict) -> int:
+        return sum(key in values for key in ("RSI14", "BB位置", "25日線乖離率", "出来高倍率"))
+
+    # Two observed signals are sufficient. Lower-priority sources only fill a
+    # genuinely insufficient request, so an external service is never mandatory.
+    if analyzable(observations) < 2:
         local = _clean_technical((local_history_loader or load_local_observations)(code))
         for key, value in local.items():
             if key not in observations:
                 observations[key], sources[key] = value, "local_history"
-    if not {"RSI14", "BB位置"} <= observations.keys():
+    if analyzable(observations) < 2:
         try:
             external = _from_price_history((history_loader or _load_history)(code))
         except Exception:
@@ -159,16 +163,20 @@ def analyze_candidate(*, code: str, official_information: dict | None = None,
     if "BB位置" in observations:
         bb_sigma = float(BB_VALUE.fullmatch(observations["BB位置"]).group(1))
         components.append(max(0.0, min(50.0, -bb_sigma * 25.0)))
+    if "25日線乖離率" in observations:
+        components.append(max(0.0, min(25.0, -observations["25日線乖離率"] * 2.5)))
+    if "出来高倍率" in observations:
+        components.append(max(0.0, min(25.0, (observations["出来高倍率"] - 1.0) * 25.0)))
     if not components:
         result = {"assessment": "insufficient", "confidence": 0.0,
                   "summary": f"{code}: 分析可能なRSI・BB位置の実データがありません。"}
     else:
-        score = round(sum(components), 1)
+        score = round(min(100.0, sum(components)), 1)
         current, ma25, ma75 = (observations.get(key) for key in ("現在値", "MA25", "MA75"))
         trend = None
         if all(value is not None for value in (current, ma25, ma75)):
             trend = "上昇" if current > ma25 > ma75 else "下降" if current < ma25 < ma75 else "横ばい・混在"
-        used = [key for key in ("RSI14", "BB位置") if key in observations]
+        used = [key for key in ("RSI14", "BB位置", "25日線乖離率", "出来高倍率") if key in observations]
         source_text = "、".join(f"{key}={sources[key]}" for key in used)
         details = []
         if "損切り候補" in observations:
@@ -180,7 +188,7 @@ def analyze_candidate(*, code: str, official_information: dict | None = None,
         summary = f"{code}: 逆張りスコア{score:.1f}（{source_text}）。"
         if details:
             summary += " " + "、".join(details) + "。"
-        result = {"assessment": _assessment(score), "confidence": round(0.35 * len(components), 2),
+        result = {"assessment": _assessment(score), "confidence": min(1.0, round(0.25 * len(components), 2)),
                   "summary": summary, "contrarian_score": score,
                   "cautions": "明示された観測値のみを採点。候補価格は予測値・注文条件ではありません。"}
         if "RSI14" in observations:

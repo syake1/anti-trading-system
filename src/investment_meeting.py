@@ -296,7 +296,8 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         print(message)
         return output
     if kind == "weekend":
-        weekend_result = generate_weekend_result(candidates, jgb, config)
+        weekend_result = generate_weekend_result(candidates, jgb, config,
+                                                 sector_macro_impacts=impacts)
         stocknote = config.get("stocknote", {})
         if stocknote.get("enabled", False):
             exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")

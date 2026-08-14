@@ -124,8 +124,9 @@ def export_request(result: pd.DataFrame, directory: Path, *, run_id: str | None 
     for _, row in result.iterrows():
         technical = {}
         for key in ("現在値", "RSI14", "BB位置", "MA25", "MA75", "MA200", "出来高倍率", "ATR14",
-                    "ローソク足パターン", "シグナル種別", "RR"):
+                    "25日線乖離率", "ローソク足パターン", "シグナル種別", "RR"):
             technical[key] = safe(row.get(key))
+        technical["反転足"] = safe(row.get("反転足", row.get("ローソク足パターン")))
         technical["損切り候補"] = safe(row.get("損切り候補", row.get("損切り価格")))
         technical["利確候補"] = safe(row.get("利確候補", row.get("利確目標")))
         candidates.append({"code": str(row["コード"]), "name": str(row.get("銘柄名", "")),

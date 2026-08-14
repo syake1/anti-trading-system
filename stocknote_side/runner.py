@@ -31,9 +31,11 @@ TEXT_FIELDS = {
 REQUIRED_RESULT_FIELDS = {"assessment", "confidence", "summary"}
 OFFICIAL_SOURCES = {"official", "edinet", "tdnet", "jpx", "company_ir", "company-ir"}
 REFERENCE_SOURCES = {"reference", "kabutan", "minkabu", "株探", "みんかぶ"}
-TECHNICAL_NUMBERS = {"現在値", "RSI14", "MA25", "MA75", "MA200", "出来高倍率", "ATR14", "損切り候補", "利確候補", "RR"}
-TECHNICAL_TEXT = {"BB位置", "ローソク足パターン", "シグナル種別"}
+TECHNICAL_NUMBERS = {"現在値", "RSI14", "MA25", "MA75", "MA200", "出来高倍率", "ATR14",
+                     "25日線乖離率", "損切り候補", "利確候補", "RR"}
+TECHNICAL_TEXT = {"BB位置", "反転足", "ローソク足パターン", "シグナル種別"}
 TECHNICAL_FIELDS = TECHNICAL_NUMBERS | TECHNICAL_TEXT
+LEGACY_TECHNICAL_FIELDS = TECHNICAL_FIELDS - {"25日線乖離率", "反転足"}
 BB_VALUE = re.compile(r"^[+-]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)σ$")
 
 
@@ -99,14 +101,15 @@ def validate_request(payload: dict, path: Path) -> list[dict]:
         if not isinstance(candidate["official_fundamentals"], dict) or not isinstance(candidate["order_plan"], dict):
             raise ContractError("candidate information must be objects")
         technical = candidate["technical_values"]
-        if not isinstance(technical, dict) or set(technical) != TECHNICAL_FIELDS:
+        if (not isinstance(technical, dict) or not LEGACY_TECHNICAL_FIELDS <= set(technical)
+                or not set(technical) <= TECHNICAL_FIELDS):
             raise ContractError("invalid technical_values fields")
         for key in TECHNICAL_NUMBERS:
-            value = technical[key]
+            value = technical.get(key)
             if value is not None and not _finite(value):
                 raise ContractError(f"technical_values.{key} must be a finite number or null")
         for key in TECHNICAL_TEXT:
-            value = technical[key]
+            value = technical.get(key)
             if value is not None and (not isinstance(value, str) or not value.strip()):
                 raise ContractError(f"technical_values.{key} must be a non-empty string or null")
         if technical["BB位置"] is not None and not BB_VALUE.fullmatch(technical["BB位置"]):
