@@ -176,9 +176,12 @@ def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
     frame = None
     errors = []
     # Baseline first; CP932 is a superset commonly used for Japanese Windows CSVs.
-    for encoding in ("shift_jis", "cp932"):
+    for encoding in ("shift_jis", "cp932", "utf-8"):
         try:
             candidate = clean_columns(pd.read_csv(BytesIO(content), skiprows=1, encoding=encoding))
+            if encoding == "utf-8" and candidate.columns.size and not any(column in date_labels for column in candidate.columns):
+                candidate = candidate.rename(columns={candidate.columns[0]: "基準日", **{
+                    column: str(column).replace("N", "年") for column in candidate.columns[1:]}})
             if any(column in date_labels for column in candidate.columns) and any(
                     column in wanted for column in candidate.columns):
                 frame = candidate
@@ -188,7 +191,7 @@ def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
 
     # If the publisher inserts another title/unit line, locate the real header.
     if frame is None:
-        for encoding in ("cp932", "shift_jis"):
+        for encoding in ("cp932", "shift_jis", "utf-8"):
             for header_index in range(10):
                 try:
                     candidate = clean_columns(pd.read_csv(
@@ -196,6 +199,9 @@ def fetch_mof_jgb(source: dict, session=requests) -> tuple[Observation, int]:
                 except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as exc:
                     errors.append(f"{encoding}/header={header_index}: {exc}")
                     continue
+                if encoding == "utf-8" and candidate.columns.size and not any(column in date_labels for column in candidate.columns):
+                    candidate = candidate.rename(columns={candidate.columns[0]: "基準日", **{
+                        column: str(column).replace("N", "年") for column in candidate.columns[1:]}})
                 if any(column in date_labels for column in candidate.columns) and any(
                         column in wanted for column in candidate.columns):
                     frame = candidate

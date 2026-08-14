@@ -776,5 +776,16 @@
         ]
       }
     }
+  },
+  "fundamentals": {
+    "official_sources": [
+      "EDINET",
+      "TDnet",
+      "企業IR",
+      "J-Quants",
+      "JPX"
+    ],
+    "minimum_required_fields": 11,
+    "audit_path": "data/fundamentals_audit.csv"
   }
 }
