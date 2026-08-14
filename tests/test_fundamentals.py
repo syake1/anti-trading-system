@@ -50,30 +50,33 @@ def test_enrichment_audits_success_and_missing_without_imputation(tmp_path):
 
 
 def test_explicit_profit_transitions_and_growth_quadrants():
-    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": 5})["profit_transition"] == "黒字転換"
-    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": -5})["profit_transition"] == "赤字転落"
-    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": -5})["profit_transition"] == "赤字継続"
-    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": 5})["profit_transition"] == "黒字継続"
+    basis = {"comparison_basis_verified": True}
+    assert derive_official_metrics({**basis, "net_profit_prior": -10, "net_profit": 5})["profit_transition"] == "黒字転換"
+    assert derive_official_metrics({**basis, "net_profit_prior": 10, "net_profit": -5})["profit_transition"] == "赤字転落"
+    assert derive_official_metrics({**basis, "net_profit_prior": -10, "net_profit": -5})["profit_transition"] == "赤字継続"
+    assert derive_official_metrics({**basis, "net_profit_prior": 10, "net_profit": 5})["profit_transition"] == "黒字継続"
     cases = [((110, 100, 12, 10), "増収増益"), ((110, 100, 8, 10), "増収減益"),
              ((90, 100, 12, 10), "減収増益"), ((90, 100, 8, 10), "減収減益")]
     for values, expected in cases:
         revenue, prior_revenue, operating, prior_operating = values
-        result = derive_official_metrics({"revenue": revenue, "revenue_prior": prior_revenue,
+        result = derive_official_metrics({**basis, "revenue": revenue, "revenue_prior": prior_revenue,
                                           "operating_profit": operating, "operating_profit_prior": prior_operating})
         assert result["growth_quadrant"] == expected
 
 
 def test_payout_and_dividend_change_require_both_explicit_values():
-    result = derive_official_metrics({"eps": 50, "dividend": 20, "dividend_prior": 10})
+    verified = {"payout_basis_verified": True, "dividend_comparison_verified": True}
+    result = derive_official_metrics({**verified, "eps": 50, "dividend": 20, "dividend_prior": 10})
     assert result["payout_ratio"] == 40
     assert result["dividend_change"] == "増配"
     assert derive_official_metrics({"eps": 50})["payout_ratio"] is None
-    assert derive_official_metrics({"dividend": 0, "dividend_prior": 10})["dividend_change"] == "無配転落"
+    assert derive_official_metrics({**verified, "dividend": 0, "dividend_prior": 10})["dividend_change"] == "無配転落"
     assert derive_official_metrics({"dividend": 10})["dividend_change"] == "評価不能"
 
 
 def test_score_reasons_are_saved_and_abbreviated_for_discord():
-    result = evaluate_candidates(pd.DataFrame([candidate(net_profit_prior=-10, net_profit=5,
+    result = evaluate_candidates(pd.DataFrame([candidate(comparison_basis_verified=True,
+        payout_basis_verified=True, dividend_comparison_verified=True, net_profit_prior=-10, net_profit=5,
         revenue=110, revenue_prior=100, operating_profit=12, operating_profit_prior=10,
         dividend=20, dividend_prior=10)]), config()).iloc[0]
     assert "+1 売上高前年比プラス" in result["ファンダメンタル加減点理由"]
@@ -81,3 +84,13 @@ def test_score_reasons_are_saved_and_abbreviated_for_discord():
     assert "黒字転換 / 業績 増収増益 / 配当 増配" in message
     assert "加減点：" in message
     assert "他" in message
+
+
+def test_unverified_period_or_scope_never_produces_derived_assessment():
+    result = derive_official_metrics({"net_profit_prior": -10, "net_profit": 5,
+        "revenue": 110, "revenue_prior": 100, "operating_profit": 12,
+        "operating_profit_prior": 10, "eps": 50, "dividend": 20, "dividend_prior": 10})
+    assert result["profit_transition"] == "評価不能"
+    assert result["growth_quadrant"] == "評価不能"
+    assert result["payout_ratio"] is None
+    assert result["dividend_change"] == "評価不能"
