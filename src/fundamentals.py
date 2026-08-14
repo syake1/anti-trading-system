@@ -36,6 +36,11 @@ def _num(value):
         return None
 
 
+def _verified(value) -> bool:
+    """Accept only an explicit verification flag, never infer comparability."""
+    return value is True or str(value).strip().lower() in {"true", "1", "yes"}
+
+
 @dataclass(frozen=True)
 class FundamentalAssessment:
     data: dict
@@ -49,8 +54,9 @@ class FundamentalAssessment:
 def derive_official_metrics(row: dict) -> dict:
     """Derive comparisons only from pairs of explicitly supplied official facts."""
     result = dict(row)
+    comparable = _verified(row.get("comparison_basis_verified"))
     current, prior = _num(row.get("net_profit")), _num(row.get("net_profit_prior"))
-    if current is None or prior is None:
+    if not comparable or current is None or prior is None:
         result["profit_transition"] = "評価不能"
     elif prior < 0 <= current:
         result["profit_transition"] = "黒字転換"
@@ -63,15 +69,17 @@ def derive_official_metrics(row: dict) -> dict:
 
     revenue, revenue_prior = _num(row.get("revenue")), _num(row.get("revenue_prior"))
     operating, operating_prior = _num(row.get("operating_profit")), _num(row.get("operating_profit_prior"))
-    if None in (revenue, revenue_prior, operating, operating_prior):
+    if not comparable or None in (revenue, revenue_prior, operating, operating_prior):
         result["growth_quadrant"] = "評価不能"
     else:
         result["growth_quadrant"] = ("増収" if revenue >= revenue_prior else "減収") + ("増益" if operating >= operating_prior else "減益")
 
     eps, dividend = _num(row.get("eps")), _num(row.get("dividend"))
-    result["payout_ratio"] = dividend / eps * 100 if eps not in (None, 0) and dividend is not None else None
+    payout_comparable = _verified(row.get("payout_basis_verified"))
+    result["payout_ratio"] = dividend / eps * 100 if payout_comparable and eps not in (None, 0) and dividend is not None else None
     dividend_prior = _num(row.get("dividend_prior"))
-    if dividend is None or dividend_prior is None:
+    dividend_comparable = _verified(row.get("dividend_comparison_verified"))
+    if not dividend_comparable or dividend is None or dividend_prior is None:
         result["dividend_change"] = "評価不能"
     elif dividend == 0 and dividend_prior > 0:
         result["dividend_change"] = "無配転落"

@@ -175,13 +175,31 @@ def parse_xbrl(archive: bytes) -> dict:
         try: value = float((node.text or "").replace(",", ""))
         except ValueError: continue
         facts.append((name, value, contexts[context_id]))
-    periods = sorted({f[2].get("end") or f[2].get("instant") for f in facts if f[2].get("end") or f[2].get("instant")}, reverse=True)
-    current, prior = (periods + [None, None])[:2]
+    # Duration facts determine the reporting periods.  Instant-only balance
+    # sheet contexts must not accidentally become a "prior period" for flows.
+    durations = sorted({(f[2]["start"], f[2]["end"]) for f in facts
+                        if f[2].get("start") and f[2].get("end")}, key=lambda period: period[1], reverse=True)
+    def period_kind(period):
+        days = (date.fromisoformat(period[1]) - date.fromisoformat(period[0])).days
+        return "annual" if days >= 300 else "semiannual" if days >= 150 else "quarterly"
+    current_period = durations[0] if durations else None
+    prior_period = next((period for period in durations[1:]
+                         if period_kind(period) == period_kind(current_period)), None) if current_period else None
+    current = current_period[1] if current_period else None
+    prior = prior_period[1] if prior_period else None
     output = {}
     for key, aliases in CONCEPTS.items():
         for period, suffix in ((current, ""), (prior, "_prior")):
             match = next((value for name, value, ctx in facts if name in aliases and (ctx.get("end") or ctx.get("instant")) == period), None)
             if match is not None: output[key + suffix] = match
+    # The parser selected consolidated facts from explicit XBRL contexts and
+    # matching current/prior duration endpoints.  These flags are the audit
+    # evidence required by the downstream conservative derivations.
+    output["comparison_basis_verified"] = bool(current and prior)
+    output["payout_basis_verified"] = bool(current and output.get("eps") is not None and output.get("dividend") is not None)
+    output["dividend_comparison_verified"] = bool(
+        current and prior and output.get("dividend") is not None and output.get("dividend_prior") is not None
+    )
     # YoY is valid only when both explicitly reported facts have distinct periods.
     # A negative base is not expressed as an ordinary percentage: the sign
     # transition derived downstream is the meaningful official-fact comparison.

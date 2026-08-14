@@ -1,0 +1,181 @@
+From 27e8cd9b1a9923ec3682e256c2833ccc98352899 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Fri, 14 Aug 2026 18:09:39 +0000
+Subject: [PATCH] Enforce comparable fundamental periods
+
+---
+ README.md                   |  2 +-
+ data/fundamentals_input.csv |  2 +-
+ src/fundamental_sources.py  | 22 ++++++++++++++++++++--
+ src/fundamentals.py         | 16 ++++++++++++----
+ tests/test_fundamentals.py  | 29 +++++++++++++++++++++--------
+ 5 files changed, 55 insertions(+), 16 deletions(-)
+
+diff --git a/README.md b/README.md
+index a18cec2..1de3258 100644
+--- a/README.md
++++ b/README.md
+@@ -176,6 +176,6 @@ Yahoo Financeの欠損・レート制限・上場廃止等は銘柄単位でエ
+ 
+ ## ファンダメンタル・ゲート
+ 
+-朝会は `data/fundamentals_input.csv` の正規化済み公式開示を候補へ結合し、売上高・営業利益・経常利益または純利益の前年比、EPS、PER、PBR、ROE、自己資本比率、配当利回り、会社予想、決算日、業績修正、重要適時開示を10点満点で評価します。入力元は EDINET、TDnet、企業IR、J-Quants、JPX に限定し、参照URLまたは開示識別子が必須です。株探・みんかぶ等のHTMLスクレイピングは行いません。当期・前期の公式値が両方ある場合だけ、利益の黒字/赤字推移、売上高と営業利益の4象限、配当性向、増配・維持・減配・無配転落を算出します。片方でも欠ければ「評価不能」または欠損とし、前期利益が負数なら通常の前年比率ではなく黒字転換・赤字転落等の分類を優先します。候補CSVにはファンダメンタルスコアの全加点・減点理由も保存し、Discordには要約を表示します。
++朝会は `data/fundamentals_input.csv` の正規化済み公式開示を候補へ結合し、売上高・営業利益・経常利益または純利益の前年比、EPS、PER、PBR、ROE、自己資本比率、配当利回り、会社予想、決算日、業績修正、重要適時開示を10点満点で評価します。入力元は EDINET、TDnet、企業IR、J-Quants、JPX に限定し、参照URLまたは開示識別子が必須です。株探・みんかぶ等のHTMLスクレイピングは行いません。当期・前期の公式値が両方あり、連結/単体、実績/予想、年間/四半期が一致すると確認して `comparison_basis_verified`（配当性向は `payout_basis_verified`、配当比較は `dividend_comparison_verified`）を明示した場合だけ、利益の黒字/赤字推移、売上高と営業利益の4象限、配当性向、増配・維持・減配・無配転落を算出します。片方でも欠けるか比較条件を確認できなければ「評価不能」または欠損とし、前期利益が負数なら通常の前年比率ではなく黒字転換・赤字転落等の分類を優先します。EDINET XBRLは連結コンテキストかつ同じ期間種別の当期・前期を機械的に確認します。候補CSVにはファンダメンタルスコアの全加点・減点理由も保存し、Discordには要約を表示します。
+ 
+ 値は公式開示や契約済みサービスから確認した値をCSVへ投入してください。取得できない値は空欄（欠損）のままにし、推測・前回値補完はしません。必須11項目を満たさない、公式取得元でない、または参照先がない銘柄は「データ不足」となり、テクニカルが良くても主力になりません。4点以下、下方修正、赤字転落、重大な悪材料も主力から降格します。各候補の取得元・取得日時・成功/失敗理由は `data/fundamentals_audit.csv` に追記されます。
+diff --git a/data/fundamentals_input.csv b/data/fundamentals_input.csv
+index 16e874b..b17968a 100644
+--- a/data/fundamentals_input.csv
++++ b/data/fundamentals_input.csv
+@@ -1 +1 @@
+-code,source,source_reference,acquired_at,revenue,revenue_prior,operating_profit,operating_profit_prior,net_profit,net_profit_prior,dividend,dividend_prior,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure
++code,source,source_reference,acquired_at,comparison_basis_verified,payout_basis_verified,dividend_comparison_verified,revenue,revenue_prior,operating_profit,operating_profit_prior,net_profit,net_profit_prior,dividend,dividend_prior,revenue_yoy,operating_profit_yoy,ordinary_or_net_profit_yoy,eps,per,pbr,roe,equity_ratio,dividend_yield,company_forecast,latest_earnings_date,revision,important_disclosure
+diff --git a/src/fundamental_sources.py b/src/fundamental_sources.py
+index 47939b9..e643c43 100644
+--- a/src/fundamental_sources.py
++++ b/src/fundamental_sources.py
+@@ -175,13 +175,31 @@ def parse_xbrl(archive: bytes) -> dict:
+         try: value = float((node.text or "").replace(",", ""))
+         except ValueError: continue
+         facts.append((name, value, contexts[context_id]))
+-    periods = sorted({f[2].get("end") or f[2].get("instant") for f in facts if f[2].get("end") or f[2].get("instant")}, reverse=True)
+-    current, prior = (periods + [None, None])[:2]
++    # Duration facts determine the reporting periods.  Instant-only balance
++    # sheet contexts must not accidentally become a "prior period" for flows.
++    durations = sorted({(f[2]["start"], f[2]["end"]) for f in facts
++                        if f[2].get("start") and f[2].get("end")}, key=lambda period: period[1], reverse=True)
++    def period_kind(period):
++        days = (date.fromisoformat(period[1]) - date.fromisoformat(period[0])).days
++        return "annual" if days >= 300 else "semiannual" if days >= 150 else "quarterly"
++    current_period = durations[0] if durations else None
++    prior_period = next((period for period in durations[1:]
++                         if period_kind(period) == period_kind(current_period)), None) if current_period else None
++    current = current_period[1] if current_period else None
++    prior = prior_period[1] if prior_period else None
+     output = {}
+     for key, aliases in CONCEPTS.items():
+         for period, suffix in ((current, ""), (prior, "_prior")):
+             match = next((value for name, value, ctx in facts if name in aliases and (ctx.get("end") or ctx.get("instant")) == period), None)
+             if match is not None: output[key + suffix] = match
++    # The parser selected consolidated facts from explicit XBRL contexts and
++    # matching current/prior duration endpoints.  These flags are the audit
++    # evidence required by the downstream conservative derivations.
++    output["comparison_basis_verified"] = bool(current and prior)
++    output["payout_basis_verified"] = bool(current and output.get("eps") is not None and output.get("dividend") is not None)
++    output["dividend_comparison_verified"] = bool(
++        current and prior and output.get("dividend") is not None and output.get("dividend_prior") is not None
++    )
+     # YoY is valid only when both explicitly reported facts have distinct periods.
+     # A negative base is not expressed as an ordinary percentage: the sign
+     # transition derived downstream is the meaningful official-fact comparison.
+diff --git a/src/fundamentals.py b/src/fundamentals.py
+index 439f2f5..84cc4f9 100644
+--- a/src/fundamentals.py
++++ b/src/fundamentals.py
+@@ -36,6 +36,11 @@ def _num(value):
+         return None
+ 
+ 
++def _verified(value) -> bool:
++    """Accept only an explicit verification flag, never infer comparability."""
++    return value is True or str(value).strip().lower() in {"true", "1", "yes"}
++
++
+ @dataclass(frozen=True)
+ class FundamentalAssessment:
+     data: dict
+@@ -49,8 +54,9 @@ class FundamentalAssessment:
+ def derive_official_metrics(row: dict) -> dict:
+     """Derive comparisons only from pairs of explicitly supplied official facts."""
+     result = dict(row)
++    comparable = _verified(row.get("comparison_basis_verified"))
+     current, prior = _num(row.get("net_profit")), _num(row.get("net_profit_prior"))
+-    if current is None or prior is None:
++    if not comparable or current is None or prior is None:
+         result["profit_transition"] = "評価不能"
+     elif prior < 0 <= current:
+         result["profit_transition"] = "黒字転換"
+@@ -63,15 +69,17 @@ def derive_official_metrics(row: dict) -> dict:
+ 
+     revenue, revenue_prior = _num(row.get("revenue")), _num(row.get("revenue_prior"))
+     operating, operating_prior = _num(row.get("operating_profit")), _num(row.get("operating_profit_prior"))
+-    if None in (revenue, revenue_prior, operating, operating_prior):
++    if not comparable or None in (revenue, revenue_prior, operating, operating_prior):
+         result["growth_quadrant"] = "評価不能"
+     else:
+         result["growth_quadrant"] = ("増収" if revenue >= revenue_prior else "減収") + ("増益" if operating >= operating_prior else "減益")
+ 
+     eps, dividend = _num(row.get("eps")), _num(row.get("dividend"))
+-    result["payout_ratio"] = dividend / eps * 100 if eps not in (None, 0) and dividend is not None else None
++    payout_comparable = _verified(row.get("payout_basis_verified"))
++    result["payout_ratio"] = dividend / eps * 100 if payout_comparable and eps not in (None, 0) and dividend is not None else None
+     dividend_prior = _num(row.get("dividend_prior"))
+-    if dividend is None or dividend_prior is None:
++    dividend_comparable = _verified(row.get("dividend_comparison_verified"))
++    if not dividend_comparable or dividend is None or dividend_prior is None:
+         result["dividend_change"] = "評価不能"
+     elif dividend == 0 and dividend_prior > 0:
+         result["dividend_change"] = "無配転落"
+diff --git a/tests/test_fundamentals.py b/tests/test_fundamentals.py
+index 16ed887..ff85815 100644
+--- a/tests/test_fundamentals.py
++++ b/tests/test_fundamentals.py
+@@ -50,30 +50,33 @@ def test_enrichment_audits_success_and_missing_without_imputation(tmp_path):
+ 
+ 
+ def test_explicit_profit_transitions_and_growth_quadrants():
+-    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": 5})["profit_transition"] == "黒字転換"
+-    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": -5})["profit_transition"] == "赤字転落"
+-    assert derive_official_metrics({"net_profit_prior": -10, "net_profit": -5})["profit_transition"] == "赤字継続"
+-    assert derive_official_metrics({"net_profit_prior": 10, "net_profit": 5})["profit_transition"] == "黒字継続"
++    basis = {"comparison_basis_verified": True}
++    assert derive_official_metrics({**basis, "net_profit_prior": -10, "net_profit": 5})["profit_transition"] == "黒字転換"
++    assert derive_official_metrics({**basis, "net_profit_prior": 10, "net_profit": -5})["profit_transition"] == "赤字転落"
++    assert derive_official_metrics({**basis, "net_profit_prior": -10, "net_profit": -5})["profit_transition"] == "赤字継続"
++    assert derive_official_metrics({**basis, "net_profit_prior": 10, "net_profit": 5})["profit_transition"] == "黒字継続"
+     cases = [((110, 100, 12, 10), "増収増益"), ((110, 100, 8, 10), "増収減益"),
+              ((90, 100, 12, 10), "減収増益"), ((90, 100, 8, 10), "減収減益")]
+     for values, expected in cases:
+         revenue, prior_revenue, operating, prior_operating = values
+-        result = derive_official_metrics({"revenue": revenue, "revenue_prior": prior_revenue,
++        result = derive_official_metrics({**basis, "revenue": revenue, "revenue_prior": prior_revenue,
+                                           "operating_profit": operating, "operating_profit_prior": prior_operating})
+         assert result["growth_quadrant"] == expected
+ 
+ 
+ def test_payout_and_dividend_change_require_both_explicit_values():
+-    result = derive_official_metrics({"eps": 50, "dividend": 20, "dividend_prior": 10})
++    verified = {"payout_basis_verified": True, "dividend_comparison_verified": True}
++    result = derive_official_metrics({**verified, "eps": 50, "dividend": 20, "dividend_prior": 10})
+     assert result["payout_ratio"] == 40
+     assert result["dividend_change"] == "増配"
+     assert derive_official_metrics({"eps": 50})["payout_ratio"] is None
+-    assert derive_official_metrics({"dividend": 0, "dividend_prior": 10})["dividend_change"] == "無配転落"
++    assert derive_official_metrics({**verified, "dividend": 0, "dividend_prior": 10})["dividend_change"] == "無配転落"
+     assert derive_official_metrics({"dividend": 10})["dividend_change"] == "評価不能"
+ 
+ 
+ def test_score_reasons_are_saved_and_abbreviated_for_discord():
+-    result = evaluate_candidates(pd.DataFrame([candidate(net_profit_prior=-10, net_profit=5,
++    result = evaluate_candidates(pd.DataFrame([candidate(comparison_basis_verified=True,
++        payout_basis_verified=True, dividend_comparison_verified=True, net_profit_prior=-10, net_profit=5,
+         revenue=110, revenue_prior=100, operating_profit=12, operating_profit_prior=10,
+         dividend=20, dividend_prior=10)]), config()).iloc[0]
+     assert "+1 売上高前年比プラス" in result["ファンダメンタル加減点理由"]
+@@ -81,3 +84,13 @@ def test_score_reasons_are_saved_and_abbreviated_for_discord():
+     assert "黒字転換 / 業績 増収増益 / 配当 増配" in message
+     assert "加減点：" in message
+     assert "他" in message
++
++
++def test_unverified_period_or_scope_never_produces_derived_assessment():
++    result = derive_official_metrics({"net_profit_prior": -10, "net_profit": 5,
++        "revenue": 110, "revenue_prior": 100, "operating_profit": 12,
++        "operating_profit_prior": 10, "eps": 50, "dividend": 20, "dividend_prior": 10})
++    assert result["profit_transition"] == "評価不能"
++    assert result["growth_quadrant"] == "評価不能"
++    assert result["payout_ratio"] is None
++    assert result["dividend_change"] == "評価不能"
+-- 
+2.43.0
+
