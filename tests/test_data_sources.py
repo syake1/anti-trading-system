@@ -1,10 +1,12 @@
 import csv
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 import pandas as pd
 import pytest
 
-from src.data_sources import FetchFailure, Observation, fetch_instrument
+from src.data_sources import FetchFailure, Observation, fetch_eia, fetch_instrument
 from src.market_environment import analyze_market
 
 
@@ -75,3 +77,54 @@ def test_comparison_difference_and_deterministic_selection(tmp_path):
     rows = list(csv.DictReader((tmp_path / "a.csv").open()))
     assert result.value == 1.0
     assert float(rows[1]["difference"]) == pytest.approx(.2)
+
+
+def test_stale_official_source_falls_back_to_yahoo(tmp_path):
+    old = (datetime.now(timezone.utc) - timedelta(days=14)).date().isoformat()
+    fresh = datetime.now(timezone.utc).date().isoformat()
+
+    def observation(value, when):
+        return lambda *_: (Observation(value, when, "percent", pd.Series([value])), 200)
+
+    cfg = config(source("official", 1), source("yahoo", 2))
+    cfg["data_sources"]["max_age_business_days"] = 3
+    audit = tmp_path / "audit.csv"
+    result = fetch_instrument("X", cfg,
+        adapters={"official": observation(1, old), "yahoo": observation(2, fresh)}, audit_path=audit)
+    rows = list(csv.DictReader(audit.open()))
+    assert result.value == 2
+    assert rows[0]["error_type"] == "stale_data"
+    assert rows[1]["source"] == "yahoo" and rows[1]["selected"] == "True"
+
+
+def test_eia_key_is_redacted_from_exception_and_audit(monkeypatch, tmp_path):
+    key = "highly-sensitive/key+value"
+    monkeypatch.setenv("EIA_API_KEY", key)
+    eia = source("eia_api", 1)
+    eia.update({"url": "https://example.test/?api_key={api_key}", "unit": "usd",
+                "api_key_env": "EIA_API_KEY"})
+
+    class LeakingSession:
+        @staticmethod
+        def get(url, timeout):
+            raise RuntimeError(f"failed request: {url}")
+
+    with pytest.raises(FetchFailure) as caught:
+        fetch_eia(eia, LeakingSession)
+    assert key not in str(caught.value)
+    assert quote(key, safe="") not in str(caught.value)
+
+    audit = tmp_path / "audit.csv"
+    assert fetch_instrument("X", config(eia), session=LeakingSession, audit_path=audit) is None
+    assert key not in audit.read_text()
+
+
+def test_missing_eia_secret_is_a_normal_source_failure(monkeypatch, tmp_path):
+    monkeypatch.delenv("EIA_API_KEY", raising=False)
+    eia = source("eia_api", 1)
+    eia.update({"url": "https://example.test/?api_key={api_key}", "unit": "usd"})
+    audit = tmp_path / "audit.csv"
+    assert fetch_instrument("X", config(eia), audit_path=audit) is None
+    row = next(csv.DictReader(audit.open()))
+    assert row["error_type"] == "missing_secret"
+    assert "EIA_API_KEY" not in row["error_message"]

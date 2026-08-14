@@ -36,7 +36,8 @@ timeout、empty data、parse error、schema change、通信エラー、Secret �
 全取得元が失敗した instrument は欠損のまま朝会を続行し、推測・前回値補完はしません。
 `compare_sources` を `true` にした場合は許可済みの同一定義系列をすべて取得し、第1優先値との差を
 監査CSVの `comparison_source` / `difference` に保存します（通常は不要な外部アクセスを避けるため
-`false`）。EIA の利用には環境変数 `EIA_API_KEY` が必要です。財務省、FRED、Cboe、JPX、Yahoo
+`false`）。EIA の利用には環境変数 `EIA_API_KEY` が必要です（未設定時は当該ソースを欠損扱いにし、朝会は継続します）。
+`data_sources.max_age_business_days` を超えた観測値は `stale_data` として監査し、次順位のソースへフォールバックします。財務省、FRED、Cboe、JPX、Yahoo
 Finance の現在の設定には Secret はありませんが、運用開始前に各提供元の最新利用条件、再配布条件、
 アクセス頻度、および JPX CSV URL の継続提供可否を組織として再確認してください。
 
