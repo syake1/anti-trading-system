@@ -1,8 +1,8 @@
-"""Phase 1 provisional night meeting (bank sector only).
+"""Phase 1 provisional night/weekend meeting support.
 
-The night meeting narrows the next morning's review set.  It deliberately has
-no order planning or position sizing code: all executable decisions remain in
-the existing morning meeting.
+The provisional meetings narrow the next morning's review set. They deliberately
+have no order planning or position sizing code: all executable decisions remain
+in the existing morning meeting.
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from src.utils import ROOT, now_tokyo
 
 NIGHT_CATEGORIES = ("押し目候補", "動意候補", "翌朝再確認", "避ける")
 DETAIL_CLASSES = ("押し目候補", "押し目監視", "動意候補", "追いかけ禁止", "回避", "評価不能")
+BANK_SECTORS = {"銀行", "銀行業"}
 _CATEGORY = {
     "押し目候補": "押し目候補", "動意候補": "動意候補",
     "押し目監視": "翌朝再確認", "評価不能": "翌朝再確認",
@@ -38,6 +39,10 @@ def _next_morning_start(observed_at: datetime, config: Mapping[str, Any]) -> dat
     return candidate
 
 
+def _is_bank_sector(value: object) -> bool:
+    return str(value or "").strip() in BANK_SECTORS
+
+
 def generate_night_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping[str, Any] | None,
                           config: Mapping[str, Any], observed_at: datetime | None = None) -> dict[str, Any]:
     """Evaluate bank rows and return an auditable, non-final night result."""
@@ -47,7 +52,7 @@ def generate_night_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping[s
     rows = []
     if not candidates.empty:
         for bank in candidates.fillna("").to_dict("records"):
-            if str(bank.get("業種", "")).strip() != "銀行":
+            if not _is_bank_sector(bank.get("業種", "")):
                 continue
             evaluation = evaluate_bank_sector(jgb, bank, config)
             rows.append(_candidate_result(bank, evaluation))
@@ -135,11 +140,41 @@ def load_latest_night_result(folder: Path | None = None) -> dict[str, Any] | Non
     return result if result.get("status") == "provisional" and result.get("final_decision") is False else None
 
 
+def _number(row: Mapping[str, Any], key: str, default: float = 0.0) -> float:
+    try:
+        value = row.get(key, default)
+        if value in (None, "") or pd.isna(value):
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _sector_rankings(candidates: pd.DataFrame) -> list[dict[str, Any]]:
+    """Rank sectors only from observed candidate fields; missing inputs contribute zero."""
+    buckets: dict[str, list[dict[str, Any]]] = {}
+    for row in candidates.fillna("").to_dict("records"):
+        sector = str(row.get("業種", "")).strip()
+        if sector:
+            buckets.setdefault(sector, []).append(row)
+    rankings = []
+    for sector, rows in buckets.items():
+        count = len(rows)
+        rel = sum(_number(row, "相対強度", _number(row, "当日騰落率")) for row in rows) / count
+        volume = sum(_number(row, "出来高倍率") for row in rows) / count
+        material = sum(_number(row, "材料スコア") for row in rows) / count
+        macro = sum(_number(row, "業種環境スコア") for row in rows) / count
+        score = count + rel + volume + material + macro
+        rankings.append({"sector": sector, "score": round(score, 4), "candidate_count": count,
+                         "relative_strength": round(rel, 4), "volume_ratio": round(volume, 4),
+                         "material_score": round(material, 4), "macro_score": round(macro, 4)})
+    return sorted(rankings, key=lambda row: (-row["score"], -row["candidate_count"], row["sector"]))
+
+
 def generate_weekend_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping[str, Any] | None = None,
                             config: Mapping[str, Any] | None = None,
                             observed_at: datetime | None = None) -> dict[str, Any]:
     """Create a broad Friday-close watch list without producing executable orders."""
-    # Keep the former ``(candidates, observed_at)`` call usable for integrations.
     if isinstance(jgb, datetime) and observed_at is None:
         observed_at, jgb = jgb, None
     observed_at = observed_at or now_tokyo()
@@ -148,32 +183,28 @@ def generate_weekend_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping
     rows = []
     bank_evaluations = []
     for row in candidates.fillna("").to_dict("records"):
-        rsi = float(row.get("RSI14") or 50)
-        change = float(row.get("当日騰落率") or 0)
+        rsi = _number(row, "RSI14", _number(row, "RSI", 50.0))
+        change = _number(row, "当日騰落率")
         category = "押し目候補" if rsi <= 45 else "動意候補" if change > 0 else "翌週再確認"
         sector = str(row.get("業種", "")).strip()
         item = {"code": str(row.get("コード", "")),
-                     "name": str(row.get("会社名", row.get("銘柄名", ""))),
-                     "sector": sector,
-                     "category": category}
-        if sector == "銀行" and config is not None:
+                "name": str(row.get("会社名", row.get("銘柄名", ""))),
+                "sector": sector, "category": category}
+        if _is_bank_sector(sector) and config is not None:
             evaluation = evaluate_bank_sector(jgb, row, config)
             item["bank_classification"] = evaluation.classification
             item["morning_recheck"] = evaluation.morning_recheck
             bank_evaluations.append(_candidate_result(row, evaluation))
         rows.append(item)
-    sectors: dict[str, int] = {}
-    for row in rows:
-        if row["sector"]:
-            sectors[row["sector"]] = sectors.get(row["sector"], 0) + 1
+    rankings = _sector_rankings(candidates)
     monday = observed_at.date() + timedelta(days=(7 - observed_at.weekday()) % 7)
     rate_metrics = _weekend_rate_metrics(jgb)
     return {"status": "provisional", "final_decision": False,
             "basis": "Friday close", "observed_at": observed_at.isoformat(timespec="seconds"),
             "monday_recheck_date": monday.isoformat(), "stocknote_employee": "enabled",
-            "focus_sectors": sorted(sectors, key=lambda name: (-sectors[name], name)),
-            "candidates": rows,
-            "jgb_rate_metrics": rate_metrics,
+            "focus_sectors": [row["sector"] for row in rankings[:5]],
+            "sector_rankings": rankings,
+            "candidates": rows, "jgb_rate_metrics": rate_metrics,
             "bank_evaluations": bank_evaluations,
             "monday_recheck_conditions": ["最新ニュース", "日経先物", "TOPIX", "為替", "米国市場",
                                            "日本2年・10年・30年金利", "10年-2年スプレッド", "気配"]}
@@ -182,7 +213,7 @@ def generate_weekend_result(candidates: pd.DataFrame, jgb: JGBAnalysis | Mapping
 def weekend_message(result: Mapping[str, Any]) -> str:
     lines = ["📅 週末投資会議", "status=provisional", "final_decision=false",
              "基準：金曜終値", f"stocknote分析社員：{result['stocknote_employee']}（参考情報）",
-             "注目セクター：" + (" / ".join(result["focus_sectors"]) or "該当なし")]
+             "注目セクター TOP5：" + (" / ".join(result["focus_sectors"]) or "該当なし")]
     limits = {"押し目候補": 10, "動意候補": 5, "翌週再確認": 10}
     for category in limits:
         selected = [f"{r['code']} {r['name']}".strip() for r in result["candidates"] if r["category"] == category]
@@ -195,8 +226,10 @@ def weekend_message(result: Mapping[str, Any]) -> str:
         lines += ["", "stocknote上位候補（参考情報・判断には未反映）："]
         for row in analyses[:10]:
             confidence = row.get("confidence", "")
-            try: confidence = f"{float(confidence):.0%}"
-            except (TypeError, ValueError): confidence = str(confidence)
+            try:
+                confidence = f"{float(confidence):.0%}"
+            except (TypeError, ValueError):
+                confidence = str(confidence)
             summary = str(row.get("summary", "")).replace("\n", " ")[:100]
             lines.append(f"{row['code']} {row.get('name', '')}：{row.get('assessment', '')} / confidence {confidence} / contrarian {row.get('contrarian_score', '未提示')} / {summary}")
     lines += ["月曜朝の再確認条件：" + " / ".join(result["monday_recheck_conditions"]),
@@ -251,4 +284,6 @@ def save_weekend_result(result: Mapping[str, Any], folder: Path | None = None) -
     for category, limit in limits.items():
         overflow.extend([row for row in result["candidates"] if row["category"] == category][limit:])
     pd.DataFrame(overflow).to_csv(folder / f"weekend_meeting_{day}_audit.csv", index=False, encoding="utf-8-sig")
+    pd.DataFrame(result.get("sector_rankings", [])).to_csv(
+        folder / f"weekend_sector_rankings_{day}.csv", index=False, encoding="utf-8-sig")
     return json_path, md_path
