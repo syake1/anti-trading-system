@@ -153,7 +153,10 @@
       "USDJPY": "JPY=X",
       "US10Y": "^TNX",
       "WTI": "CL=F",
-      "GOLD": "GC=F"
+      "GOLD": "GC=F",
+      "JP2Y": "^JP2Y",
+      "JP10Y": "^JP10Y",
+      "JP30Y": "^JP30Y"
     },
     "indicator_rules": {
       "NIKKEI_FUTURES": {
@@ -238,6 +241,45 @@
           0.5,
           2
         ]
+      },
+      "JP2Y": {
+        "thresholds": [
+          -10,
+          -3,
+          3,
+          10
+        ],
+        "reverse": true,
+        "unit": "bp"
+      },
+      "JP10Y": {
+        "thresholds": [
+          -10,
+          -3,
+          3,
+          10
+        ],
+        "reverse": true,
+        "unit": "bp"
+      },
+      "JP30Y": {
+        "thresholds": [
+          -15,
+          -5,
+          5,
+          15
+        ],
+        "reverse": true,
+        "unit": "bp"
+      },
+      "JP10Y_2Y_SPREAD": {
+        "thresholds": [
+          -10,
+          -3,
+          3,
+          10
+        ],
+        "unit": "bp"
       }
     },
     "weights": {
@@ -250,7 +292,11 @@
       "USDJPY": 0.75,
       "US10Y": 1,
       "WTI": 0.5,
-      "GOLD": 0.25
+      "GOLD": 0.25,
+      "JP2Y": 0.5,
+      "JP10Y": 1,
+      "JP30Y": 0.5,
+      "JP10Y_2Y_SPREAD": 0.5
     },
     "regime_thresholds": {
       "strong_risk_on": 6,
@@ -287,6 +333,27 @@
       "石油・資源": 2,
       "航空": -2,
       "運輸": -1
+    },
+    "JP2Y": {
+      "銀行": -0.5,
+      "不動産": 0.5,
+      "グロース": 0.75
+    },
+    "JP10Y": {
+      "銀行": -1.5,
+      "保険": -1.5,
+      "不動産": 1.5,
+      "建設": 1,
+      "グロース": 1.5
+    },
+    "JP30Y": {
+      "保険": -1,
+      "不動産": 0.75,
+      "電力・ガス": 0.5
+    },
+    "JP10Y_2Y_SPREAD": {
+      "銀行": 1.5,
+      "保険": 1
     }
   },
   "news_analysis": {

@@ -26,6 +26,10 @@ else:
     a, b = st.columns([2, 1])
     a.dataframe(latest[[c for c in ["indicator", "current", "previous_close", "change", "change_pct", "short_change_pct", "change_bp", "score"] if c in latest]], hide_index=True, use_container_width=True)
     b.metric("市場判定", latest["market_regime"].iloc[-1]); b.metric("合計スコア", latest["total_score"].iloc[-1])
+    bonds = latest[latest["indicator"].isin(["JP2Y", "JP10Y", "JP30Y", "JP10Y_2Y_SPREAD"])]
+    st.subheader("🇯🇵 日本国債金利")
+    if bonds.empty: st.caption("日本国債データ未取得です。欠損値は推測しません。")
+    else: st.dataframe(bonds[[c for c in ["indicator", "current", "previous_close", "change_bp", "score"] if c in bonds]], hide_index=True, use_container_width=True)
 if not news_history.empty:
     st.subheader("重大ニュース（取得元・時刻・URLを監査）")
     st.dataframe(news_history, hide_index=True, use_container_width=True)

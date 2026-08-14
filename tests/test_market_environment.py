@@ -28,6 +28,20 @@ def test_sox_and_oil_are_sector_specific():
     assert impacts["石油・資源"] > 0 and impacts["航空"] < 0
 
 
+def test_japanese_bond_yields_bp_curve_and_sector_effects():
+    rows = [{"indicator":"JP2Y", "current":0.8, "previous_close":0.75},
+            {"indicator":"JP10Y", "current":1.7, "previous_close":1.6},
+            {"indicator":"JP30Y", "current":3.0, "previous_close":2.8}]
+    env = analyze_market(rows, cfg(), "x")
+    values = {row["indicator"]: row for row in env.indicators}
+    assert round(values["JP2Y"]["change_bp"], 6) == 5
+    assert round(values["JP10Y"]["change_bp"], 6) == 10
+    assert round(values["JP30Y"]["change_bp"], 6) == 20
+    assert round(values["JP10Y_2Y_SPREAD"]["current"] * 100) == 90
+    impacts = sector_impacts(env, cfg())
+    assert impacts["銀行"] > 0 and impacts["不動産"] < 0
+
+
 def test_emergency_stops_new_buy_and_untrusted_news_has_no_impact():
     raw = pd.DataFrame([{"source":"気象庁","title":"大規模地震と津波","url":"https://example.test/id","severity":5},
                         {"source":"","title":"半導体輸出規制","url":"","severity":5}])
