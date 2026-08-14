@@ -8,6 +8,8 @@ import pandas as pd
 import yfinance as yf
 from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv
 from src.utils import ROOT
+from src.utils import load_config
+from src.order_planner import order_prices
 
 PERFORMANCE_COLUMNS = [
     "シグナル日", "コード", "ランク", "買い・売り", "RSI14", "出来高倍率", "BB位置",
@@ -22,6 +24,60 @@ SIGNAL_COLUMNS = {
 }
 
 PRICE_COLUMNS = ("Open", "High", "Low", "Close")
+ORDER_PERFORMANCE_COLUMNS = ["シグナル日", "コード", "注文方式", "約定", "約定価格",
+    "1日後損益", "3日後損益", "5日後損益", "10日後損益", "MFE", "MAE",
+    "未約定後最大上昇率", "未約定後最大下落率"]
+
+
+def simulate_order_methods(signal: dict, future: pd.DataFrame, config: dict) -> list[dict]:
+    """Paper-trade market/limit/stop concurrently; unfilled orders have no P&L."""
+    prices = order_prices(signal, config)
+    if future.empty:
+        return []
+    base = {"シグナル日": signal.get("シグナル日", ""), "コード": str(signal.get("コード", ""))}
+    records = []
+    for method in ("market", "limit", "stop"):
+        fill_index = None; fill = np.nan
+        for idx, bar in future.head(int(config["order_backtest"]["valid_days"])).iterrows():
+            if method == "market" and pd.notna(bar.get("Open")):
+                fill_index, fill = idx, float(bar.Open)
+            elif method == "limit" and bar.Low <= prices["買いゾーン上限"]:
+                fill_index, fill = idx, min(float(bar.Open), prices["買いゾーン上限"])
+            elif method == "stop" and bar.High >= prices["逆指値発動価格"] and bar.Open <= prices["追いかけ禁止価格"]:
+                fill_index, fill = idx, max(float(bar.Open), prices["逆指値発動価格"])
+            if fill_index is not None: break
+        rec = {**base, "注文方式": method, "約定": fill_index is not None, "約定価格": fill}
+        if fill_index is None:
+            close = number_series = float(signal.get("現在値", 0) or 0)
+            rec.update({f"{n}日後損益": np.nan for n in (1,3,5,10)})
+            rec.update({"MFE": np.nan, "MAE": np.nan,
+                        "未約定後最大上昇率": (future.High.max()/close-1)*100 if close else np.nan,
+                        "未約定後最大下落率": (future.Low.min()/close-1)*100 if close else np.nan})
+        else:
+            after = future.loc[fill_index:].head(10)
+            for n in (1,3,5,10):
+                rec[f"{n}日後損益"] = (after.Close.iloc[n-1]/fill-1)*100 if len(after) >= n else np.nan
+            rec.update({"MFE": (after.High.max()/fill-1)*100, "MAE": (after.Low.min()/fill-1)*100,
+                        "未約定後最大上昇率": np.nan, "未約定後最大下落率": np.nan})
+        records.append(rec)
+    return records
+
+
+def order_method_summary(path=ROOT / "data/order_method_performance.csv") -> dict:
+    df = read_csv_if_populated(path)
+    if df.empty: return {}
+    result = {}
+    for method, group in df.groupby("注文方式"):
+        filled = group[group["約定"].astype(str).str.lower().isin(("true", "1"))].copy()
+        pnl = pd.to_numeric(filled.get("5日後損益"), errors="coerce").dropna()
+        mfe = pd.to_numeric(filled.get("MFE"), errors="coerce")
+        mae = pd.to_numeric(filled.get("MAE"), errors="coerce")
+        result[method] = {"サンプル数": len(group), "約定件数": len(filled), "約定率": len(filled)/len(group),
+          "平均約定価格": _safe_float(pd.to_numeric(filled.get("約定価格"), errors="coerce").mean()),
+          "勝率": _win_rate(pnl), "平均損益": _safe_float(pnl.mean()), "平均利益": _safe_float(pnl[pnl>0].mean()),
+          "平均損失": _safe_float(pnl[pnl<0].mean()), "PF": _profit_factor(pnl),
+          "MFE": _safe_float(mfe.mean()), "MAE": _safe_float(mae.mean()), "最大DD": _max_drawdown(pnl)}
+    return result
 
 
 def _to_numeric(values: pd.Series) -> tuple[pd.Series, int]:
@@ -87,7 +143,8 @@ def update() -> Path:
         print("バックテスト: スキップ件数=0, 数値変換失敗件数=0, 正常評価件数=0")
         return output
     signals = signals.drop_duplicates(["シグナル日", "コード", "買い・売り"])
-    records = []
+    records, order_records = [], []
+    config = load_config()
     skipped = conversion_failures = evaluated = 0
     for row in signals.to_dict("records"):
         current, failed = _numeric_scalar(row.get("現在値"))
@@ -119,6 +176,9 @@ def update() -> Path:
         if future.empty:
             skipped += 1
             continue
+        if "Open" in future:
+            normalized_signal = {**row, "現在値": current, "損切り候補": stop_loss, "利確候補": take_profit}
+            order_records.extend(simulate_order_methods(normalized_signal, future, config))
         direction = 1 if row["買い・売り"] == "買い" else -1
         rec = {"シグナル日": row["シグナル日"], "コード": row["コード"], "ランク": row["ランク"], "買い・売り": row["買い・売り"],
                "RSI14": row["RSI14"], "出来高倍率": row["出来高倍率"], "BB位置": row["BB位置"], "ローソク足パターン": row["ローソク足パターン"],
@@ -135,6 +195,8 @@ def update() -> Path:
         records.append(rec)
         evaluated += 1
     pd.DataFrame(records, columns=PERFORMANCE_COLUMNS).to_csv(output, index=False, encoding="utf-8-sig")
+    order_output = ROOT / "data/order_method_performance.csv"
+    pd.DataFrame(order_records, columns=ORDER_PERFORMANCE_COLUMNS).to_csv(order_output, index=False, encoding="utf-8-sig")
     print(f"バックテスト: スキップ件数={skipped}, 数値変換失敗件数={conversion_failures}, 正常評価件数={evaluated}")
     return output
 

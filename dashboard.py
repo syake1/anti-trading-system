@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 import streamlit as st
 import yfinance as yf
 
-from src.backtest import read_csv_if_populated, summary
+from src.backtest import order_method_summary, read_csv_if_populated, summary
 from src.indicators import enrich
 from src.materials import BUYBACK_COLUMNS, ensure_templates
 from src.stochastic import stochastic
@@ -45,6 +45,7 @@ else:
         st.dataframe(meeting[["コード", "運用評価", "推奨株数", "必要資金", "運用コメント"]], hide_index=True, use_container_width=True)
     st.subheader("最終候補")
     st.dataframe(meeting, use_container_width=True, hide_index=True)
+    st.caption("最終注文案は人間による確認用です。証券会社へ自動発注しません。")
     shown = [c for c in ["コード", "会社名", "現在値", "ランク", "スコア", "シグナル種別", "RSI14", "BB位置",
              "直近3日騰落率", "直近5日騰落率", "25日線乖離率", "出来高倍率", "自社株買い比率", "除外理由"] if c in candidates]
     st.dataframe(candidates[shown], use_container_width=True, hide_index=True)
@@ -65,7 +66,24 @@ else:
         dates = pd.to_datetime(candidates.loc[candidates["コード"].astype(str) == code, "シグナル日"])
         buys = df.loc[df.index.normalize().isin(dates.dt.normalize())]
         fig.add_trace(go.Scatter(x=buys.index, y=buys.Low, mode="markers+text", text="BUY", textposition="bottom center", marker={"symbol": "triangle-up", "size": 14, "color": "red"}, name="BUY"), row=1, col=1)
+        proposal = meeting.loc[meeting["コード"].astype(str) == code]
+        if not proposal.empty:
+            proposal = proposal.iloc[0]
+            for label, key, color, dash in [("買いゾーン下限", "買いゾーン下限", "royalblue", "dot"),
+                    ("買いゾーン上限", "買いゾーン上限", "royalblue", "dot"),
+                    ("逆指値", "逆指値発動価格", "green", "dash"), ("追いかけ禁止", "追いかけ禁止価格", "orange", "dash"),
+                    ("損切り", "損切り価格", "red", "dash"), ("利確", "利確目標", "purple", "dash")]:
+                fig.add_hline(y=float(proposal[key]), line_color=color, line_dash=dash,
+                              annotation_text=label, row=1, col=1)
         fig.update_layout(height=850, xaxis_rangeslider_visible=False); st.plotly_chart(fig, use_container_width=True)
+
+st.subheader("注文方式比較")
+method_stats = order_method_summary()
+if method_stats:
+    comparison = pd.DataFrame.from_dict(method_stats, orient="index").rename(index={"market":"寄り成り", "limit":"指値", "stop":"逆指値"})
+    st.dataframe(comparison[["サンプル数", "約定率", "勝率", "平均損益", "PF", "MFE", "MAE", "最大DD"]], use_container_width=True)
+else:
+    st.info("注文方式別の仮想売買サンプルを蓄積中です。未約定は損失に含めません。")
 
 st.subheader("手動材料CSV")
 for path in (ROOT / "data/buybacks.csv", ROOT / "data/events.csv"):

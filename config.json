@@ -16,6 +16,7 @@
     "max_risk_per_trade_pct": 0.7,
     "max_position_amount": 500000,
     "max_positions": 5,
+    "max_positions_per_sector": 2,
     "minimum_cash_ratio": 25,
     "lot_size": 100,
     "core_size_pct": 100,
@@ -30,8 +31,28 @@
     "crash_3d_pct": -10,
     "crash_5d_pct": -15,
     "crash_ma25_deviation_pct": -10,
-    "minimum_backtest_samples": 20
+    "minimum_backtest_samples": 20,
+    "max_primary_candidates": 3
   },
+  "order_rules": {
+    "stop_entry_atr_buffer": 0.1,
+    "limit_zone_atr_width": 0.25,
+    "chase_atr_multiplier": 0.5,
+    "chase_pct": 3.0,
+    "stop_atr_multiplier": 1.5,
+    "reward_risk": 2.0,
+    "rr_research_values": [1.5, 2.0, 2.5],
+    "gap_warning_pct": 3.0,
+    "gap_skip_pct": 5.0,
+    "market_max_gap_pct": 3.0,
+    "market_min_volume_ratio": 1.2,
+    "market_max_rsi": 60,
+    "market_min_pf": 1.1,
+    "countertrend_max_rsi": 45,
+    "minimum_order_volume_ratio": 0.6,
+    "recent_rise_skip_pct": 12.0
+  },
+  "order_backtest": {"valid_days": 3},
   "surge_exclusion": {
     "daily_change_pct": 8, "change_3d_pct": 12, "change_5d_pct": 18,
     "ma25_deviation_pct": 10, "rsi14": 72, "bb_sigma": 2.2,

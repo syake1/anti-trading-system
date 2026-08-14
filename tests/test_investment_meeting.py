@@ -62,3 +62,23 @@ def test_workflow_utc_conversion_and_manual_dispatch():
     assert "45 20 * * 0-4" in workflow  # 05:45 JST, leaving 45 minutes before 06:30
     assert "30 23 * * 0-4" in workflow  # 08:30 JST
     assert "workflow_dispatch" in workflow
+
+
+def test_order_levels_primary_cap_and_determinism():
+    rows = pd.DataFrame([candidate(コード=f"{i:04d}", スコア=20-i, ATR14=20,
+        前日高値=1010, 反転足高値=1015, 直近2日高値=1020, 直近安値=900,
+        反転足安値=920, BB下限=880, **{"BB-1σ": 970, "BB-2σ": 940, "直近支持線": 950}) for i in range(5)])
+    result = evaluate_candidates(rows, config())
+    assert (result["最終判断"] == "主力").sum() <= 3
+    active = result[result["最終判断"].isin(["主力", "小口"])]
+    assert (active["逆指値発動価格"] > active["反転確認高値"]).all()
+    assert (active["追いかけ禁止価格"] > active["逆指値発動価格"]).all()
+    assert (active["損切り価格"] < active["逆指値発動価格"]).all()
+    assert (active["RR"] == 2).all()
+    assert active["必要資金"].sum() <= 2_250_000
+    pd.testing.assert_frame_equal(result, evaluate_candidates(rows, config()))
+
+
+def test_large_gap_is_skipped():
+    result = evaluate_candidates(pd.DataFrame([candidate(gap_pct=5.0)]), config())
+    assert result.iloc[0]["最終判断"] == "見送り"
