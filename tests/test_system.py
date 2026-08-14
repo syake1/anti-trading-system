@@ -130,6 +130,51 @@ def test_batch_download_continues_after_exhausting_retries(monkeypatch):
     assert sleeps == [2, 4]
 
 
+def test_batch_download_counts_yfinance_internally_caught_429(monkeypatch):
+    """yf.download reports per-ticker 429s via shared errors instead of raising."""
+    fields = ["Open", "High", "Low", "Close", "Volume"]
+    downloads = iter([pd.DataFrame(), pd.DataFrame({field: [100] for field in fields})])
+
+    def fake_download(tickers, config):
+        frame = next(downloads)
+        scanner._LAST_DOWNLOAD_ERRORS = (
+            {"7203.T": "YFRateLimitError('Too Many Requests. Rate limited. 429')"}
+            if frame.empty else {}
+        )
+        return frame
+
+    monkeypatch.setattr(scanner, "_download_batch", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _: None)
+    limited = set()
+
+    frames = scanner._download_with_retry(
+        ["7203.T"],
+        {"scan": {"download_max_attempts": 2, "retry_backoff_seconds": 0}},
+        limited,
+    )
+
+    assert not frames["7203.T"].empty
+    assert limited == {"7203.T"}
+
+
+def test_thrown_429_is_exhausted_without_escaping(monkeypatch):
+    monkeypatch.setattr(
+        scanner, "_download_batch",
+        lambda tickers, config: (_ for _ in ()).throw(RuntimeError("429 Too Many Requests")),
+    )
+    monkeypatch.setattr(scanner.time, "sleep", lambda _: None)
+    limited = set()
+
+    frames = scanner._download_with_retry(
+        ["7203.T", "6758.T"],
+        {"scan": {"download_max_attempts": 2, "retry_backoff_seconds": 0}},
+        limited,
+    )
+
+    assert all(frame.empty for frame in frames.values())
+    assert limited == {"7203.T", "6758.T"}
+
+
 def test_empty_scan_prints_action_summary(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(scanner, "ROOT", tmp_path)
     (tmp_path / "data").mkdir()
