@@ -7,6 +7,7 @@ import streamlit as st
 import yfinance as yf
 
 from src.backtest import order_method_summary, read_csv_if_populated, summary
+from src.dashboard_exports import csv_download_data, dated_csv_filename, filter_meeting_history
 from src.indicators import enrich
 from src.materials import BUYBACK_COLUMNS, ensure_templates
 from src.stochastic import stochastic
@@ -60,6 +61,15 @@ meeting = evaluate_candidates(candidates, config)
 if candidates.empty:
     st.info("候補CSVは空です。スキャン後、またはCSVアップロード後に候補が表示されます。")
 else:
+    st.subheader("今日の会議結果")
+    st.dataframe(meeting, use_container_width=True, hide_index=True)
+    st.download_button(
+        "今日の会議結果をCSVでダウンロード",
+        csv_download_data(meeting),
+        dated_csv_filename("meeting_result"),
+        "text/csv",
+        key="meeting-result-download",
+    )
     left, right = st.columns(2)
     with left:
         st.subheader("AI社員① 投資分析担当")
@@ -73,7 +83,7 @@ else:
     shown = [c for c in ["コード", "会社名", "現在値", "ランク", "スコア", "シグナル種別", "RSI14", "BB位置",
              "直近3日騰落率", "直近5日騰落率", "25日線乖離率", "出来高倍率", "自社株買い比率", "除外理由"] if c in candidates]
     st.dataframe(candidates[shown], use_container_width=True, hide_index=True)
-    st.download_button("候補一覧をダウンロード", candidates.to_csv(index=False).encode("utf-8-sig"), "candidates.csv", "text/csv")
+    st.download_button("候補一覧をダウンロード", csv_download_data(candidates), dated_csv_filename("candidates"), "text/csv")
     selected = st.selectbox("チャート銘柄", candidates["コード"].astype(str) + " " + candidates["会社名"].astype(str))
     code = selected.split()[0]
     raw = yf.download(f"{code}.T", period="2y", progress=False, auto_adjust=False)
@@ -100,6 +110,36 @@ else:
                 fig.add_hline(y=float(proposal[key]), line_color=color, line_dash=dash,
                               annotation_text=label, row=1, col=1)
         fig.update_layout(height=850, xaxis_rangeslider_visible=False); st.plotly_chart(fig, use_container_width=True)
+
+st.header("過去の会議履歴")
+meeting_history = read_csv_if_populated(ROOT / "data/signal_history.csv", dtype={"コード": str})
+if meeting_history.empty:
+    st.info("過去の会議履歴はまだありません。")
+else:
+    st.caption("元データ: data/signal_history.csv（GitHubリポジトリ内）")
+    st.download_button(
+        "過去の会議履歴をCSVでダウンロード",
+        csv_download_data(meeting_history),
+        dated_csv_filename("meeting_history"),
+        "text/csv",
+        key="meeting-history-download",
+    )
+    filter_a, filter_b, filter_c = st.columns(3)
+    date_options = sorted(meeting_history["シグナル日"].dropna().astype(str).unique(), reverse=True) if "シグナル日" in meeting_history else []
+    rank_options = sorted(meeting_history["ランク"].dropna().astype(str).unique()) if "ランク" in meeting_history else []
+    selected_dates = filter_a.multiselect("日付で絞り込み", date_options)
+    selected_ranks = filter_b.multiselect("ランクで絞り込み", rank_options)
+    search_query = filter_c.text_input("コード・会社名で絞り込み")
+    filtered_history = filter_meeting_history(meeting_history, selected_dates, selected_ranks, search_query)
+    st.dataframe(filtered_history, use_container_width=True, hide_index=True)
+    st.caption(f"現在のフィルター結果: {len(filtered_history):,}件")
+    st.download_button(
+        "現在のフィルター結果をCSVでダウンロード",
+        csv_download_data(filtered_history),
+        dated_csv_filename("meeting_history_filtered"),
+        "text/csv",
+        key="filtered-meeting-history-download",
+    )
 
 st.subheader("注文方式比較")
 method_stats = order_method_summary()
