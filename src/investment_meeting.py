@@ -20,6 +20,7 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
                             jgb_sector_impacts, save_jgb_analysis)
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
+from src.google_sheets import record_meeting_safely
 from src.stocknote import consume_shadow, export_request, write_shadow_report
 from src.night_meeting import (generate_night_result, generate_weekend_result, load_latest_night_result,
                                night_message, save_night_result, save_weekend_result, weekend_message)
@@ -292,6 +293,7 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         night_result = generate_night_result(candidates, jgb, config)
         _, output = save_night_result(night_result)
         message = night_message(night_result)
+        record_meeting_safely("夜会", night_result, candidates)
         if notify: post(message)
         print(message)
         return output
@@ -323,6 +325,7 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
                 } for row in weekend_result["candidates"] if row["code"] in by_code]
         _, output = save_weekend_result(weekend_result)
         message = weekend_message(weekend_result)
+        record_meeting_safely("週末会議", weekend_result, candidates)
         if notify: post(message)
         print(message)
         return output
@@ -354,6 +357,8 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         write_research_report(performance, ROOT / "reports/proposals" / f"market_research_{today}.md",
                               config["meeting"]["minimum_backtest_samples"])
     output.write_text(message + "\n\n## 全候補監査表\n\n```csv\n" + result.to_csv(index=False) + "```\n", encoding="utf-8")
+    if kind in ("morning", "recheck"):
+        record_meeting_safely("朝会", result, candidates)
     if notify: post(message)
     print(message); return output
 
