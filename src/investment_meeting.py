@@ -5,6 +5,7 @@ This creates proposals for human review only; it never sends an order to a broke
 from __future__ import annotations
 import argparse
 from pathlib import Path
+import json
 import subprocess
 import sys
 import pandas as pd
@@ -34,7 +35,13 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
 MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
  "売上前年比", "営業利益前年比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
  "配当利回り", "利益状態", "業績4象限", "配当性向", "配当判定", "ファンダメンタル加減点理由",
- "今期会社予想", "直近決算発表日", "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先"]
+ "今期会社予想", "直近決算発表日", "次回決算予定日", "時価総額", "総合判定", "判定理由",
+ "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先", "ファンダメンタル取得日時"]
+
+
+def _display(value):
+    """Persist an explicit missing marker without feeding it back into calculations."""
+    return "データなし" if value is None or str(value).strip() in ("", "nan") else value
 
 
 def analysis_employee(row: dict, config: dict) -> dict:
@@ -136,23 +143,26 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "RR": round(rr, 2), "分析評価": a["grade"], "運用評価": operations_class, "総合順位点": round(a["score"], 2),
           "RSI": number(row, "RSI14"), "BB位置": row.get("BB位置", ""), "出来高倍率": number(row, "出来高倍率"),
           "暴落リバウンド型": a["crash"], "分析コメント": a["comment"],
-          "ファンダメンタルスコア": fundamental.score, "テクニカルスコア": number(row, "スコア"),
+          "ファンダメンタルスコア": _display(fundamental.score), "テクニカルスコア": number(row, "スコア"),
           "反転確認スコア": 3 if str(row.get("ローソク足パターン", "なし")) != "なし" else 0,
           "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "ニュース影響スコア": news_score,
           "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
           "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason,
           "ファンダメンタル評価": fundamental.label, "ファンダメンタル十分": fundamental.sufficient,
-          "ファンダメンタル不足理由": fundamental.reason, "売上前年比": row.get("revenue_yoy", ""),
-          "営業利益前年比": row.get("operating_profit_yoy", ""), "経常・純利益前年比": row.get("ordinary_or_net_profit_yoy", ""),
-          "EPS": row.get("eps", ""), "PER": row.get("per", ""), "PBR": row.get("pbr", ""), "ROE": row.get("roe", ""),
-          "自己資本比率": row.get("equity_ratio", ""), "配当利回り": row.get("dividend_yield", ""),
+          "ファンダメンタル不足理由": fundamental.reason, "売上前年比": _display(row.get("revenue_yoy")),
+          "営業利益前年比": _display(row.get("operating_profit_yoy")), "経常・純利益前年比": _display(row.get("ordinary_or_net_profit_yoy")),
+          "EPS": _display(row.get("eps")), "PER": _display(row.get("per")), "PBR": _display(row.get("pbr")), "ROE": _display(row.get("roe")),
+          "自己資本比率": _display(row.get("equity_ratio")), "配当利回り": _display(row.get("dividend_yield")),
           "利益状態": row.get("profit_transition", "評価不能"), "業績4象限": row.get("growth_quadrant", "評価不能"),
           "配当性向": row.get("payout_ratio", ""), "配当判定": row.get("dividend_change", "評価不能"),
           "ファンダメンタル加減点理由": " / ".join(fundamental.score_reasons),
-          "今期会社予想": row.get("company_forecast", ""), "直近決算発表日": row.get("latest_earnings_date", ""),
+          "今期会社予想": _display(row.get("company_forecast")), "直近決算発表日": _display(row.get("latest_earnings_date")),
+          "次回決算予定日": _display(row.get("next_earnings_date")), "時価総額": _display(row.get("market_cap")),
+          "総合判定": fundamental.label, "判定理由": fundamental.reason + (" / " + " / ".join(fundamental.score_reasons) if fundamental.score_reasons else ""),
           "業績修正": row.get("revision", ""), "重要適時開示": row.get("important_disclosure", ""),
-          "ファンダメンタル取得元": row.get("fundamental_source", row.get("source", "")),
-          "ファンダメンタル参照先": row.get("fundamental_source_reference", row.get("source_reference", ""))})
+          "ファンダメンタル取得元": _display(row.get("fundamental_source", row.get("source", ""))),
+          "ファンダメンタル参照先": _display(row.get("fundamental_source_reference", row.get("source_reference", ""))),
+          "ファンダメンタル取得日時": _display(row.get("acquired_at"))})
     return pd.DataFrame(result, columns=MEETING_COLUMNS)
 
 
@@ -357,6 +367,11 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         write_research_report(performance, ROOT / "reports/proposals" / f"market_research_{today}.md",
                               config["meeting"]["minimum_backtest_samples"])
     output.write_text(message + "\n\n## 全候補監査表\n\n```csv\n" + result.to_csv(index=False) + "```\n", encoding="utf-8")
+    # Machine-readable siblings make the exact meeting input/evaluation durable;
+    # dashboard rendering continues to use the same persisted report table.
+    result.to_csv(output.with_suffix(".csv"), index=False)
+    output.with_suffix(".json").write_text(
+        json.dumps(result.to_dict("records"), ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     if kind in ("morning", "recheck"):
         record_meeting_safely("朝会", result, candidates)
     if notify: post(message)

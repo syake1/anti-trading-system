@@ -146,6 +146,7 @@ CONCEPTS = {
     "roe": ("RateOfReturnOnEquity", "ReturnOnEquity"),
     "dividend": ("DividendPaidPerShare", "AnnualDividendPerShare"),
     "bps": ("NetAssetsPerShare", "EquityAttributableToOwnersOfParentPerShare"),
+    "shares_outstanding": ("NumberOfIssuedSharesAsOfFiscalYearEnd", "TotalNumberOfIssuedShares"),
 }
 
 
@@ -244,10 +245,13 @@ def acquire(candidates: pd.DataFrame, config: dict, session=requests,
                 if row.get("eps") not in (None, 0): row["per"] = float(price) / row["eps"]
                 if row.get("bps") not in (None, 0): row["pbr"] = float(price) / row["bps"]
                 if row.get("dividend") is not None: row["dividend_yield"] = row["dividend"] / float(price) * 100
+                if row.get("shares_outstanding") is not None:
+                    row["market_cap"] = float(price) * row["shares_outstanding"]
             row.update({"code": code, "source": "EDINET", "source_reference": reference,
                         "document_id": document_id, "acquired_at": acquired_at,
                         # EDINET does not provide these required timely disclosures.
-                        "company_forecast": "", "revision": "", "important_disclosure": ""})
+                        "company_forecast": "", "revision": "", "important_disclosure": "",
+                        "next_earnings_date": ""})
             rows.append(row); status, failure = "success", ""
         except Exception as exc:
             status, failure = "failure", _safe_error(exc, key)

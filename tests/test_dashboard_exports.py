@@ -66,6 +66,9 @@ def test_latest_meeting_view_exposes_persisted_fundamental_assessment():
         "ファンダメンタル加減点理由": "+1 ROE 8%以上",
         "ファンダメンタル取得元": "EDINET",
         "ファンダメンタル参照先": "https://disclosure2.edinet-fsa.go.jp/",
+        "売上前年比": 4.2, "営業利益前年比": 5.1, "時価総額": 1000000000,
+        "直近決算発表日": "2026-06-30", "次回決算予定日": "データなし",
+        "総合判定": "良好", "判定理由": "評価完了", "ファンダメンタル取得日時": "2026-08-16T00:00:00Z",
     }])
 
     fundamentals = latest_meeting_view(history)["fundamentals"]
@@ -74,6 +77,8 @@ def test_latest_meeting_view_exposes_persisted_fundamental_assessment():
     assert fundamentals.iloc[0]["ファンダメンタルスコア"] == 9
     assert fundamentals.iloc[0]["ファンダメンタル取得元"] == "EDINET"
     assert fundamentals.iloc[0]["ファンダメンタル参照先"].startswith("https://")
+    assert fundamentals.iloc[0]["次回決算予定日"] == "データなし"
+    assert fundamentals.iloc[0]["時価総額"] == 1000000000
 
 
 def test_broken_meeting_reports_fail_open(tmp_path):

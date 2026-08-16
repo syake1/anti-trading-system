@@ -108,9 +108,7 @@ def assess(row: dict, config: dict) -> FundamentalAssessment:
         row = {**original, "profit_transition": "評価不能", "growth_quadrant": "評価不能",
                "payout_ratio": None, "dividend_change": "評価不能"}
     sufficient = official and present >= minimum
-    if not sufficient:
-        why = "公式取得元または参照先なし" if not official else f"必須項目 {present}/{minimum}"
-        return FundamentalAssessment(row, None, "データ不足", False, why)
+    why = "公式取得元または参照先なし" if not official else f"必須項目 {present}/{minimum}"
 
     revenue, operating = _num(row.get("revenue_yoy")), _num(row.get("operating_profit_yoy"))
     profit = _num(row.get("ordinary_or_net_profit_yoy"))
@@ -141,6 +139,11 @@ def assess(row: dict, config: dict) -> FundamentalAssessment:
     raw_score = score
     score = max(0, min(10, score))
     if score != raw_score: reasons.append(f"得点範囲補正 {raw_score}→{score}")
+    if not sufficient:
+        # Official partial data is still evaluated and persisted, while the
+        # conservative gate remains closed. Unofficial input never gets a score.
+        return FundamentalAssessment(row, score if official else None, "データ不足", False, why,
+                                     tuple(reasons) if official else ())
     label = "良好" if score >= 8 else "普通" if score >= 6 else "注意" if score >= 4 else "弱い"
     return FundamentalAssessment(row, score, label, True, "評価完了", tuple(reasons))
 

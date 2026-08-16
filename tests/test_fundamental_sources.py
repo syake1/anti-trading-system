@@ -21,11 +21,13 @@ def test_xbrl_normalizes_explicit_periods_and_calculates_only_valid_yoy():
       <jppfs:Revenue contextRef='PriorYearDuration'>1000</jppfs:Revenue>
       <jppfs:OperatingIncome contextRef='CurrentYearDuration'>90</jppfs:OperatingIncome>
       <jppfs:BasicEarningsLossPerShare contextRef='CurrentYearDuration'>50</jppfs:BasicEarningsLossPerShare>
+      <jppfs:NumberOfIssuedSharesAsOfFiscalYearEnd contextRef='CurrentYearDuration'>1000000</jppfs:NumberOfIssuedSharesAsOfFiscalYearEnd>
     </xbrl>"""
     result = parse_xbrl(_archive(xml))
     assert result["revenue_yoy"] == pytest.approx(20)
     assert "operating_profit_yoy" not in result
     assert result["eps"] == 50
+    assert result["shares_outstanding"] == 1000000
 
 
 def test_xbrl_does_not_guess_a_prior_period():
