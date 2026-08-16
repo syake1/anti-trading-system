@@ -21,6 +21,7 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
                             jgb_sector_impacts, save_jgb_analysis)
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
+from src.jpx_margin import DATA_COLUMNS as MARGIN_COLUMNS, enrich_candidates as enrich_margin
 from src.google_sheets import record_meeting_safely
 from src.stocknote import consume_shadow, export_request, write_shadow_report
 from src.night_meeting import (generate_night_result, generate_weekend_result, load_latest_night_result,
@@ -289,6 +290,8 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     if candidates_path is None:
         files = sorted(ROOT.glob("anti_candidates_*.csv"), reverse=True); candidates_path = files[0] if files else None
     candidates = read_csv_if_populated(candidates_path, dtype={"コード": str}) if candidates_path else pd.DataFrame()
+    if not candidates.empty and not set(MARGIN_COLUMNS).issubset(candidates.columns):
+        candidates = enrich_margin(candidates, config, ROOT)
     if kind == "weekend":
         candidates = join_candidate_sectors(candidates)
     # A header-only CSV is a valid frame but contains no observations, so fallback is
