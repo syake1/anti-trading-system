@@ -9,6 +9,7 @@ import yfinance as yf
 
 from src.backtest import order_method_summary, read_csv_if_populated
 from src.dashboard_exports import (csv_download_data, dated_csv_filename, latest_stocknote_analysis,
+                                   latest_meeting_view, load_meeting_reports, meeting_history_summary,
                                    performance_for_code, ranked_buy_candidates, read_candidate_csv,
                                    strategy_performance)
 from src.indicators import enrich
@@ -88,6 +89,73 @@ except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
     meeting = pd.DataFrame()
     st.warning(f"候補データの欠損により注文案を計算できませんでした: {exc}")
 
+# Persisted reports are the source of truth for the meeting sections.  The
+# currently uploaded candidates are intentionally not presented as a saved meeting.
+saved_meetings = load_meeting_reports(ROOT / "reports/meeting")
+performance = read_csv_if_populated(ROOT / "data/performance.csv", dtype={"コード": str})
+stocknote_all, stocknote_status = latest_stocknote_analysis(ROOT / "data/stocknote")
+today_meeting = latest_meeting_view(saved_meetings, stocknote_all)
+
+st.header("本日のAI投資会議")
+if not today_meeting:
+    st.info("まだ記録がありません")
+else:
+    st.caption(f'会議日時: {today_meeting["date"]}（保存記録: {Path(today_meeting["source"]).name}）')
+    system_col, note_col = st.columns(2)
+    with system_col:
+        st.subheader("システム評価社員の意見")
+        st.write(today_meeting["system_opinion"])
+    with note_col:
+        st.subheader("stocknote分析社員の意見")
+        st.caption(stocknote_status)
+        st.write(today_meeting["stocknote_opinion"])
+    agreement_col, conflict_col = st.columns(2)
+    with agreement_col:
+        st.subheader("一致した点")
+        st.write(today_meeting["agreement"])
+    with conflict_col:
+        st.subheader("対立した点")
+        st.write(today_meeting["conflict"])
+    st.subheader("最終判断")
+    st.write(today_meeting["decision"])
+    reason_col, risk_col = st.columns(2)
+    with reason_col:
+        st.markdown("**採用・見送り理由**")
+        st.write(today_meeting["reason"])
+    with risk_col:
+        st.markdown("**リスク上の注意点**")
+        st.write(today_meeting["risk"])
+    st.markdown("**注文条件**")
+    st.dataframe(today_meeting["orders"], hide_index=True, use_container_width=True)
+
+st.header("会議・検証の履歴")
+meeting_stats = meeting_history_summary(saved_meetings, performance)
+if meeting_stats.empty:
+    st.info("まだ記録がありません")
+else:
+    st.dataframe(meeting_stats, hide_index=True, use_container_width=True,
+                 column_config={"翌日平均": st.column_config.NumberColumn(format="%.2f%%"),
+                                "3日後平均": st.column_config.NumberColumn(format="%.2f%%"),
+                                "5日後平均": st.column_config.NumberColumn(format="%.2f%%"),
+                                "翌日勝率": st.column_config.NumberColumn(format="%.1%%"),
+                                "3日後勝率": st.column_config.NumberColumn(format="%.1%%"),
+                                "5日後勝率": st.column_config.NumberColumn(format="%.1%%")})
+    if meeting_stats[["翌日平均", "3日後平均", "5日後平均"]].isna().all().all():
+        st.info("翌日・3日後・5日後の会議対象と一致する検証実績は、まだ記録がありません")
+
+proposal_files = sorted((ROOT / "reports/proposals").glob("*.md"), reverse=True)
+with st.expander("条件・システム変更履歴 / 過去バージョンとの成績比較", expanded=False):
+    if proposal_files:
+        for proposal in proposal_files:
+            st.markdown(f"**{proposal.name}**")
+            try:
+                st.markdown(proposal.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError):
+                st.warning(f"{proposal.name} を読み込めませんでした。")
+    else:
+        st.info("条件・システム変更履歴: まだ記録がありません")
+    st.info("過去バージョンとの成績比較: まだ記録がありません")
+
 st.header("1. 買い候補ランキング TOP 10")
 if ranked.empty:
     st.info("表示できる買い候補はありません。空CSV・必須列不足の場合も他の集計は引き続き確認できます。")
@@ -121,9 +189,8 @@ if not ranked.empty:
                      hide_index=True, use_container_width=True)
     with stocknote_col:
         st.subheader("4. stocknote分析社員の評価（参考）")
-        stocknote, stocknote_status = latest_stocknote_analysis(ROOT / "data/stocknote")
         st.caption(stocknote_status)
-        note = stocknote[stocknote["code"] == code] if not stocknote.empty else pd.DataFrame()
+        note = stocknote_all[stocknote_all["code"] == code] if not stocknote_all.empty else pd.DataFrame()
         if note.empty:
             st.info("この銘柄のstocknote評価はありません。")
         else:
@@ -151,15 +218,11 @@ if not ranked.empty:
         st.info("強いリスクオフ時の新規主力停止、警戒相場での小口化、資金・損失・保有上限は既存の投資会議ロジックをそのまま適用しています。")
 
     st.header("6. 翌日・3日後・5日後の成績")
-    performance = read_csv_if_populated(ROOT / "data/performance.csv", dtype={"コード": str})
     selected_performance = performance_for_code(performance, code)
     if selected_performance.empty:
         st.info("この銘柄の評価可能な過去成績はまだありません。")
     else:
         st.dataframe(selected_performance, hide_index=True, use_container_width=True)
-else:
-    performance = read_csv_if_populated(ROOT / "data/performance.csv", dtype={"コード": str})
-
 st.header("7. 過去成績・戦略別比較")
 if performance.empty:
     st.info("過去成績はまだありません。空の成績CSVでも画面は継続します。")
@@ -172,6 +235,7 @@ else:
     if comparison.empty:
         st.info("戦略別に比較できるデータがありません。")
     else:
+        st.caption("旧CSVでシグナル種別が空欄の行は「買い・売り」列から復元しています。騰落率は売買方向を反映した戦略損益率です。")
         st.dataframe(comparison, hide_index=True, use_container_width=True,
                      column_config={"1日平均": st.column_config.NumberColumn(format="%.2f%%"),
                                     "3日平均": st.column_config.NumberColumn(format="%.2f%%"),
