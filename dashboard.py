@@ -134,6 +134,11 @@ else:
     with risk_col:
         st.markdown("**リスク上の注意点**")
         st.write(today_meeting["risk"])
+    st.subheader("ファンダメンタル評価")
+    st.caption("保存された会議記録の公式取得データのみを表示します。欠損値は推測せず、データ不足として扱います。")
+    st.dataframe(today_meeting["fundamentals"], hide_index=True, use_container_width=True,
+                 column_config={"ファンダメンタルスコア": st.column_config.NumberColumn(format="%d / 10"),
+                                "ファンダメンタル参照先": st.column_config.LinkColumn(display_text="公式資料")})
     st.markdown("**注文条件**")
     st.dataframe(today_meeting["orders"], hide_index=True, use_container_width=True)
 
