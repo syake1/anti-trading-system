@@ -66,7 +66,7 @@ def test_latest_meeting_view_exposes_persisted_fundamental_assessment():
         "ファンダメンタル加減点理由": "+1 ROE 8%以上",
         "ファンダメンタル取得元": "EDINET",
         "ファンダメンタル参照先": "https://disclosure2.edinet-fsa.go.jp/",
-        "売上前年比": 4.2, "営業利益前年比": 5.1, "時価総額": 1000000000,
+        "売上高前年同期比": 4.2, "営業利益前年同期比": 5.1, "時価総額": 1000000000,
         "直近決算発表日": "2026-06-30", "次回決算予定日": "データなし",
         "総合判定": "良好", "判定理由": "評価完了", "ファンダメンタル取得日時": "2026-08-16T00:00:00Z",
     }])
@@ -84,6 +84,24 @@ def test_latest_meeting_view_exposes_persisted_fundamental_assessment():
 def test_broken_meeting_reports_fail_open(tmp_path):
     (tmp_path / "morning_meeting_20260815.md").write_text("```csv\nnot,a,valid,row\n\"", encoding="utf-8")
     assert load_meeting_reports(tmp_path).empty
+
+
+def test_saved_machine_readable_csv_drives_streamlit_view(tmp_path):
+    folder = tmp_path / "morning"
+    folder.mkdir()
+    report = folder / "morning_meeting_20260816.md"
+    report.write_text("human-readable report without an embedded table", encoding="utf-8")
+    pd.DataFrame([{
+        "コード": "7203", "銘柄名": "トヨタ自動車", "最終判断": "監視",
+        "ファンダメンタル評価": "普通", "ファンダメンタルスコア": 7,
+        "PER": 10.1, "売上高前年同期比": 6.2,
+        "ファンダメンタル取得元": "EDINET",
+    }]).to_csv(report.with_suffix(".csv"), index=False)
+
+    view = latest_meeting_view(load_meeting_reports(tmp_path))
+
+    assert view["fundamentals"].iloc[0]["PER"] == 10.1
+    assert view["fundamentals"].iloc[0]["売上高前年同期比"] == 6.2
 
 
 def test_ranked_buy_candidates_deduplicates_codes_and_limits_to_ten():

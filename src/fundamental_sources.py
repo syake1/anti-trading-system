@@ -142,6 +142,7 @@ CONCEPTS = {
     "net_profit": ("ProfitLossAttributableToOwnersOfParent", "ProfitLoss"),
     "eps": ("BasicEarningsLossPerShare",),
     "equity": ("EquityAttributableToOwnersOfParent", "NetAssets"),
+    "assets": ("Assets",),
     "equity_ratio": ("EquityToAssetRatio", "CapitalAdequacyRatio"),
     "roe": ("RateOfReturnOnEquity", "ReturnOnEquity"),
     "dividend": ("DividendPaidPerShare", "AnnualDividendPerShare"),
@@ -209,6 +210,16 @@ def parse_xbrl(archive: bytes) -> dict:
         if current and prior and old is not None and old > 0 and new is not None:
             output[target] = (new / old - 1) * 100
     output["latest_earnings_date"] = current or ""
+    # Some filings omit ratio facts while reporting all operands. Calculate
+    # only from facts selected above from this same official filing.
+    equity, equity_prior = output.get("equity"), output.get("equity_prior")
+    profit, assets = output.get("net_profit"), output.get("assets")
+    if output.get("roe") is None and profit is not None and equity not in (None, 0):
+        denominator = (equity + equity_prior) / 2 if equity_prior is not None else equity
+        if denominator:
+            output["roe"] = profit / denominator * 100
+    if output.get("equity_ratio") is None and equity is not None and assets not in (None, 0):
+        output["equity_ratio"] = equity / assets * 100
     return output
 
 

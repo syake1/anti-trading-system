@@ -30,6 +30,20 @@ def test_xbrl_normalizes_explicit_periods_and_calculates_only_valid_yoy():
     assert result["shares_outstanding"] == 1000000
 
 
+def test_xbrl_calculates_missing_ratios_only_from_official_operands():
+    xml = """<xbrl xmlns='http://www.xbrl.org/2003/instance' xmlns:jppfs='urn:test'>
+      <context id='Current'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2025-04-01</startDate><endDate>2026-03-31</endDate></period></context>
+      <context id='Prior'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2024-04-01</startDate><endDate>2025-03-31</endDate></period></context>
+      <jppfs:ProfitLoss contextRef='Current'>100</jppfs:ProfitLoss>
+      <jppfs:EquityAttributableToOwnersOfParent contextRef='Current'>900</jppfs:EquityAttributableToOwnersOfParent>
+      <jppfs:EquityAttributableToOwnersOfParent contextRef='Prior'>700</jppfs:EquityAttributableToOwnersOfParent>
+      <jppfs:Assets contextRef='Current'>2000</jppfs:Assets>
+    </xbrl>"""
+    result = parse_xbrl(_archive(xml))
+    assert result["roe"] == pytest.approx(12.5)
+    assert result["equity_ratio"] == pytest.approx(45)
+
+
 def test_xbrl_does_not_guess_a_prior_period():
     xml = """<xbrl xmlns='http://www.xbrl.org/2003/instance' xmlns:jppfs='urn:test'>
       <context id='CurrentYearDuration'><entity><identifier scheme='x'>E1</identifier></entity><period><startDate>2025-04-01</startDate><endDate>2026-03-31</endDate></period></context>
