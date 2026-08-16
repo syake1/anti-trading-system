@@ -94,3 +94,12 @@ def test_unverified_period_or_scope_never_produces_derived_assessment():
     assert result["growth_quadrant"] == "評価不能"
     assert result["payout_ratio"] is None
     assert result["dividend_change"] == "評価不能"
+
+
+def test_partial_official_data_is_scored_but_remains_insufficient():
+    evaluation = assess({"source": "EDINET", "source_reference": "https://example.invalid/doc",
+                         "roe": 12, "equity_ratio": 45, "per": 10, "pbr": 1.2}, config())
+    assert evaluation.score == 3
+    assert evaluation.label == "データ不足"
+    assert not evaluation.sufficient
+    assert "必須項目" in evaluation.reason
