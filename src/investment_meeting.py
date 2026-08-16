@@ -33,7 +33,7 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
  "出来高倍率", "暴落リバウンド型", "ファンダメンタルスコア", "テクニカルスコア", "反転確認スコア",
  "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
 MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
- "売上前年比", "営業利益前年比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
+ "売上高前年同期比", "営業利益前年同期比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
  "配当利回り", "利益状態", "業績4象限", "配当性向", "配当判定", "ファンダメンタル加減点理由",
  "今期会社予想", "直近決算発表日", "次回決算予定日", "時価総額", "総合判定", "判定理由",
  "業績修正", "重要適時開示", "ファンダメンタル取得元", "ファンダメンタル参照先", "ファンダメンタル取得日時"]
@@ -149,8 +149,8 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
           "運用コメント": f"{perf}。市場={environment.regime}、ニュース重大度と300万円の損失・投入・現金・保有数制約を適用", "注文理由": order_reason,
           "ファンダメンタル評価": fundamental.label, "ファンダメンタル十分": fundamental.sufficient,
-          "ファンダメンタル不足理由": fundamental.reason, "売上前年比": _display(row.get("revenue_yoy")),
-          "営業利益前年比": _display(row.get("operating_profit_yoy")), "経常・純利益前年比": _display(row.get("ordinary_or_net_profit_yoy")),
+          "ファンダメンタル不足理由": fundamental.reason, "売上高前年同期比": _display(row.get("revenue_yoy")),
+          "営業利益前年同期比": _display(row.get("operating_profit_yoy")), "経常・純利益前年比": _display(row.get("ordinary_or_net_profit_yoy")),
           "EPS": _display(row.get("eps")), "PER": _display(row.get("per")), "PBR": _display(row.get("pbr")), "ROE": _display(row.get("roe")),
           "自己資本比率": _display(row.get("equity_ratio")), "配当利回り": _display(row.get("dividend_yield")),
           "利益状態": row.get("profit_transition", "評価不能"), "業績4象限": row.get("growth_quadrant", "評価不能"),

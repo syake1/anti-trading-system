@@ -10,8 +10,15 @@ NO_RECORD = "まだ記録がありません"
 
 
 def _read_report_table(path: Path) -> pd.DataFrame:
-    """Read the audit CSV embedded in a meeting markdown report, fail-open."""
+    """Read a meeting's durable table, preferring its machine-readable sibling."""
     try:
+        csv_path = path.with_suffix(".csv")
+        if csv_path.exists():
+            return pd.read_csv(csv_path, dtype={"コード": "string"})
+        json_path = path.with_suffix(".json")
+        if json_path.exists():
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+            return pd.DataFrame(payload).astype({"コード": "string"}) if payload else pd.DataFrame()
         text = path.read_text(encoding="utf-8")
         blocks = re.findall(r"```csv\s*\n(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
         if not blocks:
@@ -72,7 +79,7 @@ def latest_meeting_view(history: pd.DataFrame, stocknote: pd.DataFrame | None = 
     fundamental_columns = [name for name in (
         "コード", "銘柄名", "ファンダメンタル評価", "ファンダメンタルスコア",
         "ファンダメンタル十分", "ファンダメンタル不足理由", "利益状態", "業績4象限",
-        "PER", "PBR", "ROE", "自己資本比率", "売上前年比", "営業利益前年比", "配当利回り", "時価総額",
+        "PER", "PBR", "ROE", "自己資本比率", "売上高前年同期比", "営業利益前年同期比", "配当利回り", "時価総額",
         "直近決算発表日", "次回決算予定日", "総合判定", "判定理由", "ファンダメンタル取得日時", "今期会社予想",
         "業績修正", "重要適時開示", "ファンダメンタル加減点理由",
         "ファンダメンタル取得元", "ファンダメンタル参照先",
