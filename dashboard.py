@@ -1,4 +1,5 @@
 """One-page Streamlit review dashboard. Run: streamlit run dashboard.py."""
+from functools import partial
 from pathlib import Path
 
 import pandas as pd
@@ -9,8 +10,9 @@ import yfinance as yf
 
 from src.backtest import order_method_summary, read_csv_if_populated
 from src.dashboard_exports import (csv_download_data, dated_csv_filename, latest_stocknote_analysis,
-                                   latest_meeting_view, load_meeting_reports, meeting_history_summary,
-                                   performance_for_code, ranked_buy_candidates, read_candidate_csv,
+                                   candidate_detail_rows, candidate_selector_labels, latest_meeting_view,
+                                   load_meeting_reports, meeting_history_summary,
+                                   ranked_buy_candidates, read_candidate_csv,
                                    strategy_performance)
 from src.indicators import enrich
 from src.investment_meeting import evaluate_candidates
@@ -69,6 +71,13 @@ def price_chart(frame: pd.DataFrame, plan: pd.Series | None) -> go.Figure:
     fig.update_layout(height=720, margin={"l": 20, "r": 20, "t": 45, "b": 20}, xaxis_rangeslider_visible=False,
                       legend={"orientation": "h", "y": 1.04})
     return fig
+
+
+def select_ranked_row(ranked: pd.DataFrame) -> None:
+    """Synchronize a ranking-table click to the candidate detail selector."""
+    rows = st.session_state["buy-candidate-ranking"].selection.rows
+    if rows:
+        st.session_state["selected_candidate_code"] = str(ranked.iloc[rows[0]]["コード"])
 
 
 # Candidate CSV input and normalization
@@ -161,17 +170,30 @@ if ranked.empty:
     st.info("表示できる買い候補はありません。空CSV・必須列不足の場合も他の集計は引き続き確認できます。")
 else:
     table_columns = [column for column in ("順位", "コード", "会社名", "ランク", "スコア", "現在値", "RSI14", "BB位置", "出来高倍率", "シグナル種別") if column in ranked]
-    st.dataframe(ranked[table_columns], hide_index=True, use_container_width=True)
+    st.dataframe(
+        ranked[table_columns], hide_index=True, use_container_width=True,
+        key="buy-candidate-ranking", on_select=partial(select_ranked_row, ranked),
+        selection_mode="single-row",
+    )
+    labels = candidate_selector_labels(ranked)
+    codes = list(labels)
+    if st.session_state.get("selected_candidate_code") not in codes:
+        st.session_state["selected_candidate_code"] = codes[0]
+    st.selectbox(
+        "チャートと詳細を確認する銘柄（順位｜コード｜銘柄名）",
+        codes,
+        format_func=labels.get,
+        key="selected_candidate_code",
+        help="選択ボックス、または上のランキング表の行をクリックして切り替えられます。",
+    )
     st.download_button("候補TOP10をダウンロード", csv_download_data(ranked), dated_csv_filename("buy_candidates_top10"),
                        "text/csv", key="top10-download")
 
 if not ranked.empty:
-    labels = ranked["コード"].astype(str) + " " + ranked.get("会社名", pd.Series("", index=ranked.index)).fillna("").astype(str)
-    selected_label = st.selectbox("詳細を確認する銘柄", labels.tolist())
-    code = selected_label.split(" ", 1)[0]
-    candidate = ranked[ranked["コード"].astype(str) == code].iloc[0]
-    plans = meeting[meeting["コード"].astype(str) == code] if not meeting.empty and "コード" in meeting else pd.DataFrame()
-    plan = plans.iloc[0] if not plans.empty else None
+    code = st.session_state["selected_candidate_code"]
+    candidate, plan, note, selected_performance = candidate_detail_rows(
+        ranked, meeting, stocknote_all, performance, code,
+    )
 
     st.header(f"2. 銘柄チャート — {code} {value(candidate, '会社名', '')}")
     prices = load_prices(code)
@@ -190,7 +212,6 @@ if not ranked.empty:
     with stocknote_col:
         st.subheader("4. stocknote分析社員の評価（参考）")
         st.caption(stocknote_status)
-        note = stocknote_all[stocknote_all["code"] == code] if not stocknote_all.empty else pd.DataFrame()
         if note.empty:
             st.info("この銘柄のstocknote評価はありません。")
         else:
@@ -218,7 +239,6 @@ if not ranked.empty:
         st.info("強いリスクオフ時の新規主力停止、警戒相場での小口化、資金・損失・保有上限は既存の投資会議ロジックをそのまま適用しています。")
 
     st.header("6. 翌日・3日後・5日後の成績")
-    selected_performance = performance_for_code(performance, code)
     if selected_performance.empty:
         st.info("この銘柄の評価可能な過去成績はまだありません。")
     else:

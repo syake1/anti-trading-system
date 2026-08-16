@@ -135,6 +135,43 @@ def ranked_buy_candidates(frame: pd.DataFrame, limit: int = 10) -> pd.DataFrame:
     return result.drop(columns=["_score", "_date"])
 
 
+def candidate_selector_labels(ranked: pd.DataFrame) -> dict[str, str]:
+    """Build unambiguous rank/code/name labels for the candidate selector."""
+    labels = {}
+    for _, row in ranked.iterrows():
+        code = re.sub(r"\.0$", "", str(row.get("コード", "")))
+        name = row.get("会社名", row.get("銘柄名", ""))
+        name = "" if pd.isna(name) else str(name).strip()
+        rank = row.get("順位", "—")
+        labels[code] = f"{rank}位｜{code}｜{name or '銘柄名なし'}"
+    return labels
+
+
+def candidate_detail_rows(
+    ranked: pd.DataFrame,
+    meeting: pd.DataFrame,
+    stocknote: pd.DataFrame,
+    performance: pd.DataFrame,
+    code: str,
+) -> tuple[pd.Series, pd.Series | None, pd.DataFrame, pd.DataFrame]:
+    """Return every code-scoped detail source for one selected candidate."""
+    normalized = re.sub(r"\.0$", "", str(code))
+
+    def matching(frame: pd.DataFrame, column: str) -> pd.DataFrame:
+        if frame.empty or column not in frame:
+            return pd.DataFrame()
+        values = frame[column].astype(str).str.replace(r"\.0$", "", regex=True)
+        return frame[values.eq(normalized)]
+
+    candidates = matching(ranked, "コード")
+    if candidates.empty:
+        raise KeyError(f"ランキングに存在しない銘柄コードです: {normalized}")
+    plans = matching(meeting, "コード")
+    notes = matching(stocknote, "code")
+    outcomes = performance_for_code(performance, normalized)
+    return candidates.iloc[0], (plans.iloc[0] if not plans.empty else None), notes, outcomes
+
+
 def performance_for_code(performance: pd.DataFrame, code: str) -> pd.DataFrame:
     """Select the requested outcome horizons while tolerating old CSV schemas."""
     wanted = ["シグナル日", "コード", "ランク", "シグナル種別", "1日後騰落率", "3日後騰落率", "5日後騰落率",

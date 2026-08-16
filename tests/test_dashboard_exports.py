@@ -3,7 +3,8 @@ from datetime import date
 import pandas as pd
 
 from src.dashboard_exports import (csv_download_data, dated_csv_filename, filter_meeting_history,
-                                   latest_meeting_view, load_meeting_reports, meeting_history_summary,
+                                   candidate_detail_rows, candidate_selector_labels, latest_meeting_view,
+                                   load_meeting_reports, meeting_history_summary,
                                    performance_for_code, ranked_buy_candidates, read_candidate_csv,
                                    strategy_performance)
 
@@ -71,6 +72,48 @@ def test_ranked_buy_candidates_deduplicates_codes_and_limits_to_ten():
     assert result["コード"].is_unique
     assert "9999" not in result["コード"].tolist()
     assert result["順位"].tolist() == list(range(1, 11))
+
+
+def test_candidate_selector_labels_show_rank_code_and_name():
+    ranked = pd.DataFrame([
+        {"順位": 1, "コード": "1111", "会社名": "一位社"},
+        {"順位": 2, "コード": "2222", "会社名": "二位社"},
+    ])
+
+    assert candidate_selector_labels(ranked) == {
+        "1111": "1位｜1111｜一位社",
+        "2222": "2位｜2222｜二位社",
+    }
+
+
+def test_candidate_detail_rows_never_leaves_first_rank_data_after_switch():
+    ranked = pd.DataFrame([
+        {"順位": 1, "コード": "1111", "会社名": "一位社", "判定理由": "一位の理由"},
+        {"順位": 2, "コード": "2222", "会社名": "二位社", "判定理由": "二位の理由"},
+    ])
+    meeting = pd.DataFrame([
+        {"コード": "1111", "注文理由": "一位の注文", "損切り価格": 100},
+        {"コード": "2222", "注文理由": "二位の注文", "損切り価格": 200},
+    ])
+    stocknote = pd.DataFrame([
+        {"code": "1111", "summary": "一位の評価"},
+        {"code": "2222", "summary": "二位の評価"},
+    ])
+    performance = pd.DataFrame([
+        {"コード": "1111", "シグナル日": "2026-08-15", "1日後騰落率": 1},
+        {"コード": "2222", "シグナル日": "2026-08-15", "1日後騰落率": 2},
+    ])
+
+    candidate, plan, notes, outcomes = candidate_detail_rows(
+        ranked, meeting, stocknote, performance, "2222",
+    )
+
+    assert candidate["判定理由"] == "二位の理由"
+    assert plan["注文理由"] == "二位の注文"
+    assert notes["summary"].tolist() == ["二位の評価"]
+    assert outcomes["コード"].tolist() == ["2222"]
+    combined = " ".join(map(str, [candidate.to_dict(), plan.to_dict(), notes.to_dict(), outcomes.to_dict()]))
+    assert "一位" not in combined and "1111" not in combined
 
 
 def test_read_candidate_csv_fails_open_for_empty_and_missing_code(tmp_path):
