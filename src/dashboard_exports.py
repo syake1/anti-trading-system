@@ -141,18 +141,25 @@ def read_candidate_csv(source) -> tuple[pd.DataFrame, str | None]:
 
 
 def ranked_buy_candidates(frame: pd.DataFrame, limit: int = 10) -> pd.DataFrame:
-    """Return the best buy row per code; scanner score determines ranking."""
+    """Return buy candidates in adjusted order while retaining technical order."""
     if frame.empty or "コード" not in frame:
         return pd.DataFrame(columns=frame.columns)
     result = frame.copy()
     if "買い・売り" in result:
         result = result[result["買い・売り"].fillna("").astype(str).eq("買い")]
     result["コード"] = result["コード"].astype("string").str.strip().str.replace(r"\.0$", "", regex=True)
-    result["_score"] = pd.to_numeric(result.get("スコア", 0), errors="coerce").fillna(0)
+    technical = "テクニカルスコア" if "テクニカルスコア" in result else "スコア"
+    adjusted = "総合調整後スコア" if "総合調整後スコア" in result else technical
+    result["_score"] = pd.to_numeric(result.get(adjusted, 0), errors="coerce").fillna(0)
     result["_date"] = pd.to_datetime(result.get("シグナル日", pd.NaT), errors="coerce")
     result = (result.sort_values(["_score", "_date", "コード"], ascending=[False, False, True], kind="stable")
               .drop_duplicates("コード", keep="first").head(limit).reset_index(drop=True))
-    result.insert(0, "順位", range(1, len(result) + 1))
+    result["調整後順位"] = range(1, len(result) + 1)
+    if "テクニカル順位" not in result:
+        result["テクニカル順位"] = pd.to_numeric(result.get(technical, 0), errors="coerce").rank(
+            method="min", ascending=False
+        ).astype(int)
+    result.insert(0, "順位", result["調整後順位"])
     return result.drop(columns=["_score", "_date"])
 
 

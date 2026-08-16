@@ -16,6 +16,10 @@ DEFAULT_PAGE_URL = "https://www.jpx.co.jp/markets/statistics-equities/margin/05.
 DATA_COLUMNS = [
     "売残", "買残", "売残前週比", "買残前週比", "信用倍率", "基準日", "取得元URL", "取得日時"
 ]
+SCORE_COLUMNS = [
+    "テクニカルスコア", "信用需給による減点", "信用需給スコア", "総合調整後スコア",
+    "テクニカル順位", "調整後順位", "信用需給判定", "信用需給判定理由",
+]
 NO_DATA = "データなし"
 
 
@@ -168,4 +172,100 @@ def enrich_candidates(candidates: pd.DataFrame, config: dict | None = None, root
         audit = root / "data" / "jpx_margin_balances.csv"
         audit.parent.mkdir(parents=True, exist_ok=True)
         result[["コード", *DATA_COLUMNS]].to_csv(audit, index=False, encoding="utf-8-sig")
+    return result
+
+
+def _number(value: object) -> float | None:
+    number = pd.to_numeric(value, errors="coerce")
+    return None if pd.isna(number) else float(number)
+
+
+def _fundamentals_not_worsening(row: pd.Series) -> bool:
+    """Require an affirmative fundamental result; missing data is never approval."""
+    label = str(row.get("ファンダメンタル評価", row.get("総合判定", ""))).strip()
+    score = _number(row.get("ファンダメンタルスコア"))
+    return label in {"良好", "普通"} or (score is not None and score >= 6)
+
+
+def apply_margin_scoring(candidates: pd.DataFrame) -> pd.DataFrame:
+    """Add a conservative, auditable margin-balance adjustment and both rankings."""
+    result = candidates.copy()
+    if result.empty:
+        for column in SCORE_COLUMNS:
+            result[column] = pd.Series(dtype=object)
+        return result
+
+    records = []
+    for _, row in result.iterrows():
+        technical = _number(row.get("スコア")) or 0.0
+        ratio = _number(row.get("信用倍率"))
+        buy = _number(row.get("買残"))
+        buy_change = _number(row.get("買残前週比"))
+        missing = str(row.get("信用倍率", "")).strip() in {NO_DATA, "算出不能・売残0", ""} or ratio is None
+        penalty = 0
+        reasons: list[str] = []
+        if missing:
+            judgment = "信用需給は判定不能"
+            reasons.append("信用データがデータなし、または売残0で信用倍率を算出不能")
+        else:
+            if ratio >= 30:
+                penalty -= 12
+                reasons.append("信用倍率30倍以上: -12")
+            elif ratio >= 20:
+                penalty -= 8
+                reasons.append("信用倍率20倍以上30倍未満: -8")
+            elif ratio >= 10:
+                penalty -= 5
+                reasons.append("信用倍率10倍以上20倍未満: -5")
+            elif ratio >= 5:
+                penalty -= 2
+                reasons.append("信用倍率5倍以上10倍未満: -2")
+            else:
+                reasons.append("信用倍率5倍未満: 減点なし")
+
+            falling = any((_number(row.get(column)) or 0) < 0 for column in ("直近3日騰落率", "直近5日騰落率"))
+            if falling and buy_change is not None and buy_change > 0:
+                penalty -= 5
+                reasons.append("直近3～5日で株価下落かつ信用買残増加: -5")
+            previous_buy = buy - buy_change if buy is not None and buy_change is not None else None
+            increase_rate = buy_change / previous_buy if previous_buy is not None and previous_buy > 0 else None
+            if increase_rate is not None and increase_rate >= .20:
+                penalty -= 3
+                reasons.append(f"信用買残増加率{increase_rate:.1%}: -3")
+
+            if ratio >= 30:
+                pattern = str(row.get("ローソク足パターン", ""))
+                clear_reversal = pattern not in {"", "なし", NO_DATA} and any(
+                    word in pattern for word in ("包み", "下ヒゲ", "陽線", "反転")
+                )
+                volume_confirmed = (_number(row.get("出来高倍率")) or 0) >= 1.3
+                fundamentals_ok = _fundamentals_not_worsening(row)
+                if clear_reversal and volume_confirmed and fundamentals_ok:
+                    judgment = "小口・反転確認後"
+                    reasons.append("明確な反転足・出来高増加・ファンダメンタル非悪化を確認")
+                else:
+                    judgment = "見送り"
+                    missing_checks = [name for ok, name in (
+                        (clear_reversal, "明確な反転足"), (volume_confirmed, "出来高増加"),
+                        (fundamentals_ok, "ファンダメンタル非悪化"),
+                    ) if not ok]
+                    reasons.append("原則反転確認待ち（未確認: " + "・".join(missing_checks) + "）")
+            elif penalty < 0:
+                judgment = "注意"
+            else:
+                judgment = "良好"
+        records.append((technical, penalty, technical + penalty, judgment, " / ".join(reasons)))
+
+    result["テクニカルスコア"] = [record[0] for record in records]
+    result["信用需給による減点"] = [record[1] for record in records]
+    result["信用需給スコア"] = result["信用需給による減点"]
+    result["総合調整後スコア"] = [record[2] for record in records]
+    result["信用需給判定"] = [record[3] for record in records]
+    result["信用需給判定理由"] = [record[4] for record in records]
+    if "判定理由" in result:
+        original = result["判定理由"].fillna("").astype(str).str.strip()
+        margin_reason = result["信用需給判定理由"].map(lambda value: f"信用需給: {value}")
+        result["判定理由"] = original.where(original.eq(""), original + " / ") + margin_reason
+    result["テクニカル順位"] = result["テクニカルスコア"].rank(method="min", ascending=False).astype(int)
+    result["調整後順位"] = result["総合調整後スコア"].rank(method="min", ascending=False).astype(int)
     return result

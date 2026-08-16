@@ -76,3 +76,42 @@ def test_multilevel_header_uses_total_not_account_subtotals():
         frame.to_excel(writer, index=False, header=False)
     _, result = jpx_margin.parse_workbook(output.getvalue(), "https://www.jpx.co.jp/test.xlsx")
     assert result.iloc[0][["売残", "買残"]].tolist() == [40, 60]
+
+
+def test_4751_high_ratio_and_rising_buy_balance_lowers_adjusted_rank():
+    candidates = pd.DataFrame([
+        {
+            "コード": "4751", "スコア": 20, "判定理由": "テクニカル反転", "信用倍率": 30.83,
+            "買残": 3083, "買残前週比": 600, "直近3日騰落率": -2.5, "直近5日騰落率": -4,
+            "ローソク足パターン": "なし", "出来高倍率": 1.1,
+        },
+        {
+            "コード": "7203", "スコア": 18, "判定理由": "テクニカル反転", "信用倍率": 4.0,
+            "買残": 1000, "買残前週比": 0, "直近3日騰落率": 1, "直近5日騰落率": 2,
+        },
+    ])
+
+    result = jpx_margin.apply_margin_scoring(candidates).set_index("コード")
+    cyberagent = result.loc["4751"]
+
+    assert cyberagent["テクニカルスコア"] == 20
+    assert cyberagent["信用需給による減点"] == -20
+    assert cyberagent["信用需給スコア"] == -20
+    assert cyberagent["総合調整後スコア"] == 0
+    assert cyberagent["テクニカル順位"] == 1
+    assert cyberagent["調整後順位"] == 2
+    assert cyberagent["信用需給判定"] == "見送り"
+    assert "原則反転確認待ち" in cyberagent["判定理由"]
+
+
+def test_missing_or_zero_sell_margin_data_is_unscored_and_not_favorable():
+    candidates = pd.DataFrame([
+        {"コード": "1111", "スコア": 10, "信用倍率": "データなし"},
+        {"コード": "2222", "スコア": 9, "信用倍率": "算出不能・売残0"},
+    ])
+
+    result = jpx_margin.apply_margin_scoring(candidates)
+
+    assert result["信用需給による減点"].tolist() == [0, 0]
+    assert result["総合調整後スコア"].tolist() == [10, 9]
+    assert result["信用需給判定"].tolist() == ["信用需給は判定不能"] * 2
