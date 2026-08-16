@@ -2,8 +2,107 @@
 from datetime import date
 import json
 from pathlib import Path
+import re
 
 import pandas as pd
+
+NO_RECORD = "まだ記録がありません"
+
+
+def _read_report_table(path: Path) -> pd.DataFrame:
+    """Read the audit CSV embedded in a meeting markdown report, fail-open."""
+    try:
+        text = path.read_text(encoding="utf-8")
+        blocks = re.findall(r"```csv\s*\n(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
+        if not blocks:
+            return pd.DataFrame()
+        from io import StringIO
+        return pd.read_csv(StringIO(blocks[-1]), dtype={"コード": "string"})
+    except (OSError, UnicodeError, pd.errors.ParserError, pd.errors.EmptyDataError, ValueError):
+        return pd.DataFrame()
+
+
+def load_meeting_reports(directory: Path) -> pd.DataFrame:
+    """Load persisted morning/recheck audit reports; broken reports are skipped."""
+    rows = []
+    for path in sorted(directory.glob("**/*.md")):
+        if not path.stem.startswith(("morning_meeting_", "morning_recheck_")):
+            continue
+        match = re.search(r"(\d{8})", path.stem)
+        table = _read_report_table(path)
+        if not match or table.empty or "コード" not in table:
+            continue
+        table = table.copy()
+        table["会議日"] = pd.to_datetime(match.group(1), format="%Y%m%d", errors="coerce").date().isoformat()
+        table["会議種別"] = "再確認" if "recheck" in path.stem else "朝会"
+        table["記録元"] = str(path)
+        rows.append(table)
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
+def latest_meeting_view(history: pd.DataFrame, stocknote: pd.DataFrame | None = None) -> dict:
+    """Summarise the latest saved decisions without inventing meeting prose."""
+    if history.empty or "会議日" not in history:
+        return {}
+    latest = history[history["会議日"] == history["会議日"].max()].copy()
+    if latest.empty:
+        return {}
+    adopted = latest[latest.get("最終判断", pd.Series("", index=latest.index)).isin(["主力", "小口"])]
+    focus = adopted if not adopted.empty else latest.head(10)
+    def joined(column):
+        if column not in focus:
+            return NO_RECORD
+        values = [str(value).strip() for value in focus[column].dropna() if str(value).strip()]
+        return "\n\n".join(dict.fromkeys(values)) or NO_RECORD
+    notes = []
+    if stocknote is not None and not stocknote.empty and "code" in stocknote:
+        codes = set(focus["コード"].astype(str))
+        for _, note in stocknote[stocknote["code"].astype(str).isin(codes)].iterrows():
+            parts = [str(note.get(key, "")).strip() for key in ("assessment", "summary", "cautions")]
+            text = " / ".join(part for part in parts if part and part.lower() != "nan")
+            if text:
+                notes.append(f'{note.get("code")}: {text}')
+    decisions = focus.get("最終判断", pd.Series(dtype=str)).fillna("").astype(str)
+    # Neither persistence schema has explicit agreement/conflict fields. Do not
+    # infer them from independent comments and present that inference as fact.
+    common = NO_RECORD
+    conflict = NO_RECORD
+    order_columns = [name for name in ("コード", "銘柄名", "最終判断", "注文方式", "買いゾーン下限", "買いゾーン上限",
+                                      "逆指値発動価格", "損切り価格", "利確目標", "推奨株数", "RR") if name in focus]
+    return {"date": latest["会議日"].iloc[0], "source": latest["記録元"].iloc[0],
+            "system_opinion": joined("分析コメント"), "stocknote_opinion": "\n\n".join(notes) or NO_RECORD,
+            "agreement": common, "conflict": conflict,
+            "decision": " / ".join(f"{key}: {value}件" for key, value in decisions.value_counts().items()) or NO_RECORD,
+            "reason": joined("注文理由"), "orders": focus[order_columns],
+            "risk": joined("運用コメント")}
+
+
+def meeting_history_summary(history: pd.DataFrame, performance: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate saved meetings and only outcomes with matching date/code keys."""
+    columns = ["日付", "候補数", "採用数", "見送り数", "翌日平均", "翌日勝率", "3日後平均", "3日後勝率", "5日後平均", "5日後勝率", "最終判断"]
+    if history.empty:
+        return pd.DataFrame(columns=columns)
+    data = history.copy()
+    # Prefer the final recheck when both report types exist for one day/code.
+    data["_order"] = data.get("会議種別", "朝会").map({"朝会": 0, "再確認": 1}).fillna(0)
+    data = data.sort_values("_order").drop_duplicates(["会議日", "コード"], keep="last")
+    perf = performance.copy()
+    if not perf.empty and {"シグナル日", "コード"}.issubset(perf):
+        perf["シグナル日"] = perf["シグナル日"].astype(str)
+        perf["コード"] = perf["コード"].astype(str).str.replace(r"\.0$", "", regex=True)
+        data = data.merge(perf, left_on=["会議日", "コード"], right_on=["シグナル日", "コード"], how="left", suffixes=("", "_実績"))
+    rows = []
+    for day, group in data.groupby("会議日", sort=True):
+        decisions = group.get("最終判断", pd.Series("", index=group.index)).fillna("").astype(str)
+        row = {"日付": day, "候補数": group["コード"].nunique(), "採用数": decisions.isin(["主力", "小口"]).sum(),
+               "見送り数": (decisions == "見送り").sum(),
+               "最終判断": " / ".join(f"{key} {value}件" for key, value in decisions.value_counts().items()) or NO_RECORD}
+        for label, column in (("翌日", "1日後騰落率"), ("3日後", "3日後騰落率"), ("5日後", "5日後騰落率")):
+            values = pd.to_numeric(group.get(column), errors="coerce").dropna() if column in group else pd.Series(dtype=float)
+            row[f"{label}平均"] = values.mean() if not values.empty else pd.NA
+            row[f"{label}勝率"] = (values > 0).mean() if not values.empty else pd.NA
+        rows.append(row)
+    return pd.DataFrame(rows, columns=columns).sort_values("日付", ascending=False)
 
 
 def read_candidate_csv(source) -> tuple[pd.DataFrame, str | None]:
@@ -51,7 +150,11 @@ def strategy_performance(performance: pd.DataFrame) -> pd.DataFrame:
     if performance.empty or "シグナル種別" not in performance:
         return pd.DataFrame(columns=["戦略", "件数", "1日平均", "3日平均", "5日平均", "5日勝率"])
     data = performance.copy()
-    data["シグナル種別"] = data["シグナル種別"].fillna("未分類").replace("", "未分類")
+    # Old files left strategy blank but retained direction. Calling these rows
+    # "未分類" concealed that the signed returns are short-strategy results.
+    fallback = data.get("買い・売り", pd.Series("", index=data.index)).fillna("").astype(str)
+    data["シグナル種別"] = data["シグナル種別"].fillna("").astype(str).str.strip()
+    data.loc[data["シグナル種別"].eq(""), "シグナル種別"] = fallback.map({"買い": "買い（旧形式）", "売り": "売り（旧形式）"}).fillna("未分類")
     for column in ("1日後騰落率", "3日後騰落率", "5日後騰落率"):
         data[column] = pd.to_numeric(data.get(column), errors="coerce")
     rows = []

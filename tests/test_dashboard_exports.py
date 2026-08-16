@@ -3,6 +3,7 @@ from datetime import date
 import pandas as pd
 
 from src.dashboard_exports import (csv_download_data, dated_csv_filename, filter_meeting_history,
+                                   latest_meeting_view, load_meeting_reports, meeting_history_summary,
                                    performance_for_code, ranked_buy_candidates, read_candidate_csv,
                                    strategy_performance)
 
@@ -27,6 +28,35 @@ def test_filter_meeting_history_matches_the_visible_filters():
     result = filter_meeting_history(history, ["2026-08-15"], ["S"], "トヨタ")
 
     assert result.to_dict("records") == [history.iloc[0].to_dict()]
+
+
+def test_saved_meeting_report_drives_latest_view_and_history(tmp_path):
+    report = tmp_path / "morning" / "morning_meeting_20260815.md"
+    report.parent.mkdir()
+    report.write_text("""saved text
+```csv
+コード,銘柄名,最終判断,注文方式,分析コメント,注文理由,運用コメント
+1234,実銘柄,小口,逆指値買い,反転を確認,高値抜けを待つ,損失上限を適用
+```
+""", encoding="utf-8")
+
+    history = load_meeting_reports(tmp_path)
+    view = latest_meeting_view(history, pd.DataFrame([{"code": "1234", "assessment": "慎重", "summary": "材料待ち"}]))
+    summary = meeting_history_summary(history, pd.DataFrame([{
+        "シグナル日": "2026-08-15", "コード": "1234", "1日後騰落率": 2.0,
+        "3日後騰落率": -1.0, "5日後騰落率": 3.0,
+    }]))
+
+    assert view["date"] == "2026-08-15"
+    assert "反転を確認" in view["system_opinion"]
+    assert "材料待ち" in view["stocknote_opinion"]
+    assert summary.iloc[0][["候補数", "採用数", "見送り数"]].tolist() == [1, 1, 0]
+    assert summary.iloc[0]["翌日勝率"] == 1.0
+
+
+def test_broken_meeting_reports_fail_open(tmp_path):
+    (tmp_path / "morning_meeting_20260815.md").write_text("```csv\nnot,a,valid,row\n\"", encoding="utf-8")
+    assert load_meeting_reports(tmp_path).empty
 
 
 def test_ranked_buy_candidates_deduplicates_codes_and_limits_to_ten():
