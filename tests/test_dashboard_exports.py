@@ -53,6 +53,27 @@ def test_saved_meeting_report_drives_latest_view_and_history(tmp_path):
     assert "材料待ち" in view["stocknote_opinion"]
     assert summary.iloc[0][["候補数", "採用数", "見送り数"]].tolist() == [1, 1, 0]
     assert summary.iloc[0]["翌日勝率"] == 1.0
+    assert view["fundamentals"].iloc[0]["ファンダメンタル評価"] == "データ不足"
+    assert "保存記録" in view["fundamentals"].iloc[0]["ファンダメンタル不足理由"]
+
+
+def test_latest_meeting_view_exposes_persisted_fundamental_assessment():
+    history = pd.DataFrame([{
+        "会議日": "2026-08-16", "記録元": "morning_meeting_20260816.md",
+        "コード": "7203", "銘柄名": "トヨタ自動車", "最終判断": "主力",
+        "ファンダメンタル評価": "良好", "ファンダメンタルスコア": 9,
+        "ファンダメンタル十分": True, "PER": 12.3, "ROE": 14.2,
+        "ファンダメンタル加減点理由": "+1 ROE 8%以上",
+        "ファンダメンタル取得元": "EDINET",
+        "ファンダメンタル参照先": "https://disclosure2.edinet-fsa.go.jp/",
+    }])
+
+    fundamentals = latest_meeting_view(history)["fundamentals"]
+
+    assert fundamentals.iloc[0]["ファンダメンタル評価"] == "良好"
+    assert fundamentals.iloc[0]["ファンダメンタルスコア"] == 9
+    assert fundamentals.iloc[0]["ファンダメンタル取得元"] == "EDINET"
+    assert fundamentals.iloc[0]["ファンダメンタル参照先"].startswith("https://")
 
 
 def test_broken_meeting_reports_fail_open(tmp_path):

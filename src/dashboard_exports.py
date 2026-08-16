@@ -69,12 +69,25 @@ def latest_meeting_view(history: pd.DataFrame, stocknote: pd.DataFrame | None = 
     conflict = NO_RECORD
     order_columns = [name for name in ("コード", "銘柄名", "最終判断", "注文方式", "買いゾーン下限", "買いゾーン上限",
                                       "逆指値発動価格", "損切り価格", "利確目標", "推奨株数", "RR") if name in focus]
+    fundamental_columns = [name for name in (
+        "コード", "銘柄名", "ファンダメンタル評価", "ファンダメンタルスコア",
+        "ファンダメンタル十分", "ファンダメンタル不足理由", "利益状態", "業績4象限",
+        "PER", "PBR", "ROE", "自己資本比率", "配当利回り", "今期会社予想",
+        "業績修正", "重要適時開示", "ファンダメンタル加減点理由",
+        "ファンダメンタル取得元", "ファンダメンタル参照先",
+    ) if name in focus]
+    fundamentals = focus[fundamental_columns].copy()
+    # Old persisted reports predate fundamental columns.  Make that absence
+    # explicit instead of silently presenting an empty assessment.
+    if not {"ファンダメンタル評価", "ファンダメンタルスコア"}.intersection(fundamentals.columns):
+        fundamentals["ファンダメンタル評価"] = "データ不足"
+        fundamentals["ファンダメンタル不足理由"] = "保存記録にファンダメンタル評価なし"
     return {"date": latest["会議日"].iloc[0], "source": latest["記録元"].iloc[0],
             "system_opinion": joined("分析コメント"), "stocknote_opinion": "\n\n".join(notes) or NO_RECORD,
             "agreement": common, "conflict": conflict,
             "decision": " / ".join(f"{key}: {value}件" for key, value in decisions.value_counts().items()) or NO_RECORD,
             "reason": joined("注文理由"), "orders": focus[order_columns],
-            "risk": joined("運用コメント")}
+            "risk": joined("運用コメント"), "fundamentals": fundamentals}
 
 
 def meeting_history_summary(history: pd.DataFrame, performance: pd.DataFrame) -> pd.DataFrame:
