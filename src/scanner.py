@@ -18,6 +18,7 @@ from src.strategies import evaluate
 from src.materials import ensure_templates, signals_for
 from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_csv
 from src.utils import ROOT, load_config, now_tokyo, save_json
+from src.jpx_margin import DATA_COLUMNS as MARGIN_COLUMNS, enrich_candidates as enrich_margin
 
 
 RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "直近3日騰落率", "直近5日騰落率",
@@ -25,7 +26,7 @@ RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在
                   "直近2日高値", "直近3日高値", "直近安値", "直近支持線", "BB-1σ", "BB-2σ", "BB下限",
                   "スコア", "ランク", "%K", "%D",
                   "%D傾き", "RSI14", "MA25", "MA75", "MA200", "BB位置", "出来高倍率", "ローソク足パターン",
-                  "アンチ判定", "買い・売り", "シグナル種別", "シグナル数", "自社株買い比率", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク"]
+                  "アンチ判定", "買い・売り", "シグナル種別", "シグナル数", "自社株買い比率", "損切り候補", "利確候補", "RR", "判定理由", "除外理由", "Yahoo Financeリンク", *MARGIN_COLUMNS]
 
 # yf.download() は銘柄ごとの例外をワーカースレッド内で捕捉し、呼び出し元へ
 # raise せず shared._ERRORS にだけ保存する。このスナップショットは各呼出し直後に
@@ -244,7 +245,8 @@ def run(notify: bool = True) -> Path:
         print(f"{done} / {total}")
         if done < total:
             time.sleep(max(0, float(config["scan"].get("batch_pause_seconds", 0.5))))
-    result = pd.DataFrame(rows, columns=RESULT_COLUMNS).sort_values("スコア", ascending=False, ignore_index=True)
+    result = pd.DataFrame(rows).sort_values("スコア", ascending=False, ignore_index=True) if rows else pd.DataFrame(columns=RESULT_COLUMNS)
+    result = enrich_margin(result, config, ROOT).reindex(columns=RESULT_COLUMNS)
     result.to_csv(output, index=False, encoding="utf-8-sig")
     excluded_output = ROOT / f'data/excluded_{now_tokyo():%Y%m%d}.csv'
     result[result["ランク"] == "除外"].to_csv(excluded_output, index=False, encoding="utf-8-sig")

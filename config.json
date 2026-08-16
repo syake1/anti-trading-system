@@ -318,6 +318,10 @@
       "電力・ガス": -0.5
     }
   },
+  "jpx_margin": {
+    "page_url": "https://www.jpx.co.jp/markets/statistics-equities/margin/05.html",
+    "timeout": 20
+  },
   "sector_strategy": {
     "bank": {
       "yield_change_5d_bp": 3.0,
