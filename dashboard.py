@@ -173,7 +173,7 @@ st.header("1. 買い候補ランキング TOP 10")
 if ranked.empty:
     st.info("表示できる買い候補はありません。空CSV・必須列不足の場合も他の集計は引き続き確認できます。")
 else:
-    table_columns = [column for column in ("順位", "コード", "会社名", "ランク", "スコア", "現在値", "RSI14", "BB位置", "出来高倍率", "シグナル種別") if column in ranked]
+    table_columns = [column for column in ("順位", "テクニカル順位", "調整後順位", "コード", "会社名", "ランク", "テクニカルスコア", "信用需給による減点", "信用需給スコア", "総合調整後スコア", "信用需給判定", "信用需給判定理由", "現在値", "RSI14", "BB位置", "出来高倍率", "シグナル種別") if column in ranked]
     st.dataframe(
         ranked[table_columns], hide_index=True, use_container_width=True,
         key="buy-candidate-ranking", on_select=partial(select_ranked_row, ranked),

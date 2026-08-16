@@ -21,7 +21,8 @@ from src.jgb_yields import (analyze_jgb, fetch_jgb_data, format_jgb_message,
                             jgb_sector_impacts, save_jgb_analysis)
 from src.market_research import write_research_report
 from src.fundamentals import assess, enrich_candidates
-from src.jpx_margin import DATA_COLUMNS as MARGIN_COLUMNS, enrich_candidates as enrich_margin
+from src.jpx_margin import (DATA_COLUMNS as MARGIN_COLUMNS, SCORE_COLUMNS as MARGIN_SCORE_COLUMNS,
+                            apply_margin_scoring, enrich_candidates as enrich_margin)
 from src.google_sheets import record_meeting_safely
 from src.stocknote import consume_shadow, export_request, write_shadow_report
 from src.night_meeting import (generate_night_result, generate_weekend_result, load_latest_night_result,
@@ -33,6 +34,8 @@ MEETING_COLUMNS = ["コード", "銘柄名", "最終判断", "最終分類", "�
  "必要資金", "最大想定損失", "RR", "分析評価", "運用評価", "総合順位点", "RSI", "BB位置",
  "出来高倍率", "暴落リバウンド型", "ファンダメンタルスコア", "テクニカルスコア", "反転確認スコア",
  "市場環境スコア", "業種環境スコア", "ニュース影響スコア", "資金・リスク評価", "分析コメント", "運用コメント", "注文理由"]
+MEETING_COLUMNS += ["信用需給による減点", "信用需給スコア", "総合調整後スコア", "テクニカル順位",
+                    "調整後順位", "信用需給判定", "信用需給判定理由"]
 MEETING_COLUMNS += ["ファンダメンタル評価", "ファンダメンタル十分", "ファンダメンタル不足理由",
  "売上高前年同期比", "営業利益前年同期比", "経常・純利益前年比", "EPS", "PER", "PBR", "ROE", "自己資本比率",
  "配当利回り", "利益状態", "業績4象限", "配当性向", "配当判定", "ファンダメンタル加減点理由",
@@ -53,7 +56,12 @@ def analysis_employee(row: dict, config: dict) -> dict:
     surged = bool(str(row.get("除外理由", "")).strip()) or str(row.get("ランク")) == "除外"
     volume, rsi = number(row, "出来高倍率"), number(row, "RSI14", 50)
     reversal = str(row.get("ローソク足パターン", "なし")) != "なし"
-    if surged:
+    margin_judgment = str(row.get("信用需給判定", ""))
+    if margin_judgment == "見送り":
+        classification, reason = "見送り", "信用倍率30倍以上で反転確認条件が未充足"
+    elif margin_judgment == "小口・反転確認後":
+        classification, reason = "小口", "信用倍率30倍以上のため反転確認後も小口限定"
+    elif surged:
         classification, reason = "見送り", "急騰済みを最優先して除外"
     elif volume < m["core_minimum_volume_ratio"]:
         classification, reason = "監視", "出来高0.6倍未満のため主力不可"
@@ -63,7 +71,7 @@ def analysis_employee(row: dict, config: dict) -> dict:
         classification, reason = "主力", "押し目と反転足を確認"
     else:
         classification, reason = "監視", "反転条件の完成待ち"
-    score = number(row, "スコア") + min(volume, 3) * 2 + (3 if reversal else 0) - (4 if crash else 0)
+    score = number(row, "総合調整後スコア", number(row, "スコア")) + min(volume, 3) * 2 + (3 if reversal else 0) - (4 if crash else 0)
     fundamentals = "入力あり" if any(row.get(k) not in (None, "") for k in ("EPS成長率", "ROE", "配当利回り", "上方修正")) else "入力なし（推測しない）"
     return {"classification": classification, "crash": crash, "score": score,
             "grade": "A+" if classification == "主力" else "A" if classification == "小口" else "B" if classification == "監視" else "C",
@@ -145,6 +153,12 @@ def evaluate_candidates(candidates: pd.DataFrame, config: dict, environment=None
           "RSI": number(row, "RSI14"), "BB位置": row.get("BB位置", ""), "出来高倍率": number(row, "出来高倍率"),
           "暴落リバウンド型": a["crash"], "分析コメント": a["comment"],
           "ファンダメンタルスコア": _display(fundamental.score), "テクニカルスコア": number(row, "スコア"),
+          "信用需給による減点": number(row, "信用需給による減点"),
+          "信用需給スコア": number(row, "信用需給スコア"),
+          "総合調整後スコア": number(row, "総合調整後スコア", number(row, "スコア")),
+          "テクニカル順位": row.get("テクニカル順位", ""), "調整後順位": row.get("調整後順位", ""),
+          "信用需給判定": row.get("信用需給判定", ""),
+          "信用需給判定理由": row.get("信用需給判定理由", ""),
           "反転確認スコア": 3 if str(row.get("ローソク足パターン", "なし")) != "なし" else 0,
           "市場環境スコア": environment.total_score, "業種環境スコア": sector_score, "ニュース影響スコア": news_score,
           "資金・リスク評価": f"{environment.regime}・通常の{environment.capital_ratio:.0%}",
@@ -292,6 +306,8 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
     candidates = read_csv_if_populated(candidates_path, dtype={"コード": str}) if candidates_path else pd.DataFrame()
     if not candidates.empty and not set(MARGIN_COLUMNS).issubset(candidates.columns):
         candidates = enrich_margin(candidates, config, ROOT)
+    if not candidates.empty and not set(MARGIN_SCORE_COLUMNS).issubset(candidates.columns):
+        candidates = apply_margin_scoring(candidates)
     if kind == "weekend":
         candidates = join_candidate_sectors(candidates)
     # A header-only CSV is a valid frame but contains no observations, so fallback is
