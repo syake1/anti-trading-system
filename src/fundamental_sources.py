@@ -260,9 +260,14 @@ def acquire(candidates: pd.DataFrame, config: dict, session=requests,
                     row["market_cap"] = float(price) * row["shares_outstanding"]
             row.update({"code": code, "source": "EDINET", "source_reference": reference,
                         "document_id": document_id, "acquired_at": acquired_at,
-                        # EDINET does not provide these required timely disclosures.
                         "company_forecast": "", "revision": "", "important_disclosure": "",
                         "next_earnings_date": ""})
+            try:
+                from src.jquants_source import acquire_forecast
+                jq = acquire_forecast(code, session)
+                row.update({k: v for k, v in jq.items() if v not in ("", None)})
+            except Exception:
+                pass  # J-Quants未設定/失敗時はEDINETのみの結果を維持
             rows.append(row); status, failure = "success", ""
         except Exception as exc:
             status, failure = "failure", _safe_error(exc, key)
