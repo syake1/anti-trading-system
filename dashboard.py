@@ -48,8 +48,12 @@ def load_prices(code: str) -> pd.DataFrame:
 def price_chart(frame: pd.DataFrame, plan: pd.Series | None) -> go.Figure:
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=.03,
                         row_heights=[.65, .18, .17], subplot_titles=("価格・テクニカル", "出来高", "RSI (14)"))
-    fig.add_trace(go.Candlestick(x=frame.index, open=frame["Open"], high=frame["High"], low=frame["Low"],
-                                 close=frame["Close"], name="ローソク足"), row=1, col=1)
+    fig.add_trace(go.Candlestick(
+        x=frame.index, open=frame["Open"], high=frame["High"], low=frame["Low"], close=frame["Close"],
+        name="ローソク足",
+        increasing={"line": {"color": "#ef4444"}, "fillcolor": "#ef4444"},
+        decreasing={"line": {"color": "#3b82f6"}, "fillcolor": "#3b82f6"},
+    ), row=1, col=1)
     for label, column, color in (("BB +2σ", "bb_upper", "#8b949e"), ("BB -2σ", "bb_lower", "#8b949e"),
                                   ("MA25", "MA25", "#f59e0b"), ("MA75", "MA75", "#3b82f6"),
                                   ("MA200", "MA200", "#a855f7")):
