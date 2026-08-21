@@ -8,7 +8,6 @@ import pandas as pd
 import yfinance as yf
 from yfinance import shared as yf_shared
 
-from src.anti_signal import detect
 from src.candlestick import patterns
 from src.discord_notify import candidate_message, post
 from src.indicators import enrich
@@ -72,14 +71,13 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
         stochastic(df, config["stochastic"]["k_period"], config["stochastic"]["d_period"])
     )
     now, prev = df.iloc[-1], df.iloc[-2]
-    anti = detect(df, config["stochastic"]["d_slope_days"])
     pats = patterns(df, "buy")
-    strategy = evaluate(df, anti, pats, config)
+    strategy = evaluate(df, pats, config)
     material, material_reasons = signals_for(str(stock["code"]), ROOT, config)
     flags = strategy["flags"] | material["flags"]
-    # Materials alone never create a candidate: price must confirm reversal/base/anti.
+    # Materials alone never create a candidate: price must confirm reversal or base building.
     if not any(strategy["flags"].values()): return None
-    signal = anti if anti and anti.get("side") == "buy" else {"side": "buy", "cross": strategy["stoch_cross"]}
+    signal = {"side": "buy", "cross": strategy["stoch_cross"]}
     value, reasons = score(df, signal, pats, config)
     if flags["底固め"]: value += config["weights"]["accumulation"]; reasons.extend(strategy["base_reasons"])
     if material["flags"]["自社株買い"]: value += config["weights"]["buyback"]
@@ -109,7 +107,7 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
             "%D傾き": round(now.D - df.D.iloc[-1-config["stochastic"]["d_slope_days"]], 2), "RSI14": round(now.RSI14, 2),
             "MA25": round(now.MA25, 2), "MA75": round(now.MA75, 2), "MA200": round(now.MA200, 2),
             "BB位置": f'{now.bb_sigma:+.2f}σ', "出来高倍率": round(now.volume_ratio, 2),
-            "ローソク足パターン": " / ".join(pats) or "なし", "アンチ判定": "強" if flags["アンチ"] and signal["cross"] else "通常" if flags["アンチ"] else "なし",
+            "ローソク足パターン": " / ".join(pats) or "なし", "アンチ判定": "なし",
             "買い・売り": "買い" if side == "buy" else "売り", "損切り候補": round(stop, 2),
             "シグナル種別": " / ".join(k for k, enabled in flags.items() if enabled),
             "シグナル数": sum(flags.values()), "自社株買い比率": round(material["buyback_ratio"], 2),

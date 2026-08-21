@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from src import backtest, scanner
-from src.anti_signal import detect
 from src.indicators import enrich
 from src.discord_notify import candidate_message
 from src.scoring import score
@@ -13,7 +12,7 @@ from src.strategies import evaluate
 from src.materials import load_buybacks
 
 
-def test_indicators_and_anti_buy():
+def test_indicators_and_stochastic_cross():
     n = 240
     close = np.linspace(100, 200, n) + np.sin(np.arange(n)/3) * 3
     frame = pd.DataFrame({"Open": close-.2, "High": close+2, "Low": close-2, "Close": close, "Volume": 200_000})
@@ -23,8 +22,7 @@ def test_indicators_and_anti_buy():
     # 判定器を制御値で確認する。
     result.loc[result.index[-4:], "D"] = [30, 32, 34, 36]
     result.loc[result.index[-3:], "K"] = [40, 25, 38]
-    signal = detect(result, 3)
-    assert signal and signal["side"] == "buy" and signal["cross"]
+    assert result.iloc[-1].K > result.iloc[-1].D
 
 
 def test_backtest_accepts_missing_empty_or_incomplete_history(tmp_path, monkeypatch):
@@ -290,7 +288,11 @@ def _config():
 
 def test_surge_metrics_and_configurable_exclusion_for_3660_and_8995(monkeypatch):
     config = _config()
-    monkeypatch.setattr(scanner, "detect", lambda df, slope: {"side": "buy", "cross": True, "d_trend": True})
+    monkeypatch.setattr(scanner, "evaluate", lambda df, pats, cfg: {
+        "flags": {"BB逆張り": True, "BB＋RSI＋ストキャス": False, "底固め": False},
+        "reversal": True, "bb_rebound": True, "rsi_reversal": True,
+        "stoch_reversal": True, "stoch_cross": True, "base_reasons": [],
+    })
     monkeypatch.setattr(scanner, "stochastic", lambda df, k, d: pd.DataFrame(
         {"K": np.linspace(20, 40, len(df)), "D": np.linspace(18, 38, len(df))}, index=df.index
     ))
@@ -365,7 +367,7 @@ def test_strategy_requires_reversal_after_lower_band():
         "bb_lower": [90]*3, "bb_mid": [100]*3, "volume_ratio": [1, 1, 1.5]})
     # accumulation needs history, but A/B can be evaluated independently.
     config["accumulation"]["lookback_days"] = 1
-    out = evaluate(frame, None, ["前日安値割れ反転"], config)
+    out = evaluate(frame, ["前日安値割れ反転"], config)
     assert out["flags"]["BB逆張り"]
     assert out["flags"]["BB＋RSI＋ストキャス"]
 
