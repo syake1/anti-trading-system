@@ -288,7 +288,11 @@ def _config():
 
 def test_surge_metrics_and_configurable_exclusion_for_3660_and_8995(monkeypatch):
     config = _config()
-    monkeypatch.setattr(scanner, "detect", lambda df, slope: {"side": "buy", "cross": True, "d_trend": True})
+    monkeypatch.setattr(scanner, "evaluate", lambda df, pats, cfg: {
+        "flags": {"BB逆張り": True, "BB＋RSI＋ストキャス": False, "底固め": False},
+        "reversal": True, "bb_rebound": True, "rsi_reversal": True,
+        "stoch_reversal": True, "stoch_cross": True, "base_reasons": [],
+    })
     monkeypatch.setattr(scanner, "stochastic", lambda df, k, d: pd.DataFrame(
         {"K": np.linspace(20, 40, len(df)), "D": np.linspace(18, 38, len(df))}, index=df.index
     ))
