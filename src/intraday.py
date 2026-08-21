@@ -53,6 +53,16 @@ def finalized_bars(df: pd.DataFrame, now=None) -> pd.DataFrame:
     return df.loc[completed].copy()
 
 
+def parabolic_message(item: dict, side: str, stamp: str, triggers: list[str], detected_at=None) -> str:
+    direction = "買い" if side == "買い" else "売り"
+    detected = pd.Timestamp(detected_at or now_tokyo()).strftime("%Y/%m/%d %H:%M:%S JST")
+    return (f"🔔【15分足 パラボリック{direction}サイン】\n"
+            f"{item['コード']} {item['会社名']}\n"
+            f"対象確定足：{stamp}\n"
+            f"検出時刻：{detected}\n"
+            f"確認：{'、'.join(triggers)}")
+
+
 def run() -> None:
     if not market_open(): print("東京市場時間外"); return
     watch = load_json(ROOT / "data/watchlist.json", [])
@@ -82,7 +92,7 @@ def run() -> None:
             stamp = pd.Timestamp(df.index[-1]).isoformat()
             key = f'{code}:{stamp}:{side}:entry'
             if key not in state:
-                post(f'🚨 エントリー候補\n{code} {item["会社名"]}（{side}）\n確定足：{stamp}\n確認：{"、".join(triggers)}')
+                post(parabolic_message(item, side, stamp, triggers))
                 state[key] = now_tokyo().isoformat()
     save_json(ROOT / "data/alert_state.json", state)
 
