@@ -9,7 +9,7 @@ concurrency: anti-daily
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -19,6 +19,8 @@ jobs:
       - run: python -m src.scanner
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
+          JQUANTS_REFRESH_TOKEN: ${{ secrets.JQUANTS_REFRESH_TOKEN }}
       - name: Persist results
         run: |
           git config user.name github-actions[bot]

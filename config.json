@@ -807,6 +807,8 @@
   },
   "fundamentals": {
     "edinet_lookback_days": 400,
+    "minimum_buy_score": 6,
+    "require_for_buy_watchlist": true,
     "official_sources": [
       "EDINET",
       "TDnet",
