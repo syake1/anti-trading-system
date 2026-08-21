@@ -34,8 +34,8 @@ def accumulation(df: pd.DataFrame, config: dict) -> tuple[bool, list[str]]:
     return confirmed, reasons
 
 
-def evaluate(df: pd.DataFrame, anti: dict | None, pats: list[str], config: dict) -> dict:
-    """Return independent A-D strategy flags and a reversal gate."""
+def evaluate(df: pd.DataFrame, pats: list[str], config: dict) -> dict:
+    """Return the enabled reversal strategy flags and a reversal gate."""
     now, prev = df.iloc[-1], df.iloc[-2]
     bullish_candle = now.Close > now.Open and now.Close > prev.Close
     candle_reversal = bullish_candle or any(
@@ -51,7 +51,6 @@ def evaluate(df: pd.DataFrame, anti: dict | None, pats: list[str], config: dict)
         "BB逆張り": bb_rebound and candle_reversal,
         "BB＋RSI＋ストキャス": bb_rebound and candle_reversal and (rsi_reversal or recently_oversold) and stoch_reversal,
         "底固め": base,
-        "アンチ": bool(anti and anti.get("side") == "buy"),
     }
     return {"flags": flags, "reversal": candle_reversal, "bb_rebound": bb_rebound,
             "rsi_reversal": rsi_reversal or recently_oversold, "stoch_reversal": stoch_reversal,
