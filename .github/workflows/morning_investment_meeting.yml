@@ -19,7 +19,7 @@ jobs:
   meeting:
     env:
       EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
-      JQUANTS_REFRESH_TOKEN: ${{ secrets.JQUANTS_REFRESH_TOKEN }}
+      JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
