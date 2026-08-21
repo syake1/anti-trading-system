@@ -19,6 +19,7 @@ from src.csv_history import LEGACY_SIGNAL_COLUMNS, read_mixed_csv, write_merged_
 from src.utils import ROOT, load_config, now_tokyo, save_json
 from src.jpx_margin import (DATA_COLUMNS as MARGIN_COLUMNS, SCORE_COLUMNS as MARGIN_SCORE_COLUMNS,
                             apply_margin_scoring, enrich_candidates as enrich_margin)
+from src.fundamentals import enrich_candidates as enrich_fundamentals
 
 
 RESULT_COLUMNS = ["シグナル日", "コード", "会社名", "市場", "現在値", "前日比", "直近3日騰落率", "直近5日騰落率",
@@ -63,6 +64,25 @@ def speculative_stock_exclusion(df: pd.DataFrame, config: dict) -> list[str]:
         (atr_pct >= float(c.get("max_atr_pct", 8.0)), "ATR比率異常"),
     ]
     return [reason for matched, reason in checks if matched]
+
+
+def fundamental_buy_candidates(frame: pd.DataFrame, config: dict) -> pd.DataFrame:
+    """Keep only candidates backed by sufficient, non-adverse official fundamentals."""
+    if frame.empty:
+        return frame.copy()
+    fc = config.get("fundamentals", {})
+    if not fc.get("require_for_buy_watchlist", True):
+        return frame.copy()
+    score = pd.to_numeric(frame.get("ファンダメンタルスコア"), errors="coerce")
+    sufficient = frame.get("ファンダメンタル十分", pd.Series(False, index=frame.index)).eq(True)
+    adverse = (
+        frame.get("revision", pd.Series("", index=frame.index)).fillna("").astype(str)
+        + " "
+        + frame.get("important_disclosure", pd.Series("", index=frame.index)).fillna("").astype(str)
+        + " "
+        + frame.get("company_forecast", pd.Series("", index=frame.index)).fillna("").astype(str)
+    ).str.contains("下方修正|赤字転落|債務超過|不祥事|重大事故", regex=True)
+    return frame[sufficient & score.ge(float(fc.get("minimum_buy_score", 6))) & ~adverse].copy()
 
 
 def normalize(data: pd.DataFrame) -> pd.DataFrame:
@@ -278,11 +298,13 @@ def run(notify: bool = True) -> Path:
         # 現行列へ揃え、未知の追加列も保持した上で原子的に置き換える。
         previous = read_mixed_csv(history, [*LEGACY_SIGNAL_COLUMNS, RESULT_COLUMNS], dtype={"コード": str})
         write_merged_csv(history, previous, result)
-        selected = result[result["ランク"].isin(config["scan"].get("watchlist_ranks", ["S", "A"]))]
+        fundamental_result = enrich_fundamentals(result, config)
+        approved = fundamental_buy_candidates(fundamental_result, config)
+        selected = approved[approved["ランク"].isin(config["scan"].get("watchlist_ranks", ["S", "A"]))]
         selected = selected.head(int(config["scan"].get("watchlist_max_stocks", 50)))
         save_json(ROOT / "data/watchlist.json", selected[["コード", "会社名", "買い・売り", "シグナル日"]].to_dict("records"))
         if notify:
-            alerts = result[result["ランク"].isin(config["scan"]["notify_ranks"]) | (result["シグナル数"] >= 2)]
+            alerts = approved[approved["ランク"].isin(config["scan"]["notify_ranks"]) | (approved["シグナル数"] >= 2)]
             for row in alerts.head(int(config["scan"].get("discord_max_alerts", 20))).to_dict("records"):
                 try:
                     post(candidate_message(row))
@@ -299,6 +321,8 @@ def run(notify: bool = True) -> Path:
     print(f"逆張り候補数: {len(result)}")
     print(f"Sランク件数: {(result['ランク'] == 'S').sum() if not result.empty else 0}")
     print(f"Aランク件数: {(result['ランク'] == 'A').sum() if not result.empty else 0}")
+    if rows:
+        print(f"ファンダメンタル通過件数: {len(approved)}")
     print(f"急騰除外件数: {(result['除外理由'].fillna('').str.startswith('急騰済み')).sum() if not result.empty else 0}")
     print(f"取得成功数 / 取得失敗数 / 429件数 / 全対象数: {success} / {failed} / {len(rate_limited)} / {total}")
     print(f"処理時間: {time.monotonic() - started_at:.1f}秒")
