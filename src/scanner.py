@@ -50,6 +50,21 @@ def surge_exclusion(row: pd.Series, config: dict) -> list[str]:
     return [reason for matched, reason in checks if matched]
 
 
+def speculative_stock_exclusion(df: pd.DataFrame, config: dict) -> list[str]:
+    """Return hard-gate reasons for low-quality, manipulation-prone price action."""
+    c = config.get("speculative_stock_exclusion", {})
+    if not c or df.empty:
+        return []
+    now = df.iloc[-1]
+    recent_volume = pd.to_numeric(df.volume_ratio.iloc[-5:], errors="coerce")
+    atr_pct = float(now.ATR14) / float(now.Close) * 100 if float(now.Close) > 0 else float("inf")
+    checks = [
+        (recent_volume.max() >= float(c.get("max_volume_ratio_5d", 5.0)), "直近5日出来高異常急増"),
+        (atr_pct >= float(c.get("max_atr_pct", 8.0)), "ATR比率異常"),
+    ]
+    return [reason for matched, reason in checks if matched]
+
+
 def normalize(data: pd.DataFrame) -> pd.DataFrame:
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
@@ -70,6 +85,10 @@ def analyze(data: pd.DataFrame, stock: dict, config: dict) -> dict | None:
     df = enrich(df, config).join(
         stochastic(df, config["stochastic"]["k_period"], config["stochastic"]["d_period"])
     )
+    speculative_reasons = speculative_stock_exclusion(df, config)
+    if speculative_reasons:
+        print(f"{stock['code']} 仕手株リスク除外: {'、'.join(speculative_reasons)}")
+        return None
     now, prev = df.iloc[-1], df.iloc[-2]
     pats = patterns(df, "buy")
     strategy = evaluate(df, pats, config)
