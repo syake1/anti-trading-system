@@ -2,7 +2,8 @@ import copy
 import json
 import pandas as pd
 
-from src.investment_meeting import evaluate_candidates, load_market_input, morning_message
+from src.investment_meeting import (evaluate_candidates, load_market_input, morning_message,
+                                    save_approved_buy_watchlist)
 from src.risk_manager import position_size
 
 
@@ -104,3 +105,19 @@ def test_order_levels_primary_cap_and_determinism():
 def test_large_gap_is_skipped():
     result = evaluate_candidates(pd.DataFrame([candidate(gap_pct=5.0)]), config())
     assert result.iloc[0]["最終判断"] == "見送り"
+
+
+def test_morning_meeting_replaces_watchlist_with_fundamentally_approved_buys(tmp_path):
+    result = pd.DataFrame([
+        {"コード": "0001", "銘柄名": "承認銘柄", "最終判断": "主力",
+         "ファンダメンタル十分": True, "ファンダメンタルスコア": 8,
+         "業績修正": "上方修正", "重要適時開示": "", "今期会社予想": "増収増益"},
+        {"コード": "0002", "銘柄名": "データ不足", "最終判断": "小口",
+         "ファンダメンタル十分": False, "ファンダメンタルスコア": 8},
+        {"コード": "0003", "銘柄名": "下方修正", "最終判断": "主力",
+         "ファンダメンタル十分": True, "ファンダメンタルスコア": 8, "業績修正": "下方修正"},
+    ])
+    path = tmp_path / "watchlist.json"
+    rows = save_approved_buy_watchlist(result, {"fundamentals": {"minimum_buy_score": 6}}, path)
+    assert [row["コード"] for row in rows] == ["0001"]
+    assert json.loads(path.read_text(encoding="utf-8")) == rows
