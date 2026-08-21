@@ -11,9 +11,13 @@
     "atr_period": 14
   },
   "liquidity": {
-    "min_price": 100,
+    "min_price": 300,
     "min_avg_volume_20": 100000,
-    "min_avg_trading_value_20": 100000000
+    "min_avg_trading_value_20": 300000000
+  },
+  "speculative_stock_exclusion": {
+    "max_volume_ratio_5d": 5.0,
+    "max_atr_pct": 8.0
   },
   "scan": {
     "history_period": "2y",
