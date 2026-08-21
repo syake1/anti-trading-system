@@ -67,7 +67,10 @@ def price_chart(frame: pd.DataFrame, plan: pd.Series | None) -> go.Figure:
                                   ("利確", "利確目標", "#9333ea")):
             number = pd.to_numeric(pd.Series([plan.get(key)]), errors="coerce").iloc[0]
             if pd.notna(number):
-                fig.add_hline(y=float(number), annotation_text=label, line_color=color, line_dash="dash", row=1, col=1)
+                # Keep order labels away from the latest candles on the right edge.
+                fig.add_hline(y=float(number), annotation_text=label,
+                              annotation_position="top left",
+                              line_color=color, line_dash="dash", row=1, col=1)
     fig.update_layout(height=720, margin={"l": 20, "r": 20, "t": 45, "b": 20}, xaxis_rangeslider_visible=False,
                       legend={"orientation": "h", "y": 1.04})
     return fig
