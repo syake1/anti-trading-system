@@ -19,6 +19,7 @@ jobs:
   meeting:
     env:
       EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
+      JQUANTS_REFRESH_TOKEN: ${{ secrets.JQUANTS_REFRESH_TOKEN }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -72,7 +73,6 @@ jobs:
           EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
           GOOGLE_SPREADSHEET_ID: ${{ secrets.GOOGLE_SPREADSHEET_ID }}
           GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
-          JQUANTS_REFRESH_TOKEN: ${{ secrets.JQUANTS_REFRESH_TOKEN }}
       - name: Persist meeting
         run: |
           git config user.name github-actions[bot]
