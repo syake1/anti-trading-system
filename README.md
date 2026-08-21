@@ -167,13 +167,15 @@ GitHub リポジトリの **Settings → Secrets and variables → Actions** に
 
 * `DISCORD_WEBHOOK`（任意：未設定なら通知をスキップ）
 * `EDINET_API_KEY`（EDINET APIからファンダメンタルを取得。値はログへ出力しません）
+* `JQUANTS_API_KEY`（J-Quants V2から会社予想・業績修正を取得。`x-api-key`で送信し、値はログへ出力しません）
 
 朝会はEDINETコードリストをキャッシュし、JPX公式の上場銘柄配布ファイルで証券コードを確認してから、
 最新の有価証券報告書・半期報告書等のXBRLを取得します。明示された当期・前期だけから前年比を計算し、
 候補CSVの現在値と明示されたEPS・BPS・実績配当を使ってPER・PBR・実績配当利回りを計算します。
 取得元、時刻、書類ID、参照URL、失敗理由は `data/fundamentals_audit.csv` に保存し、取得失敗時も朝会を継続します。
-EDINETだけでは会社予想・上方下方修正・重要適時開示が不足するため欠損のままとし、必須11項目は緩和しません。
-非公式HTMLスクレイピング、推測・補完、J-Quants、TDnet自動取得はこの最小構成に含みません。
+EDINETだけでは不足する会社予想・上方下方修正は、`JQUANTS_API_KEY` が設定されている場合に
+J-Quants V2の公式財務情報（`/v2/fins/summary`）で補完します。取得できない項目は推測せず欠損のままとし、
+必須項目は緩和しません。非公式HTMLスクレイピングは行いません。
 
 `.github/workflows/update_stocks.yml` は毎週日曜12:00 UTC（JST 21:00）に一覧を更新し、変更時だけcommit/pushします。`anti_daily_scan.yml` は平日09:00 UTC（18:00 JST、30分timeout）に backtest → scanner の順、`anti_intraday_alert.yml` は平日00:00～06:59 UTCに5分間隔で起動します。各ワークフローはGitHubの **Actions** タブで選択し **Run workflow** から手動実行できます。日足Discord通知はS/Aをスコア順に `scan.discord_max_alerts`（既定20）件まで送ります。全銘柄スキャンは通常数分～30分程度を想定しますが、無料APIの応答・レート制限に依存します。結果をcommitするため `contents: write` を使用し、ブランチ保護時はartifact等への変更が必要です。
 
