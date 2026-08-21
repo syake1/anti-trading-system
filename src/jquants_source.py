@@ -10,11 +10,9 @@ from datetime import datetime, timezone
 import os
 import requests
 
-JQUANTS_AUTH_REFRESH = "https://api.jquants.com/v1/token/auth_refresh"
-JQUANTS_STATEMENTS = "https://api.jquants.com/v1/fins/statements"
+JQUANTS_SUMMARY = "https://api.jquants.com/v2/fins/summary"
 
-_FORECAST_KEYS = ("ForecastNetSales", "ForecastOperatingProfit", "ForecastOrdinaryProfit",
-                  "ForecastProfit", "ForecastEarningsPerShare")
+_FORECAST_KEYS = ("FSales", "FOP", "FOdP", "FNP", "FEPS")
 
 
 class JQuantsError(RuntimeError):
@@ -28,29 +26,23 @@ def _num(value):
         return None
 
 
-def get_id_token(session=requests) -> str:
-    """Exchange the long-lived refresh token (env var) for a short-lived ID token."""
-    refresh_token = os.getenv("JQUANTS_REFRESH_TOKEN", "")
-    if not refresh_token:
-        raise JQuantsError("JQUANTS_REFRESH_TOKEN未設定")
-    response = session.post(JQUANTS_AUTH_REFRESH, params={"refreshtoken": refresh_token}, timeout=30)
-    if not response.ok:
-        raise JQuantsError(f"J-Quants認証失敗 HTTP {response.status_code}")
-    token = response.json().get("idToken", "")
-    if not token:
-        raise JQuantsError("J-QuantsIDトークン取得失敗")
-    return token
+def get_api_key() -> str:
+    """Read the J-Quants V2 API key without ever logging its value."""
+    api_key = os.getenv("JQUANTS_API_KEY", "").strip()
+    if not api_key:
+        raise JQuantsError("JQUANTS_API_KEY未設定")
+    return api_key
 
 
-def fetch_statements(code: str, id_token: str, session=requests) -> list[dict]:
+def fetch_statements(code: str, api_key: str, session=requests) -> list[dict]:
     """Return every officially disclosed statement for this security, newest first."""
-    jquants_code = f"{code}0"  # J-Quants uses the 5-digit padded code.
-    response = session.get(JQUANTS_STATEMENTS, params={"code": jquants_code},
-                            headers={"Authorization": f"Bearer {id_token}"}, timeout=30)
+    jquants_code = str(code).strip()
+    response = session.get(JQUANTS_SUMMARY, params={"code": jquants_code},
+                            headers={"x-api-key": api_key}, timeout=30)
     if not response.ok:
         raise JQuantsError(f"J-Quants財務情報取得失敗 HTTP {response.status_code}")
-    statements = response.json().get("statements", [])
-    return sorted(statements, key=lambda s: str(s.get("DisclosedDate", "")), reverse=True)
+    statements = response.json().get("data", [])
+    return sorted(statements, key=lambda s: str(s.get("DiscDate", "")), reverse=True)
 
 
 def derive_forecast(statements: list[dict]) -> dict:
@@ -58,14 +50,14 @@ def derive_forecast(statements: list[dict]) -> dict:
     if not statements:
         return {}
     latest = statements[0]
-    fiscal_end = latest.get("CurrentFiscalYearEndDate")
+    fiscal_end = latest.get("CurFYEn")
     prior = next((s for s in statements[1:]
-                  if s.get("CurrentFiscalYearEndDate") == fiscal_end
-                  and s.get("DisclosedDate") != latest.get("DisclosedDate")), None)
+                  if s.get("CurFYEn") == fiscal_end
+                  and s.get("DiscDate") != latest.get("DiscDate")), None)
 
     latest_forecast = {k: _num(latest.get(k)) for k in _FORECAST_KEYS}
-    revenue_f, op_f, profit_f = latest_forecast["ForecastNetSales"], latest_forecast["ForecastOperatingProfit"], latest_forecast["ForecastProfit"]
-    revenue_a, op_a = _num(latest.get("NetSales")), _num(latest.get("OperatingProfit"))
+    revenue_f, op_f, profit_f = latest_forecast["FSales"], latest_forecast["FOP"], latest_forecast["FNP"]
+    revenue_a, op_a = _num(latest.get("Sales")), _num(latest.get("OP"))
 
     forecast_label = ""
     if revenue_f is not None and op_f is not None and revenue_a is not None and op_a is not None:
@@ -76,7 +68,7 @@ def derive_forecast(statements: list[dict]) -> dict:
     revision_label = important_disclosure = ""
     if prior is not None:
         prior_forecast = {k: _num(prior.get(k)) for k in _FORECAST_KEYS}
-        prior_op, prior_profit = prior_forecast["ForecastOperatingProfit"], prior_forecast["ForecastProfit"]
+        prior_op, prior_profit = prior_forecast["FOP"], prior_forecast["FNP"]
         if op_f is not None and prior_op is not None and op_f != prior_op:
             revision_label = "上方修正" if op_f > prior_op else "下方修正"
         if (prior_op is not None and op_f is not None and prior_op >= 0 > op_f) or \
@@ -94,8 +86,8 @@ def derive_forecast(statements: list[dict]) -> dict:
 def acquire_forecast(code: str, session=requests) -> dict:
     """Single-code convenience wrapper; raises JQuantsError on any failure so the
     caller can audit and fall back to the existing 'insufficient' behavior."""
-    id_token = get_id_token(session)
-    statements = fetch_statements(code, id_token, session)
+    api_key = get_api_key()
+    statements = fetch_statements(code, api_key, session)
     if not statements:
         raise JQuantsError("J-Quants財務情報0件")
     data = derive_forecast(statements)
