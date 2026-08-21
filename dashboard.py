@@ -170,6 +170,7 @@ with st.expander("条件・システム変更履歴 / 過去バージョンと�
     st.info("過去バージョンとの成績比較: まだ記録がありません")
 
 st.header("1. 買い候補ランキング TOP 10")
+st.caption("会議前でも、相場終了後の日足スキャンで抽出された一次買い候補を表示します。朝会議後にファンダメンタルを含む最終判断へ更新されます。")
 if ranked.empty:
     st.info("表示できる買い候補はありません。空CSV・必須列不足の場合も他の集計は引き続き確認できます。")
 else:
@@ -192,6 +193,9 @@ else:
     )
     st.download_button("候補TOP10をダウンロード", csv_download_data(ranked), dated_csv_filename("buy_candidates_top10"),
                        "text/csv", key="top10-download")
+    st.download_button("一次買い候補・全件CSVをダウンロード", csv_download_data(candidates),
+                       dated_csv_filename("technical_buy_candidates_all"),
+                       "text/csv", key="all-technical-candidates-download")
 
 if not ranked.empty:
     code = st.session_state["selected_candidate_code"]

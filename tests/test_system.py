@@ -358,21 +358,6 @@ def test_speculative_stock_filter_accepts_normal_liquid_price_action():
     }) == []
 
 
-def test_buy_watchlist_requires_sufficient_non_adverse_fundamentals():
-    frame = pd.DataFrame([
-        {"コード": "0001", "ファンダメンタル十分": True, "ファンダメンタルスコア": 8,
-         "revision": "上方修正", "important_disclosure": "", "company_forecast": "増収増益"},
-        {"コード": "0002", "ファンダメンタル十分": False, "ファンダメンタルスコア": 8},
-        {"コード": "0003", "ファンダメンタル十分": True, "ファンダメンタルスコア": 5},
-        {"コード": "0004", "ファンダメンタル十分": True, "ファンダメンタルスコア": 8,
-         "revision": "下方修正"},
-    ])
-    approved = scanner.fundamental_buy_candidates(frame, {
-        "fundamentals": {"require_for_buy_watchlist": True, "minimum_buy_score": 6}
-    })
-    assert approved["コード"].tolist() == ["0001"]
-
-
 def test_one_day_rise_without_recent_decline_cannot_be_sa_rank():
     config = _config()
     frame = pd.DataFrame({

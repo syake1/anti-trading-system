@@ -299,6 +299,29 @@ def run_stocknote_cli(request_path: Path, timeout_seconds: float) -> bool:
         return False
 
 
+def save_approved_buy_watchlist(result: pd.DataFrame, config: dict, path: Path | None = None) -> list[dict]:
+    """Replace the provisional technical list with meeting-approved buy candidates."""
+    path = path or ROOT / "data/watchlist.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if result.empty:
+        rows = []
+    else:
+        fc = config.get("fundamentals", {})
+        score = pd.to_numeric(result.get("ファンダメンタルスコア"), errors="coerce")
+        sufficient = result.get("ファンダメンタル十分", pd.Series(False, index=result.index)).eq(True)
+        final = result.get("最終判断", pd.Series("", index=result.index)).isin(["主力", "小口"])
+        adverse = (
+            result.get("業績修正", pd.Series("", index=result.index)).fillna("").astype(str)
+            + " " + result.get("重要適時開示", pd.Series("", index=result.index)).fillna("").astype(str)
+            + " " + result.get("今期会社予想", pd.Series("", index=result.index)).fillna("").astype(str)
+        ).str.contains("下方修正|赤字転落|債務超過|不祥事|重大事故", regex=True)
+        approved = result[sufficient & score.ge(float(fc.get("minimum_buy_score", 6))) & final & ~adverse]
+        rows = [{"コード": str(row["コード"]), "会社名": row.get("銘柄名", ""), "買い・売り": "買い",
+                 "シグナル日": now_tokyo().date().isoformat()} for row in approved.to_dict("records")]
+    path.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return rows
+
+
 def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Path:
     config, today = load_config(), now_tokyo().strftime("%Y%m%d")
     if candidates_path is None:
@@ -360,6 +383,8 @@ def run(kind="morning", notify=True, candidates_path: Path | None = None) -> Pat
         return output
     candidates = enrich_candidates(candidates, config)
     result = evaluate_candidates(candidates, config, environment, news, jgb)
+    if kind in ("morning", "recheck"):
+        save_approved_buy_watchlist(result, config)
     stocknote = config.get("stocknote", {})
     if stocknote.get("enabled", False):
         exchange = ROOT / stocknote.get("exchange_directory", "data/stocknote")
