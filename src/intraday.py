@@ -29,6 +29,11 @@ def market_open() -> bool:
     return now.weekday() < 5 and ((9*60 <= minute <= 11*60+30) or (12*60+30 <= minute <= 15*60+30))
 
 
+def entry_confirmed(*, reversal: bool, sar: bool, candle: bool) -> bool:
+    """Notify only when momentum, Parabolic SAR and candle direction all agree."""
+    return reversal and sar and candle
+
+
 def run() -> None:
     if not market_open(): print("東京市場時間外"); return
     watch = load_json(ROOT / "data/watchlist.json", [])
@@ -51,7 +56,8 @@ def run() -> None:
         candle = b.Close > b.Open if side == "買い" else b.Close < b.Open
         volume = b.Volume > df.Volume.iloc[-21:-1].mean() * 1.3
         triggers = [name for name, ok in {"%K反転": reversal, "%K%Dクロス": cross, "SAR転換": sar, "出来高増加": volume, "ローソク転換": candle}.items() if ok]
-        if reversal and (cross or sar) and candle:
+        # %K/%Dクロスは補足表示にだけ使い、クロス単独では通知しない。
+        if entry_confirmed(reversal=reversal, sar=sar, candle=candle):
             stamp = pd.Timestamp(df.index[-1]).isoformat()
             key = f'{code}:{stamp}:{side}:entry'
             if key not in state:
@@ -61,4 +67,3 @@ def run() -> None:
 
 
 if __name__ == "__main__": run()
-
