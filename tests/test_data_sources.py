@@ -26,7 +26,8 @@ def source(name, priority, instrument_type="yield"):
 
 def good(value=1.5):
     def adapter(_source, _session):
-        return Observation(value, "2026-08-14", "percent", pd.Series([1.4, value])), 200
+        observed = datetime.now(timezone.utc).date().isoformat()
+        return Observation(value, observed, "percent", pd.Series([1.4, value])), 200
     return adapter
 
 
