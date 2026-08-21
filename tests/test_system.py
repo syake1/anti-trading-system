@@ -297,7 +297,7 @@ def test_surge_metrics_and_configurable_exclusion_for_3660_and_8995(monkeypatch)
         {"K": np.linspace(20, 40, len(df)), "D": np.linspace(18, 38, len(df))}, index=df.index
     ))
     n = 240
-    base = np.linspace(100, 110, n)
+    base = np.linspace(1000, 1100, n)
     for code, final_gain in (("3660", 9), ("8995", 13)):
         close = base.copy()
         close[-1] = close[-2] * (1 + final_gain / 100)
@@ -333,6 +333,29 @@ def test_countertrend_reversal_scores_above_s_rank_threshold():
     assert value >= config["rank_thresholds"]["S"]
     assert "直近2～5日まで下落" in reasons
     assert "ストキャス売られ過ぎから反転" in reasons
+
+
+def test_speculative_stock_filter_rejects_volume_spike_and_extreme_atr():
+    frame = pd.DataFrame({
+        "Close": [1000.0] * 5,
+        "ATR14": [20.0, 20.0, 20.0, 20.0, 90.0],
+        "volume_ratio": [1.0, 1.2, 5.0, 1.1, 1.0],
+    })
+    reasons = scanner.speculative_stock_exclusion(frame, {
+        "speculative_stock_exclusion": {"max_volume_ratio_5d": 5.0, "max_atr_pct": 8.0}
+    })
+    assert reasons == ["直近5日出来高異常急増", "ATR比率異常"]
+
+
+def test_speculative_stock_filter_accepts_normal_liquid_price_action():
+    frame = pd.DataFrame({
+        "Close": [1000.0] * 5,
+        "ATR14": [20.0] * 5,
+        "volume_ratio": [1.0, 1.2, 1.5, 1.1, 2.0],
+    })
+    assert scanner.speculative_stock_exclusion(frame, {
+        "speculative_stock_exclusion": {"max_volume_ratio_5d": 5.0, "max_atr_pct": 8.0}
+    }) == []
 
 
 def test_one_day_rise_without_recent_decline_cannot_be_sa_rank():
