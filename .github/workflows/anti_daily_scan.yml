@@ -20,7 +20,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           EDINET_API_KEY: ${{ secrets.EDINET_API_KEY }}
-          JQUANTS_REFRESH_TOKEN: ${{ secrets.JQUANTS_REFRESH_TOKEN }}
+          JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
       - name: Persist results
         run: |
           git config user.name github-actions[bot]
