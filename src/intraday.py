@@ -7,6 +7,9 @@ from src.stochastic import stochastic
 from src.utils import ROOT, load_config, load_json, now_tokyo, save_json
 
 
+BAR_MINUTES = 15
+
+
 def psar(df: pd.DataFrame, step=.02, maximum=.2) -> pd.Series:
     values, bull, af, extreme = [df.Low.iloc[0]], True, step, df.High.iloc[0]
     for i in range(1, len(df)):
@@ -34,6 +37,22 @@ def entry_confirmed(*, reversal: bool, sar: bool, candle: bool) -> bool:
     return reversal and sar and candle
 
 
+def finalized_bars(df: pd.DataFrame, now=None) -> pd.DataFrame:
+    """Keep every completed 15-minute bar and exclude only a forming bar."""
+    if df.empty:
+        return df.copy()
+    now = pd.Timestamp(now or now_tokyo())
+    index = pd.DatetimeIndex(df.index)
+    if index.tz is None:
+        index = index.tz_localize("Asia/Tokyo")
+    elif now.tzinfo is None:
+        now = now.tz_localize(index.tz)
+    else:
+        now = now.tz_convert(index.tz)
+    completed = index + pd.Timedelta(minutes=BAR_MINUTES) <= now
+    return df.loc[completed].copy()
+
+
 def run() -> None:
     if not market_open(): print("東京市場時間外"); return
     watch = load_json(ROOT / "data/watchlist.json", [])
@@ -44,9 +63,11 @@ def run() -> None:
         df = yf.download(f"{code}.T", period="5d", interval="15m", progress=False, auto_adjust=False)
         if isinstance(df.columns, pd.MultiIndex): df.columns = df.columns.get_level_values(0)
         df = df.dropna()
+        # 最後の足を無条件に削除すると、すでに確定済みの足まで捨てて15分遅れる。
+        # 足の開始時刻+15分で判定し、形成中の足だけを除外する。
+        df = finalized_bars(df)
         if len(df) < 25: continue
-        # yfinanceの最後の足は形成中の可能性があるため、一つ前の確定足だけを評価する。
-        df = df.iloc[:-1].copy().join(stochastic(df.iloc[:-1], config["k_period"], config["d_period"]))
+        df = df.join(stochastic(df, config["k_period"], config["d_period"]))
         df["PSAR"] = psar(df)
         a, b = df.iloc[-2], df.iloc[-1]
         side = item["買い・売り"]
